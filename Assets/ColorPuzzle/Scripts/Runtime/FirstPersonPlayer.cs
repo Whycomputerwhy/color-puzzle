@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace ColorPuzzle
@@ -22,9 +23,11 @@ namespace ColorPuzzle
         private CharacterController controller;
         private float verticalVelocity;
         private float pitch;
-        private bool controlsLocked;
+        private bool movementLocked;
+        private bool lookLocked;
 
         public Transform CameraPivot => cameraPivot;
+        public bool IsGrounded => controller != null && controller.isGrounded;
 
         private void Awake()
         {
@@ -42,15 +45,16 @@ namespace ColorPuzzle
             if (Keyboard.current == null || Mouse.current == null) return;
 
             if (Keyboard.current.escapeKey.wasPressedThisFrame) SetCursorLocked(false);
-            if (Mouse.current.leftButton.wasPressedThisFrame && Cursor.lockState != CursorLockMode.Locked)
+            if (Mouse.current.leftButton.wasPressedThisFrame &&
+                Cursor.lockState != CursorLockMode.Locked &&
+                (EventSystem.current == null || !EventSystem.current.IsPointerOverGameObject()))
                 SetCursorLocked(true);
-
-            if (controlsLocked) return;
 
             if (Cursor.lockState == CursorLockMode.Locked)
             {
-                UpdateLook();
-                UpdateMovement();
+                if (!lookLocked) UpdateLook();
+                if (!movementLocked) UpdateMovement();
+                else ApplyGravityOnly();
             }
             else
             {
@@ -60,7 +64,14 @@ namespace ColorPuzzle
 
         public void SetControlsLocked(bool locked)
         {
-            controlsLocked = locked;
+            movementLocked = locked;
+            lookLocked = locked;
+        }
+
+        public void SetMagnifierControls(bool magnifierActive, bool allowCameraLook)
+        {
+            movementLocked = magnifierActive;
+            lookLocked = magnifierActive && !allowCameraLook;
         }
 
         private void UpdateLook()

@@ -10,6 +10,8 @@ namespace ColorPuzzle
 
         [Header("Identity")]
         [SerializeField] private string objectId = "red-ball";
+        [SerializeField] private string displayName = "Red Ball";
+        [SerializeField] private Color inventoryColor = new Color(0.85f, 0.08f, 0.08f, 1f);
 
         [Header("Discovery Appearance")]
         [SerializeField] private Renderer grayscaleRenderer;
@@ -18,11 +20,12 @@ namespace ColorPuzzle
 
         private Rigidbody body;
         private Collider hitCollider;
-        private Transform carryAnchor;
         private RigidbodyInterpolation originalInterpolation;
         private bool discovered;
 
         public string ObjectId => objectId;
+        public string DisplayName => displayName;
+        public Color InventoryColor => inventoryColor;
         public bool IsDiscovered => discovered;
         public Bounds DiscoveryBounds => grayscaleRenderer != null ? grayscaleRenderer.bounds : hitCollider.bounds;
         public static IEnumerable<DiscoverableObject> ActiveObjects => ActiveDiscoverables;
@@ -37,15 +40,6 @@ namespace ColorPuzzle
             originalInterpolation = body.interpolation;
         }
 
-        private void LateUpdate()
-        {
-            if (carryAnchor == null) return;
-
-            // Camera look is applied during Update. Following in LateUpdate keeps the carried
-            // object locked to the final camera pose for this frame without Rigidbody lag.
-            transform.SetPositionAndRotation(carryAnchor.position, carryAnchor.rotation);
-        }
-
         public void Discover()
         {
             if (discovered) return;
@@ -54,9 +48,8 @@ namespace ColorPuzzle
                 grayscaleRenderer.sharedMaterial = discoveredMaterial;
         }
 
-        public void PickUp(Transform holdAnchor)
+        public void PickUp()
         {
-            carryAnchor = holdAnchor;
             body.linearVelocity = Vector3.zero;
             body.angularVelocity = Vector3.zero;
             body.isKinematic = true;
@@ -64,15 +57,15 @@ namespace ColorPuzzle
             body.interpolation = RigidbodyInterpolation.None;
             hitCollider.enabled = false;
             transform.SetParent(null, true);
-            transform.SetPositionAndRotation(carryAnchor.position, carryAnchor.rotation);
+            if (grayscaleRenderer != null) grayscaleRenderer.enabled = false;
             if (colorProxy != null) colorProxy.SetActive(false);
         }
 
         public void Drop(Vector3 position, Vector3 impulse)
         {
-            carryAnchor = null;
             transform.SetParent(null, true);
             transform.position = position;
+            if (grayscaleRenderer != null) grayscaleRenderer.enabled = true;
             hitCollider.enabled = true;
             body.detectCollisions = true;
             body.isKinematic = false;
@@ -83,7 +76,6 @@ namespace ColorPuzzle
 
         public void Place(Transform socket)
         {
-            carryAnchor = null;
             transform.SetParent(socket, false);
             transform.localPosition = Vector3.zero;
             transform.localRotation = Quaternion.identity;
@@ -91,6 +83,7 @@ namespace ColorPuzzle
             body.detectCollisions = false;
             body.interpolation = RigidbodyInterpolation.None;
             hitCollider.enabled = false;
+            if (grayscaleRenderer != null) grayscaleRenderer.enabled = true;
             if (colorProxy != null) colorProxy.SetActive(false);
             Discover();
         }

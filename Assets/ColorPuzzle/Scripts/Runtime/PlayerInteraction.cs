@@ -1,17 +1,21 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace ColorPuzzle
 {
     public sealed class PlayerInteraction : MonoBehaviour
     {
-        private const string InstructionText = "WASD move  •  SPACE jump  •  HOLD Q magnifier  •  LEFT CLICK pick up  •  RIGHT CLICK drop/place";
+        private const string InstructionText = "WASD  •  SPACE jump  •  RMB magnifier  •  LMB pick up  •  Q drop/place  •  R reset";
 
         [Header("References")]
         [SerializeField] private Camera viewCamera;
-        [SerializeField] private Transform holdAnchor;
         [SerializeField] private Text statusText;
+
+        [Header("Controls")]
+        [SerializeField] private Key dropOrPlaceKey = Key.Q;
+        [SerializeField] private Key resetKey = Key.R;
 
         [Header("Interaction Feel")]
         [SerializeField, Min(0.1f)] private float interactionDistance = 4f;
@@ -26,14 +30,42 @@ namespace ColorPuzzle
         [SerializeField, Min(0.1f)] private float topPlacementMaxCameraHeight = 3f;
         [SerializeField, Range(0f, 1f)] private float topPlacementMinimumDownwardLook = 0.1f;
 
+        [Header("Inventory HUD")]
+        [SerializeField] private bool showInventoryHud = true;
+        [SerializeField] private Vector2 inventoryHudSize = new Vector2(260f, 52f);
+        [SerializeField] private Vector2 inventoryHudOffset = new Vector2(0f, 92f);
+        [SerializeField, Min(0f)] private float inventoryHudPadding = 10f;
+        [SerializeField, Min(8f)] private float inventorySwatchSize = 28f;
+        [SerializeField, Min(8)] private int inventoryFontSize = 18;
+        [SerializeField] private Color inventoryBackgroundColor = new Color(0f, 0f, 0f, 0.72f);
+        [SerializeField] private Color inventoryTextColor = Color.white;
+
         private DiscoverableObject carried;
+        private MagnifierView magnifier;
+        private GameObject inventoryHudRoot;
+        private Image inventorySwatch;
+        private Text inventoryLabel;
+
+        private void Awake()
+        {
+            magnifier = GetComponent<MagnifierView>();
+            CreateInventoryHud();
+            RefreshInventoryHud();
+        }
+
         private void Update()
         {
             if (Mouse.current == null || Keyboard.current == null) return;
-            if (Keyboard.current.qKey.isPressed) { UpdateStatus(); return; }
+            if (Keyboard.current[resetKey].wasPressedThisFrame)
+            {
+                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                return;
+            }
+
+            if (magnifier != null && magnifier.IsActive) { UpdateStatus(); return; }
 
             if (Mouse.current.leftButton.wasPressedThisFrame && carried == null) TryPickUp();
-            if (Mouse.current.rightButton.wasPressedThisFrame && carried != null) TryDropOrPlace();
+            if (Keyboard.current[dropOrPlaceKey].wasPressedThisFrame && carried != null) TryDropOrPlace();
             UpdateStatus();
         }
 
@@ -43,7 +75,8 @@ namespace ColorPuzzle
             DiscoverableObject item = hit.collider.GetComponentInParent<DiscoverableObject>();
             if (item == null) return;
             carried = item;
-            carried.PickUp(holdAnchor);
+            carried.PickUp();
+            RefreshInventoryHud();
         }
 
         private void TryDropOrPlace()
@@ -53,6 +86,7 @@ namespace ColorPuzzle
                 if (goal.TryPlace(carried))
                 {
                     carried = null;
+                    RefreshInventoryHud();
                     return;
                 }
             }
@@ -60,6 +94,7 @@ namespace ColorPuzzle
             Vector3 position = viewCamera.transform.position + viewCamera.transform.forward * dropDistance;
             carried.Drop(position, viewCamera.transform.forward * dropImpulse);
             carried = null;
+            RefreshInventoryHud();
         }
 
         private bool TryFindPlacementGoal(out GoalPedestal selectedGoal)
@@ -162,6 +197,59 @@ namespace ColorPuzzle
         {
             if (statusText == null) return;
             statusText.text = InstructionText;
+        }
+
+        private void CreateInventoryHud()
+        {
+            if (!showInventoryHud || statusText == null) return;
+            Canvas canvas = statusText.GetComponentInParent<Canvas>();
+            if (canvas == null) return;
+
+            inventoryHudRoot = new GameObject("InventoryHUD", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            RectTransform panelRect = inventoryHudRoot.GetComponent<RectTransform>();
+            panelRect.SetParent(canvas.transform, false);
+            panelRect.anchorMin = panelRect.anchorMax = new Vector2(0.5f, 0f);
+            panelRect.pivot = new Vector2(0.5f, 0f);
+            panelRect.anchoredPosition = inventoryHudOffset;
+            panelRect.sizeDelta = inventoryHudSize;
+            Image panelImage = inventoryHudRoot.GetComponent<Image>();
+            panelImage.color = inventoryBackgroundColor;
+            panelImage.raycastTarget = false;
+            panelRect.SetAsLastSibling();
+
+            GameObject swatchObject = new GameObject("ObjectColor", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            RectTransform swatchRect = swatchObject.GetComponent<RectTransform>();
+            swatchRect.SetParent(panelRect, false);
+            swatchRect.anchorMin = swatchRect.anchorMax = new Vector2(0f, 0.5f);
+            swatchRect.pivot = new Vector2(0f, 0.5f);
+            swatchRect.anchoredPosition = new Vector2(inventoryHudPadding, 0f);
+            swatchRect.sizeDelta = Vector2.one * inventorySwatchSize;
+            inventorySwatch = swatchObject.GetComponent<Image>();
+            inventorySwatch.raycastTarget = false;
+
+            GameObject labelObject = new GameObject("ObjectLabel", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
+            RectTransform labelRect = labelObject.GetComponent<RectTransform>();
+            labelRect.SetParent(panelRect, false);
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = new Vector2(inventoryHudPadding * 2f + inventorySwatchSize, 0f);
+            labelRect.offsetMax = new Vector2(-inventoryHudPadding, 0f);
+            inventoryLabel = labelObject.GetComponent<Text>();
+            inventoryLabel.font = statusText.font != null ? statusText.font : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            inventoryLabel.fontSize = inventoryFontSize;
+            inventoryLabel.alignment = TextAnchor.MiddleLeft;
+            inventoryLabel.color = inventoryTextColor;
+            inventoryLabel.raycastTarget = false;
+        }
+
+        private void RefreshInventoryHud()
+        {
+            if (inventoryHudRoot == null) return;
+            bool hasObject = carried != null;
+            inventoryHudRoot.SetActive(hasObject);
+            if (!hasObject) return;
+            inventorySwatch.color = carried.InventoryColor;
+            inventoryLabel.text = $"CARRYING: {carried.DisplayName}";
         }
     }
 }

@@ -1,14 +1,34 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 namespace ColorPuzzle
 {
     public sealed class MagnifierView : MonoBehaviour
     {
+        public enum MagnifierControlMode
+        {
+            MoveLens,
+            FixedLensCameraAim
+        }
+
+        public enum DevViewMode
+        {
+            PuzzleView,
+            FullColor
+        }
+
+        public enum MagnifierMouseButton
+        {
+            Right,
+            Middle
+        }
+
         // CENTRALIZED VISUAL / INTERACTION PARAMETERS (all art-directable values are Inspector-visible)
         [Header("Interaction")]
-        [SerializeField] private Key revealKey = Key.Q;
+        [SerializeField] private MagnifierMouseButton revealMouseButton = MagnifierMouseButton.Right;
         [SerializeField, Min(0.1f)] private float discoveryDistance = 12f;
         [SerializeField, Min(0f)] private float discoveryScreenPadding = 4f;
         [SerializeField] private LayerMask discoveryLayers = ~0;
@@ -29,6 +49,26 @@ namespace ColorPuzzle
         [SerializeField, Min(0f)] private float screenEdgePadding = 8f;
         [SerializeField] private bool resetLensToCenterOnOpen = true;
 
+        [Header("Mode")]
+        [SerializeField] private MagnifierControlMode startingMode = MagnifierControlMode.MoveLens;
+        [SerializeField] private DevViewMode startingDevViewMode = DevViewMode.FullColor;
+
+        [Header("Mode Selector UI")]
+        [SerializeField] private bool showModeSelector = true;
+        [SerializeField] private Vector2 modeButtonSize = new Vector2(140f, 36f);
+        [SerializeField, Min(0f)] private float modeButtonGap = 8f;
+        [SerializeField, Min(0f)] private float selectorGroupGap = 10f;
+        [SerializeField, Min(0f)] private float selectorGroupPadding = 8f;
+        [SerializeField, Min(8f)] private float selectorGroupLabelHeight = 20f;
+        [SerializeField] private Vector2 modeSelectorMargin = new Vector2(20f, 20f);
+        [SerializeField, Min(8)] private int modeButtonFontSize = 16;
+        [SerializeField, Min(8)] private int selectorGroupLabelFontSize = 13;
+        [SerializeField] private Color selectedModeColor = new Color(0.12f, 0.42f, 0.92f, 0.95f);
+        [SerializeField] private Color unselectedModeColor = new Color(0.12f, 0.12f, 0.12f, 0.82f);
+        [SerializeField] private Color modeButtonTextColor = Color.white;
+        [SerializeField] private Color selectorGroupLabelColor = Color.white;
+        [SerializeField] private Color selectorGroupBackgroundColor = new Color(0f, 0f, 0f, 0.55f);
+
         [Header("Layers")]
         [SerializeField] private GameObject viewportRoot;
         [SerializeField] private FirstPersonPlayer player;
@@ -42,6 +82,16 @@ namespace ColorPuzzle
         private int textureWidth;
         private int textureHeight;
         private bool active;
+        private MagnifierControlMode currentMode;
+        private DevViewMode currentDevViewMode;
+        private float originalColorCameraDepth;
+        private int originalColorCameraCullingMask;
+        private Button moveLensButton;
+        private Button fixedLensButton;
+        private Button puzzleViewButton;
+        private Button fullColorButton;
+
+        public bool IsActive => active;
 
         private void Awake()
         {
@@ -50,8 +100,17 @@ namespace ColorPuzzle
             canvas = circularViewport != null ? circularViewport.GetComponentInParent<Canvas>() : null;
             canvasRect = canvas != null ? canvas.GetComponent<RectTransform>() : null;
             lensScreenPosition = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+            currentMode = startingMode;
+            currentDevViewMode = startingDevViewMode;
+            if (colorCamera != null)
+            {
+                originalColorCameraDepth = colorCamera.depth;
+                originalColorCameraCullingMask = colorCamera.cullingMask;
+            }
             ApplySolidSkyColors();
+            PrepareCompleteColorView();
             EnsureRenderTexture();
+            CreateModeSelector();
             SetActive(false);
         }
 
@@ -62,17 +121,26 @@ namespace ColorPuzzle
 
         private void Update()
         {
-            bool held = Keyboard.current != null && Keyboard.current[revealKey].isPressed;
+            bool held = currentDevViewMode == DevViewMode.PuzzleView &&
+                        IsRevealButtonHeld() &&
+                        player != null &&
+                        player.IsGrounded;
             if (held != active) SetActive(held);
-            if (!active || sourceCamera == null) return;
+        }
 
-            EnsureRenderTexture();
+        private void LateUpdate()
+        {
+            bool fullColor = currentDevViewMode == DevViewMode.FullColor;
+            if ((!active && !fullColor) || sourceCamera == null) return;
+
+            if (!fullColor) EnsureRenderTexture();
             if (colorCamera != null)
             {
                 colorCamera.transform.SetPositionAndRotation(sourceCamera.transform.position, sourceCamera.transform.rotation);
                 colorCamera.fieldOfView = sourceCamera.fieldOfView;
             }
 
+            if (fullColor) return;
             UpdateLensPosition();
             TryDiscoverObjectUnderLens();
             UpdateViewportLayout();
@@ -80,12 +148,11 @@ namespace ColorPuzzle
 
         private void SetActive(bool value)
         {
-            active = value;
-            if (value && resetLensToCenterOnOpen)
+            active = value && currentDevViewMode == DevViewMode.PuzzleView;
+            if (value && (resetLensToCenterOnOpen || currentMode == MagnifierControlMode.FixedLensCameraAim))
                 lensScreenPosition = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
-            if (viewportRoot != null) viewportRoot.SetActive(value);
-            if (colorCamera != null) colorCamera.enabled = value;
-            if (player != null) player.SetControlsLocked(value);
+            ApplyDevViewMode();
+            ApplyPlayerControlMode();
         }
 
         private void TryDiscoverObjectUnderLens()
@@ -143,6 +210,12 @@ namespace ColorPuzzle
 
         private void UpdateLensPosition()
         {
+            if (currentMode == MagnifierControlMode.FixedLensCameraAim)
+            {
+                lensScreenPosition = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+                return;
+            }
+
             if (Mouse.current == null) return;
             lensScreenPosition += Mouse.current.delta.ReadValue() * lensMoveSensitivity;
             float radius = Mathf.Min(Screen.width, Screen.height) * viewportScreenFraction * 0.5f;
@@ -203,6 +276,202 @@ namespace ColorPuzzle
             {
                 colorCamera.clearFlags = CameraClearFlags.SolidColor;
                 colorCamera.backgroundColor = revealViewSkyColor;
+            }
+        }
+
+        private void SetMode(MagnifierControlMode mode)
+        {
+            currentMode = mode;
+            if (mode == MagnifierControlMode.FixedLensCameraAim)
+                lensScreenPosition = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+            ApplyPlayerControlMode();
+            RefreshModeSelector();
+        }
+
+        private void SetDevViewMode(DevViewMode mode)
+        {
+            currentDevViewMode = mode;
+            active = mode == DevViewMode.PuzzleView &&
+                     IsRevealButtonHeld() &&
+                     player != null &&
+                     player.IsGrounded;
+            ApplyDevViewMode();
+            ApplyPlayerControlMode();
+            RefreshModeSelector();
+        }
+
+        private void ApplyDevViewMode()
+        {
+            bool fullColor = currentDevViewMode == DevViewMode.FullColor;
+            if (viewportRoot != null) viewportRoot.SetActive(active && !fullColor);
+            if (colorCamera == null) return;
+
+            if (fullColor)
+            {
+                colorCamera.targetTexture = null;
+                colorCamera.depth = sourceCamera != null ? sourceCamera.depth + 1f : originalColorCameraDepth;
+                colorCamera.enabled = true;
+            }
+            else
+            {
+                colorCamera.targetTexture = revealTexture;
+                colorCamera.depth = originalColorCameraDepth;
+                colorCamera.enabled = active;
+            }
+        }
+
+        private void ApplyPlayerControlMode()
+        {
+            if (player == null) return;
+            bool allowCameraLook = currentMode == MagnifierControlMode.FixedLensCameraAim;
+            bool magnifierActive = active && currentDevViewMode == DevViewMode.PuzzleView;
+            player.SetMagnifierControls(magnifierActive, allowCameraLook);
+        }
+
+        private void CreateModeSelector()
+        {
+            if (!showModeSelector || canvasRect == null) return;
+            EnsureEventSystem();
+
+            GameObject selectorObject = new GameObject("MagnifierModeSelector", typeof(RectTransform));
+            RectTransform selector = selectorObject.GetComponent<RectTransform>();
+            selector.SetParent(canvasRect, false);
+            selector.anchorMin = selector.anchorMax = new Vector2(1f, 1f);
+            selector.pivot = new Vector2(1f, 1f);
+            selector.anchoredPosition = new Vector2(-modeSelectorMargin.x, -modeSelectorMargin.y);
+            float groupWidth = modeButtonSize.x * 2f + modeButtonGap + selectorGroupPadding * 2f;
+            float groupHeight = selectorGroupPadding * 3f + selectorGroupLabelHeight + modeButtonSize.y;
+            selector.sizeDelta = new Vector2(groupWidth, groupHeight * 2f + selectorGroupGap);
+            selector.SetAsLastSibling();
+
+            Font font = canvas.GetComponentInChildren<Text>(true)?.font;
+            if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+            RectTransform controlGroup = CreateSelectorGroup(selector, "MAGNIFIER CONTROL", 0f, groupWidth, groupHeight, font);
+            moveLensButton = CreateModeButton(controlGroup, "Move Lens", selectorGroupPadding, font);
+            fixedLensButton = CreateModeButton(controlGroup, "Fixed Lens", selectorGroupPadding + modeButtonSize.x + modeButtonGap, font);
+            moveLensButton.onClick.AddListener(() => SetMode(MagnifierControlMode.MoveLens));
+            fixedLensButton.onClick.AddListener(() => SetMode(MagnifierControlMode.FixedLensCameraAim));
+
+            RectTransform devViewGroup = CreateSelectorGroup(selector, "DEV VIEW", groupHeight + selectorGroupGap, groupWidth, groupHeight, font);
+            puzzleViewButton = CreateModeButton(devViewGroup, "Puzzle View", selectorGroupPadding, font);
+            fullColorButton = CreateModeButton(devViewGroup, "Full Color", selectorGroupPadding + modeButtonSize.x + modeButtonGap, font);
+            puzzleViewButton.onClick.AddListener(() => SetDevViewMode(DevViewMode.PuzzleView));
+            fullColorButton.onClick.AddListener(() => SetDevViewMode(DevViewMode.FullColor));
+            RefreshModeSelector();
+        }
+
+        private RectTransform CreateSelectorGroup(RectTransform parent, string label, float offsetY, float width, float height, Font font)
+        {
+            GameObject groupObject = new GameObject(label, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            RectTransform groupRect = groupObject.GetComponent<RectTransform>();
+            groupRect.SetParent(parent, false);
+            groupRect.anchorMin = groupRect.anchorMax = new Vector2(1f, 1f);
+            groupRect.pivot = new Vector2(1f, 1f);
+            groupRect.anchoredPosition = new Vector2(0f, -offsetY);
+            groupRect.sizeDelta = new Vector2(width, height);
+            groupObject.GetComponent<Image>().color = selectorGroupBackgroundColor;
+
+            GameObject labelObject = new GameObject("GroupLabel", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
+            RectTransform labelRect = labelObject.GetComponent<RectTransform>();
+            labelRect.SetParent(groupRect, false);
+            labelRect.anchorMin = labelRect.anchorMax = new Vector2(0f, 1f);
+            labelRect.pivot = new Vector2(0f, 1f);
+            labelRect.anchoredPosition = new Vector2(selectorGroupPadding, -selectorGroupPadding);
+            labelRect.sizeDelta = new Vector2(width - selectorGroupPadding * 2f, selectorGroupLabelHeight);
+
+            Text text = labelObject.GetComponent<Text>();
+            text.text = label;
+            text.font = font;
+            text.fontSize = selectorGroupLabelFontSize;
+            text.fontStyle = FontStyle.Bold;
+            text.alignment = TextAnchor.MiddleLeft;
+            text.color = selectorGroupLabelColor;
+            text.raycastTarget = false;
+            return groupRect;
+        }
+
+        private Button CreateModeButton(RectTransform parent, string label, float offsetX, Font font)
+        {
+            GameObject buttonObject = new GameObject(label, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
+            RectTransform buttonRect = buttonObject.GetComponent<RectTransform>();
+            buttonRect.SetParent(parent, false);
+            buttonRect.anchorMin = buttonRect.anchorMax = new Vector2(0f, 1f);
+            buttonRect.pivot = new Vector2(0f, 1f);
+            float buttonOffsetY = selectorGroupPadding * 2f + selectorGroupLabelHeight;
+            buttonRect.anchoredPosition = new Vector2(offsetX, -buttonOffsetY);
+            buttonRect.sizeDelta = modeButtonSize;
+
+            Button button = buttonObject.GetComponent<Button>();
+            button.targetGraphic = buttonObject.GetComponent<Image>();
+            button.navigation = new Navigation { mode = Navigation.Mode.None };
+
+            GameObject labelObject = new GameObject("Label", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
+            RectTransform labelRect = labelObject.GetComponent<RectTransform>();
+            labelRect.SetParent(buttonRect, false);
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = Vector2.zero;
+            labelRect.offsetMax = Vector2.zero;
+
+            Text text = labelObject.GetComponent<Text>();
+            text.text = label;
+            text.font = font;
+            text.fontSize = modeButtonFontSize;
+            text.alignment = TextAnchor.MiddleCenter;
+            text.color = modeButtonTextColor;
+            text.raycastTarget = false;
+            return button;
+        }
+
+        private void RefreshModeSelector()
+        {
+            if (moveLensButton != null)
+                moveLensButton.targetGraphic.color = currentMode == MagnifierControlMode.MoveLens ? selectedModeColor : unselectedModeColor;
+            if (fixedLensButton != null)
+                fixedLensButton.targetGraphic.color = currentMode == MagnifierControlMode.FixedLensCameraAim ? selectedModeColor : unselectedModeColor;
+            if (puzzleViewButton != null)
+                puzzleViewButton.targetGraphic.color = currentDevViewMode == DevViewMode.PuzzleView ? selectedModeColor : unselectedModeColor;
+            if (fullColorButton != null)
+                fullColorButton.targetGraphic.color = currentDevViewMode == DevViewMode.FullColor ? selectedModeColor : unselectedModeColor;
+        }
+
+        private static void EnsureEventSystem()
+        {
+            if (EventSystem.current != null) return;
+            new GameObject("RuntimeEventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
+        }
+
+        private bool IsRevealButtonHeld()
+        {
+            if (Mouse.current == null) return false;
+            return revealMouseButton == MagnifierMouseButton.Right
+                ? Mouse.current.rightButton.isPressed
+                : Mouse.current.middleButton.isPressed;
+        }
+
+        private void PrepareCompleteColorView()
+        {
+            if (sourceCamera == null || colorCamera == null) return;
+
+            // The color pass must contain the complete ordinary world. Color-proxy layers are
+            // then drawn later to replace the gray surface where a colored counterpart exists.
+            colorCamera.cullingMask = sourceCamera.cullingMask | originalColorCameraCullingMask;
+            Renderer[] renderers = FindObjectsByType<Renderer>(FindObjectsInactive.Include);
+            for (int rendererIndex = 0; rendererIndex < renderers.Length; rendererIndex++)
+            {
+                Renderer candidate = renderers[rendererIndex];
+                int layerBit = 1 << candidate.gameObject.layer;
+                if ((originalColorCameraCullingMask & layerBit) == 0) continue;
+
+                Material[] runtimeMaterials = candidate.materials;
+                for (int materialIndex = 0; materialIndex < runtimeMaterials.Length; materialIndex++)
+                {
+                    Material material = runtimeMaterials[materialIndex];
+                    if (material == null || material.shader == null) continue;
+                    material.renderQueue = Mathf.Max(material.renderQueue, material.shader.renderQueue) + 1;
+                }
+                candidate.materials = runtimeMaterials;
             }
         }
     }

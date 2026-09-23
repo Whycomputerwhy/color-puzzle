@@ -2,6 +2,54 @@
 
 This log is intended for people and AI agents continuing the same Unity project. Append new entries; do not rewrite past decisions without explaining the migration.
 
+## 0.1.9 — 2026-09-21 — Complete color pass, grounded magnifier, inventory and door
+
+### Fixed
+
+- The color camera now renders normal-world layers plus later-queued color proxies, so the red goal base and objects without active proxies stay visible.
+- Magnifier activation now requires the CharacterController to be grounded, preventing mid-air control locking and hovering.
+
+### Changed
+
+- Full Color is the default developer view.
+- Hold right click now activates the magnifier; Q drops or places the carried object; R reloads the scene.
+- Carried objects are hidden from the world and represented by a bottom inventory panel instead of following a camera hold anchor.
+
+### Added
+
+- Successful red-ball placement reveals a simple runtime door beside the right wall.
+- Added Inspector controls for the inventory HUD, input keys, complete-door transform/colors, and magnifier mouse button.
+
+### Safety
+
+- All additions are runtime-created; no authored scene, prefab, material, HUD, or camera asset is regenerated.
+
+## 0.1.8 — 2026-09-21 — Grouped mechanic and rendering comparisons
+
+### Added
+
+- Grouped Move Lens and Fixed Lens beneath a labeled Magnifier Control panel.
+- Added a separate Dev View group with Puzzle View and Full Color buttons.
+- Full Color continuously routes the aligned color camera to the display, bypassing both the black-and-white base and hold-Q lens interaction.
+- Added Inspector controls for group spacing, padding, label sizing, label color, and backing color.
+
+### Safety
+
+- Both selector groups are still created only at runtime; no authored scene, prefab, material, HUD, or camera asset is regenerated.
+
+## 0.1.7 — 2026-09-21 — Interchangeable magnifier controls
+
+### Added
+
+- Added a Fixed Lens mode: the color circle stays at screen center, walking is locked, and mouse-look aims the complete viewport while Q is held.
+- Added persistent Move Lens and Fixed Lens buttons at the top-right, with active-mode highlighting and Inspector-visible layout/colors.
+- Added a runtime Input System event handler when the scene has none, so the selector works without editing the authored scene or player prefab.
+
+### Changed
+
+- Escape releases the cursor for UI selection, and clicking UI no longer immediately recaptures it.
+- Magnifier camera synchronization and discovery now run in `LateUpdate` after player look, avoiding a frame of lag in Fixed Lens mode.
+
 ## 0.1.6 — 2026-09-17 — Top-down goal placement
 
 ### Fixed
