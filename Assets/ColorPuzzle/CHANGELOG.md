@@ -2,6 +2,107 @@
 
 This log is intended for people and AI agents continuing the same Unity project. Append new entries; do not rewrite past decisions without explaining the migration.
 
+## 0.2.6 — 2026-09-28 — Placement scale and kinematic warning fix
+
+### Fixed
+
+- Placed objects now use the goal socket's world position and rotation without becoming children of its non-uniformly scaled hierarchy, preventing the red ball from being flattened on the base.
+- Rigidbody velocity is cleared only while a body is dynamic, eliminating Unity warnings about assigning linear or angular velocity to a kinematic body during repeated pickup/drop interactions.
+
+### Safety
+
+- Runtime code and documentation only; no scene, prefab, material, HUD, camera, or Build Settings asset was rewritten.
+
+## 0.2.5 — 2026-09-28 — Static grounded drops
+
+### Changed
+
+- Removed the forward velocity impulse from dropped interactive objects.
+- Dropped objects now probe downward for a valid surface, align their collider above it, clear all velocity, disable gravity, and remain kinematic after appearing.
+- Added a fallback probe beneath the player when the intended forward drop point is over an edge; the item remains carried if no safe surface exists.
+- Added Inspector controls for ground-probe height, distance, and surface clearance.
+
+### Safety
+
+- Runtime scripts and documentation only; no scene, prefab, material, HUD, camera, or Build Settings asset was rewritten.
+
+## 0.2.4 — 2026-09-28 — Player-facing magnifier mode locked
+
+### Changed
+
+- Made Greyscale the unconditional startup view and Move Lens the sole player-facing magnifier interaction.
+- Removed the always-visible Move Lens / Fixed Lens selector and the Fixed Lens runtime path.
+- Moved Greyscale / Full Color comparison controls into a developer panel hidden by default.
+- Assigned Enter to open/close the developer panel; opening releases the cursor and closing recaptures it.
+
+### Safety
+
+- Runtime code and documentation only; no scene, prefab, material, HUD, camera, or Build Settings asset was rewritten.
+
+## 0.2.3 — 2026-09-24 — Underwater build startup
+
+### Changed
+
+- Moved `ColorPuzzleUnderwaterDemo.unity` to enabled build index 0 so desktop players launch directly into the underwater level.
+- Retained `ColorPuzzleVerticalSlice.unity` as an enabled secondary scene at build index 1.
+- Updated the read-only build validator to enforce and report the new two-scene order.
+
+### Safety
+
+- Only Build Settings, validator code, and documentation changed; no scene or gameplay asset was rewritten.
+
+## 0.2.2 — 2026-09-24 — Temporary lens reveal and Greyscale label
+
+### Changed
+
+- Renamed the runtime `Puzzle View` button to `Greyscale` while retaining the internal enum for serialized compatibility.
+- Magnifier inspection now remains temporary: the red ball appears colored only inside the lens and stays gray in the base view after the lens closes.
+- Successful pickup is now the persistent color commitment point; a subsequently dropped or placed ball remains red in Greyscale.
+
+### Fixed
+
+- Bounded magnifier RenderTexture dimensions and added a safe 16:9 aspect fallback when Unity reports an invalid Game-view size during script reload.
+
+### Safety
+
+- Runtime code and documentation only; no scene, prefab, material, HUD layout, or camera asset was regenerated.
+
+## 0.2.1 — 2026-09-24 — Underwater diversions and goal silhouette
+
+### Added
+
+- Added fourteen aqua, blue, purple, orange, pink, green, cyan, and gold diversion spheres throughout the underwater route.
+- Added a reusable `UnderwaterDecoySphere` prefab with a collider and color-reveal proxy, but no pickup/discovery component or rigidbody.
+- Added an underwater-only cylindrical goal prefab with a circular red placement target and a larger white backing disc that reads as an outline.
+
+### Changed
+
+- Reduced the underwater scene's gravity from `-10` to `-8 m/s²` without changing the shared player prefab.
+- Replaced only the underwater goal instance; its matching, placement socket, completion material, and door settings remain intact.
+
+### Safety
+
+- Only the underwater scene changed. The original scene, shared player prefab, and shared `RedGoalPedestal` prefab were hash-verified unchanged.
+
+## 0.2.0 — 2026-09-24 — Colored underwater demo level
+
+### Added
+
+- Added `ColorPuzzleUnderwaterDemo.unity` as a second playable demo scene at build index 1; the original vertical slice remains the startup scene at index 0.
+- Expanded the inherited red-ball puzzle with a denser colored-greybox underwater basin made from terraces, trenches, ruins, arches, rocks, coral, kelp, bubble columns, and small marker objects.
+- Added nine flat-color underwater materials and four reusable nested detail prefabs for rocks, coral, kelp, and bubbles.
+- Added a one-shot editor creator with a centralized environment palette and layout parameter block.
+
+### Changed
+
+- The underwater scene overrides player gravity to `-10 m/s²` for a mildly floaty feel without adding swimming mechanics.
+- Underwater ambient light, blue distance fog, and the color-camera background establish depth while retaining Full Color and Puzzle View comparisons.
+
+### Safety
+
+- The original scene, existing prefabs, and existing materials were not regenerated or modified; all 26 pre-existing scene/prefab/material asset hashes were verified unchanged after creation.
+- The underwater creator refuses to overwrite an existing underwater scene. Future work should edit the authored scene directly.
+
 ## 0.1.9 — 2026-09-21 — Complete color pass, grounded magnifier, inventory and door
 
 ### Fixed

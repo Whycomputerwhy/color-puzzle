@@ -2,7 +2,7 @@
 
 ## Game design
 
-Color Puzzle is a casual first-person 3D exploration platformer about restoring color. The prototype now starts in **Full Color** for direct comparison, while **Puzzle View** retains the intended monochrome world and magnifier reveal. The player holds **right click while grounded** to inspect through the circular magnifying glass. **Magnifier Control** switches between Move Lens (frozen camera, movable glass) and Fixed Lens (centered glass, mouse-look). The player discovers the red ball, stores it in a bottom inventory HUD, and presses Q to place it on the matching red-marked goal. Completing the match restores the goal and reveals a green door on the map's right side.
+Color Puzzle is a casual first-person 3D exploration platformer about restoring color. The prototype starts in **Greyscale** and uses **Move Lens** as its sole player-facing magnifier interaction: holding right click while grounded freezes the player/camera and moves the circular color viewport with the mouse. Magnifier inspection reveals the red ball only inside the lens; pickup is the commitment point that makes the ball permanently red in the grayscale world after a later drop or placement. The player stores the ball in a bottom inventory HUD and presses Q to place it on the matching red-marked goal. Completing the match restores the goal and reveals a green door on the map's right side. Full Color remains available as a developer comparison view inside the hidden Enter panel.
 
 ### Prototype controls
 
@@ -10,22 +10,24 @@ Color Puzzle is a casual first-person 3D exploration platformer about restoring 
 - **Mouse** — look
 - **Space** — jump
 - **Hold right click while grounded (Move Lens)** — freeze the player/camera and move the color-revealing magnifier
-- **Hold right click while grounded (Fixed Lens)** — freeze walking, keep the lens centered, and aim the full camera view
-- **Puzzle View / Full Color** — compare the intended black-and-white puzzle presentation with an always-on color-only developer view
 - **Left click** — pick up the centered mission object
 - **Q** — place the carried object on a matching goal, or drop it in front of the player
 - **R** — reset the current scene
-- **Escape** — release the cursor to use the top-right mode buttons; click outside UI to recapture it
+- **Enter** — open/close the developer panel; opening releases the cursor and closing recaptures it
+- **Greyscale / Full Color (developer panel)** — compare the intended monochrome presentation with an always-on color view
+- **Escape** — release the cursor manually; click outside UI to recapture it
 
-### Play path
+### Play paths
 
-Open `Assets/ColorPuzzle/Scenes/ColorPuzzleVerticalSlice.unity` and press Play. Select Puzzle View to test discovery, find the gray ball, hold right click while grounded until the ball turns red, and left-click it. Its world mesh disappears and the bottom inventory HUD shows the carried Red Ball. Approach the gray box with the red top mark, aim at it, and press Q. The goal becomes red and the completion door appears beside the right wall. Press R at any time to restart.
+Open `Assets/ColorPuzzle/Scenes/ColorPuzzleVerticalSlice.unity` and press Play. The scene starts in Greyscale with Move Lens. Find the gray ball and hold right click while grounded: the ball appears red only inside the circular lens and returns to gray when the lens closes. Left-click the ball to commit its color and store it in the bottom inventory HUD. If dropped afterward it remains red in the grayscale world. Approach the goal with the red top mark, aim at it, and press Q. The goal becomes red and the completion door appears beside the right wall. Press R at any time to restart. Press Enter only when a developer needs to compare Greyscale with Full Color.
+
+Open `Assets/ColorPuzzle/Scenes/ColorPuzzleUnderwaterDemo.unity` for the second demo level. It preserves the same player, HUD, Move Lens interaction, red-ball mission, goal, and completion door, then expands the playable greybox into a colored underwater basin. Layered sand shelves, trenches, ruins, arches, rocks, coral, kelp, bubble columns, treasure-colored markers, and fourteen non-pickable colored spheres create denser exploration landmarks and visual diversions without introducing detailed art or swimming controls. The underwater goal is a cylinder with a circular red placement target and a white perimeter. Gravity is reduced only in this scene, from `-22` to `-8 m/s²`, for a floatier platforming feel.
 
 ## Visual system recipe
 
 ### Visual intent
 
-Puzzle View is deliberately sparse and grayscale against a solid white sky. Holding right click while grounded adds a circle of saturated color, with a warm rim and blue color-view sky. The color pass now renders the complete normal world first and draws color proxies afterward, so objects without proxies never disappear. Move Lens freezes the player and camera while the circle moves; Fixed Lens freezes walking while the camera aims through a centered circle. Full Color routes this complete color pass directly to the screen and is the default developer view. A discovered mission object remains saturated after the glass closes. Goal completion restores the pedestal and reveals the right-side door.
+Greyscale is deliberately sparse and monochrome against a solid white sky. Holding right click while grounded adds a movable circle of saturated color, with a warm rim and blue color-view sky. The color pass renders the complete normal world first and draws color proxies afterward, so objects without proxies never disappear. Move Lens freezes the player and camera while the circle moves. Full Color routes the same complete color pass directly to the screen, but only when selected from the hidden developer panel. Lens inspection is temporary and does not mutate object state; successful pickup commits the mission object's red material for subsequent drops or placement. Goal completion restores the pedestal and reveals the right-side door.
 
 ### System breakdown
 
@@ -35,10 +37,8 @@ Puzzle View is deliberately sparse and grayscale against a solid white sky. Hold
 | Color proxies | True-color counterpart | Shared mesh transforms, color materials | Child proxy meshes render only on `ColorReveal` | Colored scene geometry | Reveal camera |
 | Reveal camera | Complete perspective-matched color view | Main camera layers + color-proxy layers, pose/FOV, screen aspect | Renders all ordinary objects, then later-queued color proxies | Complete color frame | Circular UI or Full Color display |
 | Moving circle mask | Magnifying-glass shape | Mouse delta, RenderTexture, alpha sprite | Moves the mask while counter-moving the full-screen RawImage | Aligned round viewport | Final composite |
-| Fixed circle mode | Centered aim variation | Mouse delta, player camera pose, centered lens coordinate | Locks player translation, permits camera look, and pins the mask to screen center | Camera-driven reveal search | Reveal camera + discovery |
-| Magnifier selector | Interchangeable mechanic comparison | Move Lens / Fixed Lens, current mode | Runtime UI routes selection to the shared control state and highlights the active choice | Selected interaction mapping | Player controls + lens motion |
-| Dev view selector | Presentation comparison | Puzzle View / Full Color, reveal camera | Routes color output either into the circular RenderTexture or directly to the screen | Mixed grayscale/color or continuous color | Final composite |
-| Discovery | Persistent color clue | Lens screen coordinate, distance, aim-dot threshold | Casts through the lens and changes the mission renderer from gray to red | Persistent red object | Main view |
+| Developer panel | Hidden presentation comparison | Enter, Greyscale / Full Color buttons, reveal camera | Enter shows or hides the panel and releases or recaptures the cursor; buttons route color output to the lens or full screen | Optional developer-only color comparison | Final composite |
+| Pickup persistence | Permanent color clue | Successful pickup | Calls `Discover()` as the item enters inventory; lens inspection never calls it | Red object after later drop or placement | Main view |
 | Completion | Mission payoff | Matching object ID + goal | Snaps item and changes pedestal material | Restored red goal | Main view |
 | Inventory HUD | Carried-object feedback | Carried object's display name and color | Hides the world mesh while carried and shows a bottom swatch/label | `CARRYING: Red Ball` | Drop/place decision |
 | Door reward | Completion reveal | Successful red-ball placement | Activates a runtime gray/color-proxy door beside the right wall | Newly visible green door | Completion feedback |
@@ -49,29 +49,25 @@ Puzzle View is deliberately sparse and grayscale against a solid white sky. Hold
 
 `lens(t+1) = clamp(lens(t) + mouseDelta × lensMoveSensitivity, screenBounds − lensRadius − padding)`
 
-`fixedLens(t) = (screenWidth / 2, screenHeight / 2)`
-
-`cameraAim(t+1) = cameraAim(t) + mouseDelta × playerMouseSensitivity`
-
 `finalView = PuzzleView ? grayscaleBase + circularColorReveal : fullScreenColorCamera`
 
-`magnifierActive = rightMouseHeld ∧ playerGrounded ∧ PuzzleView`
+`magnifierActive = rightMouseHeld ∧ playerGrounded ∧ Greyscale ∧ ¬developerPanelOpen`
 
 `revealImageOffset = −lensCanvasOffset`
 
-`discover = intersects(projectedObjectBounds, lensCircle + discoveryScreenPadding) ∧ distance ≤ discoveryDistance ∧ lineOfSight`
+`persistentRed = hasBeenPickedUp ∨ hasBeenPlaced`
 
-The reveal camera uses the main camera's world position, rotation, field of view, and aspect ratio. Its culling mask is the union of the normal-world mask and the original `ColorReveal` mask. Color-proxy materials receive a later runtime render queue so they replace corresponding gray surfaces, while ordinary objects remain visible underneath. The main camera still excludes `ColorReveal`.
+The reveal camera uses the main camera's world position, rotation, field of view, and aspect ratio. Its culling mask is the union of the normal-world mask and the original `ColorReveal` mask. Color-proxy materials receive a later runtime render queue so they replace corresponding gray surfaces, while ordinary objects remain visible underneath. The main camera still excludes `ColorReveal`. Showing a proxy through the magnifier is purely compositional and does not change the object's persistent state.
 
 ### Layer and execution order
 
 1. Main camera renders grayscale objects (opaque replacement is not used; authored gray materials are cheap and explicit).
 2. Reveal camera renders the complete normal world plus later-queued color proxy meshes into `MagnifierColorRevealRT` while right click is held on the ground.
-3. The selected mode supplies either a movable lens coordinate or the fixed screen center.
+3. Mouse delta supplies the movable lens coordinate while the camera/player remain frozen.
 4. Screen-space HUD clips that texture with `MagnifierCircle.png` and draws it over the base view.
-5. Crosshair, controls, bottom inventory HUD, and grouped top-right selectors render on top.
+5. Crosshair, controls, and bottom inventory HUD render on top; the top-right developer panel is added only while Enter has opened it.
 
-In Full Color, the reveal camera bypasses the RenderTexture and renders directly to the display after matching the main camera pose. Returning to Puzzle View reconnects the same camera to the circular reveal texture.
+In Full Color, the reveal camera bypasses the RenderTexture and renders directly to the display after matching the main camera pose. Returning to Greyscale reconnects the same camera to the circular reveal texture.
 
 ## Inspector variable inventory
 
@@ -83,14 +79,12 @@ All game-feel variables are serialized and editable in the Unity Inspector.
 | FirstPersonPlayer / Air Control | 0.55 | multiplier, ≥0 | Horizontal authority while airborne |
 | FirstPersonPlayer / Jump Height | 1.35 | meters, ≥0 | Jump apex |
 | FirstPersonPlayer / Gravity | -22 | m/s² | Fall and jump timing |
+| Underwater scene / FirstPersonPlayer / Gravity | -8 | m/s² | Scene-only override for slower underwater falls; the original player prefab remains `-22` |
 | FirstPersonPlayer / Grounded Force | -2 | m/s | Keeps the controller grounded |
 | FirstPersonPlayer / Mouse Sensitivity | 0.13 | multiplier, ≥0 | Look response |
 | FirstPersonPlayer / Vertical Look Limit | 85 | degrees, 1–89 | Pitch clamp |
 | FirstPersonPlayer / Lock Cursor On Start | true | toggle | FPS cursor capture |
 | MagnifierView / Reveal Mouse Button | Right | Right/Middle | Hold-to-reveal input; activation also requires grounded state |
-| MagnifierView / Discovery Distance | 12 | meters, ≥0.1 | Maximum discovery ray distance |
-| MagnifierView / Discovery Screen Padding | 4 | screen pixels, ≥0 | Small tolerance added around the circular lens for reliable edge overlap |
-| MagnifierView / Discovery Layers | Everything | layer mask | Raycastable discovery layers |
 | MagnifierView / Viewport Screen Fraction | 0.25 | 0.08–0.5 | Circle diameter relative to shorter screen side |
 | MagnifierView / Render Texture Height | 720 | pixels, ≥128 | Full-view reveal sharpness and GPU cost; width follows screen aspect |
 | MagnifierView / Regular View Sky Color | white | HDR color | Solid background for the grayscale camera |
@@ -98,27 +92,28 @@ All game-feel variables are serialized and editable in the Unity Inspector.
 | MagnifierView / Lens Move Sensitivity | 1 | multiplier, ≥0 | Lens response to mouse movement while magnifying |
 | MagnifierView / Screen Edge Padding | 8 | screen pixels, ≥0 | Extra gap between the lens rim and screen edge |
 | MagnifierView / Reset Lens To Center On Open | true | toggle | Starts each inspection at screen center |
-| MagnifierView / Starting Mode | Move Lens | enum | Chooses the initial magnifier interaction variation |
-| MagnifierView / Starting Dev View Mode | Full Color | enum | Chooses mixed puzzle rendering or continuous full color at startup |
-| MagnifierView / Show Mode Selector | true | toggle | Creates both labeled top-right button groups |
+| MagnifierView / Enable Developer Panel | true | toggle | Allows Enter to create and toggle the hidden comparison panel |
+| MagnifierView / Developer Panel Toggle Key | Enter | key | Opens/closes the developer panel |
+| MagnifierView / Unlock Cursor While Panel Open | true | toggle | Releases the cursor on open and recaptures it on close |
 | MagnifierView / Mode Button Size | (140, 36) | canvas pixels | Width and height of each mode button |
 | MagnifierView / Mode Button Gap | 8 | canvas pixels, ≥0 | Horizontal spacing between the two buttons |
-| MagnifierView / Selector Group Gap | 10 | canvas pixels, ≥0 | Vertical separation between Magnifier Control and Dev View groups |
-| MagnifierView / Selector Group Padding | 8 | canvas pixels, ≥0 | Interior spacing around each labeled group |
-| MagnifierView / Selector Group Label Height | 20 | canvas pixels, ≥8 | Reserved height for each group title |
-| MagnifierView / Mode Selector Margin | (20, 20) | canvas pixels | Offset from the top-right screen corner |
-| MagnifierView / Mode Button Font Size | 16 | points, ≥8 | Selector label size |
-| MagnifierView / Selector Group Label Font Size | 13 | points, ≥8 | Group-title label size |
+| MagnifierView / Selector Group Padding | 8 | canvas pixels, ≥0 | Interior spacing around the developer group |
+| MagnifierView / Selector Group Label Height | 20 | canvas pixels, ≥8 | Reserved height for the developer group title |
+| MagnifierView / Mode Selector Margin | (20, 20) | canvas pixels | Developer panel offset from the top-right screen corner |
+| MagnifierView / Mode Button Font Size | 16 | points, ≥8 | Developer button label size |
+| MagnifierView / Selector Group Label Font Size | 13 | points, ≥8 | Developer group-title label size |
 | MagnifierView / Selected Mode Color | blue `(0.12, 0.42, 0.92, 0.95)` | RGBA | Active-button background |
 | MagnifierView / Unselected Mode Color | charcoal `(0.12, 0.12, 0.12, 0.82)` | RGBA | Inactive-button background |
 | MagnifierView / Mode Button Text Color | white | RGBA | Selector label color |
 | MagnifierView / Selector Group Label Color | white | RGBA | Group-title text color |
-| MagnifierView / Selector Group Background Color | black `(0, 0, 0, 0.55)` | RGBA | Translucent backing that visually groups each button pair |
+| MagnifierView / Selector Group Background Color | black `(0, 0, 0, 0.55)` | RGBA | Translucent developer-panel backing |
 | PlayerInteraction / Interaction Distance | 4 | meters, ≥0.1 | Pick/place reach |
 | PlayerInteraction / Drop Or Place Key | Q | key | Places on a valid goal or drops the carried object |
 | PlayerInteraction / Reset Key | R | key | Reloads the active scene to its initial state |
-| PlayerInteraction / Drop Distance | 1.4 | meters, ≥0 | Spawn distance when dropping |
-| PlayerInteraction / Drop Impulse | 1.5 | m/s, ≥0 | Forward toss strength |
+| PlayerInteraction / Drop Distance | 1.4 | meters, ≥0 | Forward distance used to search for a resting surface |
+| PlayerInteraction / Drop Ground Probe Height | 1.5 | meters, ≥0 | Height above the candidate position where the downward ground probe begins |
+| PlayerInteraction / Drop Ground Probe Distance | 20 | meters, ≥0.1 | Maximum downward search distance for a safe drop surface |
+| PlayerInteraction / Drop Surface Clearance | 0.02 | meters, ≥0 | Small gap between the object collider and its resting surface |
 | PlayerInteraction / Interaction Layers | Everything | layer mask | Pick/place raycast layers |
 | PlayerInteraction / Placement Distance | 5.5 | meters, ≥0.1 | Maximum assisted placement reach |
 | PlayerInteraction / Placement Cast Radius | 0.75 | meters, ≥0 | Side-approach placement aim forgiveness |
@@ -152,43 +147,52 @@ All game-feel variables are serialized and editable in the Unity Inspector.
 Assets/ColorPuzzle/
 ├── Generated/                 # Generated circular mask texture
 ├── Materials/                 # Gray base and simple prototype color materials
+│   └── Underwater/            # Nine flat-color underwater palette materials
 ├── Prefabs/
 │   ├── Gameplay/              # Discoverable ball and matching goal
 │   ├── Player/                # Player, cameras, carry anchor, HUD, magnifier
+│   ├── Underwater/            # Reusable rocks, coral, kelp, bubbles, decoy sphere, and cylinder goal
 │   └── World/                 # Reusable gray block with color proxy child
-├── Scenes/                    # Playable vertical-slice scene
+├── Scenes/                    # Original vertical slice and underwater demo
 ├── Scripts/
-│   ├── Editor/                # Idempotent scene/prefab builder
-│   └── Runtime/               # Movement, reveal, carry, discovery, goal logic
+│   ├── Editor/                # Read-only validator and one-shot underwater level creator
+│   └── Runtime/               # Movement, reveal, carry, pickup persistence, and goal logic
 ├── CHANGELOG.md               # Agent-readable version history
 └── README_GAME.md             # This design and architecture guide
 ```
 
 The scene uses prefab instances for the player, ball, goal, floor, walls, steps, and platforms. Every revealable prefab pairs a normal grayscale renderer with a collider-free, same-transform `ColorProxy` child. That keeps the prototype modular without committing the future game to a custom render pipeline effect.
 
-Carried objects no longer appear in the camera hierarchy. Pickup suspends physics/collision and hides the world renderers; the bottom HUD becomes the authoritative carried-object display. Dropping restores the mesh, physics, collision, and original interpolation mode. Placement restores the mesh at the goal socket.
+The underwater level adds a single `UnderwaterEnvironment` root while leaving inherited objects intact. Its broad terrain pieces remain instances of the existing `WorldBlock` prefab, while repeated detail silhouettes use nested underwater prefabs. Each diversion sphere is an instance of `UnderwaterDecoySphere`: a gray base mesh with a colored reveal proxy, a collider, and deliberately no `DiscoverableObject` or rigidbody, so it cannot be collected. The underwater-only goal prefab preserves the red-ball matching logic while changing its silhouette to a cylinder and layering a white disc beneath the smaller red target to form the outline. The palette is intentionally flat and saturated so this remains a readable colored-greybox rather than premature finished art.
+
+Carried objects no longer appear in the camera hierarchy. Pickup suspends physics/collision and hides the world renderers; the bottom HUD becomes the authoritative carried-object display. Dropping searches downward from the forward candidate position, aligns the object collider just above the first valid surface, and restores it as a collision-enabled kinematic object with zero velocity and gravity disabled. If the forward point is over an edge, the system falls back to the ground beneath the player; if neither probe finds a surface, the object remains safely in inventory. Placement restores the mesh at the goal socket in world space without parenting it beneath the scaled pedestal, preserving the object's original proportions. Velocity is cleared only while a Rigidbody is dynamic, avoiding Unity's unsupported kinematic-velocity warnings during later interactions.
 
 ## Tuning guide
 
-- For a more intimate search, reduce `Viewport Screen Fraction` to 0.18 and `Discovery Distance` to 8.
+- For a more intimate search, reduce `Viewport Screen Fraction` to 0.18.
 - Adjust `Lens Move Sensitivity` without changing player look sensitivity; the two input responses are intentionally independent.
-- Compare modes from the top-right selector. Move Lens emphasizes inspection of a frozen composition; Fixed Lens feels closer to ordinary first-person aiming.
-- Fixed Lens reuses `FirstPersonPlayer / Mouse Sensitivity`; adjust that one value if camera aiming feels too fast or slow.
-- Full Color is now the default developer view. Puzzle View remains the intended discovery loop and is the only view where holding right click activates the lens.
+- Keep Greyscale for normal play. Press Enter to expose the developer panel only when a full-color comparison is needed.
+- Full Color is developer-only; selecting Greyscale restores the intended puzzle loop and right-click lens behavior.
 - For faster platforming, raise `Move Speed` to 6–7 and preserve the current jump feel by keeping Jump Height and Gravity together.
-- If discovery near the lens edge feels fussy, increase `Discovery Screen Padding`; keep it low so objects outside the visible circle do not reveal early.
 - `Render Texture Height` is the main magnifier performance knob. Use 360 on weak hardware or 1080 for a sharper desktop build.
+- Increase `Drop Ground Probe Distance` only if future levels contain drops taller than 20 meters. Increase `Drop Surface Clearance` slightly if a new object shape visually clips into floors.
+- In the underwater scene, tune the scene instance's `FirstPersonPlayer / Gravity` between roughly `-6` and `-12`; this changes only the second level and does not modify the shared player prefab.
 
 ## Verification notes
 
 The original prototype generator is permanently disabled. It must never be used to regenerate this ongoing project because the scene, prefabs, materials, HUD, and cameras now contain manually authored work. The project uses Unity's Input System package already present in the project.
 
+The underwater creator at `Assets/ColorPuzzle/Scripts/Editor/UnderwaterDemoLevelBuilder.cs` is intentionally safe and one-shot: it copies the authored first scene, adds only new underwater assets and scene content, and refuses to run if `ColorPuzzleUnderwaterDemo.unity` already exists. Do not delete and rerun it as an update workflow; edit the underwater scene normally in Unity from this point onward.
+
 ## Desktop build
 
 Run **Color Puzzle → Validate Demo Build (Read Only)** before producing a player build. This command:
 
-- verifies that `ColorPuzzleVerticalSlice.unity` is enabled at build index 0;
+- verifies that `ColorPuzzleUnderwaterDemo.unity` is enabled at startup index 0;
+- verifies that the original `ColorPuzzleVerticalSlice.unity` remains enabled at index 1;
 - reports an error if the configuration is wrong;
 - does not save or modify scenes, prefabs, materials, HUD, cameras, Player Settings, or Build Settings.
 
 Then open **File → Build Profiles**, choose the desired desktop platform, and build. Ordinary Unity player builds read authored assets and do not invoke the disabled prototype generator.
+
+`ColorPuzzleUnderwaterDemo.unity` is the player-build startup scene at index 0. The original vertical slice remains included and enabled at index 1.

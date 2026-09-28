@@ -20,7 +20,9 @@ namespace ColorPuzzle
         [Header("Interaction Feel")]
         [SerializeField, Min(0.1f)] private float interactionDistance = 4f;
         [SerializeField, Min(0f)] private float dropDistance = 1.4f;
-        [SerializeField, Min(0f)] private float dropImpulse = 1.5f;
+        [SerializeField, Min(0f)] private float dropGroundProbeHeight = 1.5f;
+        [SerializeField, Min(0.1f)] private float dropGroundProbeDistance = 20f;
+        [SerializeField, Min(0f)] private float dropSurfaceClearance = 0.02f;
         [SerializeField] private LayerMask interactionLayers = ~0;
 
         [Header("Placement Assist")]
@@ -91,10 +93,41 @@ namespace ColorPuzzle
                 }
             }
 
-            Vector3 position = viewCamera.transform.position + viewCamera.transform.forward * dropDistance;
-            carried.Drop(position, viewCamera.transform.forward * dropImpulse);
+            Vector3 candidatePosition = viewCamera.transform.position + viewCamera.transform.forward * dropDistance;
+            if (!TryFindDropSurface(candidatePosition, out RaycastHit surfaceHit)) return;
+
+            Vector3 restingPosition = carried.GetRestingPosition(
+                surfaceHit.point,
+                surfaceHit.normal,
+                dropSurfaceClearance);
+            carried.Drop(restingPosition);
             carried = null;
             RefreshInventoryHud();
+        }
+
+        private bool TryFindDropSurface(Vector3 candidatePosition, out RaycastHit surfaceHit)
+        {
+            float castDistance = dropGroundProbeHeight + dropGroundProbeDistance;
+            Vector3 candidateOrigin = candidatePosition + Vector3.up * dropGroundProbeHeight;
+            if (Physics.Raycast(
+                    candidateOrigin,
+                    Vector3.down,
+                    out surfaceHit,
+                    castDistance,
+                    interactionLayers,
+                    QueryTriggerInteraction.Ignore))
+                return true;
+
+            // If the forward position is over an edge, prefer the ground under the player
+            // rather than releasing the item into open space.
+            Vector3 fallbackOrigin = viewCamera.transform.position + Vector3.up * dropGroundProbeHeight;
+            return Physics.Raycast(
+                fallbackOrigin,
+                Vector3.down,
+                out surfaceHit,
+                castDistance,
+                interactionLayers,
+                QueryTriggerInteraction.Ignore);
         }
 
         private bool TryFindPlacementGoal(out GoalPedestal selectedGoal)

@@ -8,11 +8,12 @@ namespace ColorPuzzle
 {
     public sealed class MagnifierView : MonoBehaviour
     {
-        public enum MagnifierControlMode
-        {
-            MoveLens,
-            FixedLensCameraAim
-        }
+        private const string GreyscaleButtonLabel = "Greyscale";
+        private const string FullColorButtonLabel = "Full Color";
+        private const int MinimumRenderTextureDimension = 128;
+        private const float DefaultRenderAspect = 16f / 9f;
+        private const float MinimumUsableRenderAspect = 0.25f;
+        private const float MaximumUsableRenderAspect = 4f;
 
         public enum DevViewMode
         {
@@ -29,9 +30,6 @@ namespace ColorPuzzle
         // CENTRALIZED VISUAL / INTERACTION PARAMETERS (all art-directable values are Inspector-visible)
         [Header("Interaction")]
         [SerializeField] private MagnifierMouseButton revealMouseButton = MagnifierMouseButton.Right;
-        [SerializeField, Min(0.1f)] private float discoveryDistance = 12f;
-        [SerializeField, Min(0f)] private float discoveryScreenPadding = 4f;
-        [SerializeField] private LayerMask discoveryLayers = ~0;
 
         [Header("Composition")]
         [SerializeField] private Camera sourceCamera;
@@ -49,15 +47,12 @@ namespace ColorPuzzle
         [SerializeField, Min(0f)] private float screenEdgePadding = 8f;
         [SerializeField] private bool resetLensToCenterOnOpen = true;
 
-        [Header("Mode")]
-        [SerializeField] private MagnifierControlMode startingMode = MagnifierControlMode.MoveLens;
-        [SerializeField] private DevViewMode startingDevViewMode = DevViewMode.FullColor;
-
-        [Header("Mode Selector UI")]
-        [SerializeField] private bool showModeSelector = true;
+        [Header("Developer Panel")]
+        [SerializeField] private bool enableDeveloperPanel = true;
+        [SerializeField] private Key developerPanelToggleKey = Key.Enter;
+        [SerializeField] private bool unlockCursorWhilePanelOpen = true;
         [SerializeField] private Vector2 modeButtonSize = new Vector2(140f, 36f);
         [SerializeField, Min(0f)] private float modeButtonGap = 8f;
-        [SerializeField, Min(0f)] private float selectorGroupGap = 10f;
         [SerializeField, Min(0f)] private float selectorGroupPadding = 8f;
         [SerializeField, Min(8f)] private float selectorGroupLabelHeight = 20f;
         [SerializeField] private Vector2 modeSelectorMargin = new Vector2(20f, 20f);
@@ -82,14 +77,13 @@ namespace ColorPuzzle
         private int textureWidth;
         private int textureHeight;
         private bool active;
-        private MagnifierControlMode currentMode;
         private DevViewMode currentDevViewMode;
         private float originalColorCameraDepth;
         private int originalColorCameraCullingMask;
-        private Button moveLensButton;
-        private Button fixedLensButton;
         private Button puzzleViewButton;
         private Button fullColorButton;
+        private GameObject developerPanelRoot;
+        private bool developerPanelOpen;
 
         public bool IsActive => active;
 
@@ -100,8 +94,9 @@ namespace ColorPuzzle
             canvas = circularViewport != null ? circularViewport.GetComponentInParent<Canvas>() : null;
             canvasRect = canvas != null ? canvas.GetComponent<RectTransform>() : null;
             lensScreenPosition = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
-            currentMode = startingMode;
-            currentDevViewMode = startingDevViewMode;
+            // Move Lens + Greyscale are the player-facing interaction. Full Color remains
+            // available only through the hidden developer panel.
+            currentDevViewMode = DevViewMode.PuzzleView;
             if (colorCamera != null)
             {
                 originalColorCameraDepth = colorCamera.depth;
@@ -110,7 +105,7 @@ namespace ColorPuzzle
             ApplySolidSkyColors();
             PrepareCompleteColorView();
             EnsureRenderTexture();
-            CreateModeSelector();
+            CreateDeveloperPanel();
             SetActive(false);
         }
 
@@ -121,7 +116,12 @@ namespace ColorPuzzle
 
         private void Update()
         {
-            bool held = currentDevViewMode == DevViewMode.PuzzleView &&
+            if (enableDeveloperPanel && developerPanelToggleKey != Key.None && Keyboard.current != null &&
+                Keyboard.current[developerPanelToggleKey].wasPressedThisFrame)
+                SetDeveloperPanelOpen(!developerPanelOpen);
+
+            bool held = !developerPanelOpen &&
+                        currentDevViewMode == DevViewMode.PuzzleView &&
                         IsRevealButtonHeld() &&
                         player != null &&
                         player.IsGrounded;
@@ -142,80 +142,20 @@ namespace ColorPuzzle
 
             if (fullColor) return;
             UpdateLensPosition();
-            TryDiscoverObjectUnderLens();
             UpdateViewportLayout();
         }
 
         private void SetActive(bool value)
         {
             active = value && currentDevViewMode == DevViewMode.PuzzleView;
-            if (value && (resetLensToCenterOnOpen || currentMode == MagnifierControlMode.FixedLensCameraAim))
+            if (value && resetLensToCenterOnOpen)
                 lensScreenPosition = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
             ApplyDevViewMode();
             ApplyPlayerControlMode();
         }
 
-        private void TryDiscoverObjectUnderLens()
-        {
-            float lensRadius = Mathf.Min(Screen.width, Screen.height) * viewportScreenFraction * 0.5f;
-            foreach (DiscoverableObject discoverable in DiscoverableObject.ActiveObjects)
-            {
-                if (discoverable == null || discoverable.IsDiscovered) continue;
-                Bounds bounds = discoverable.DiscoveryBounds;
-                float distance = Vector3.Distance(sourceCamera.transform.position, bounds.center);
-                if (distance > discoveryDistance) continue;
-                if (!ScreenBoundsIntersectLens(bounds, lensRadius)) continue;
-                if (!HasLineOfSight(discoverable, bounds.center, distance)) continue;
-                discoverable.Discover();
-            }
-        }
-
-        private bool ScreenBoundsIntersectLens(Bounds bounds, float lensRadius)
-        {
-            Vector3 min = bounds.min;
-            Vector3 max = bounds.max;
-            Vector2 screenMin = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
-            Vector2 screenMax = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
-            bool anyPointInFront = false;
-
-            for (int corner = 0; corner < 8; corner++)
-            {
-                Vector3 worldPoint = new Vector3(
-                    (corner & 1) == 0 ? min.x : max.x,
-                    (corner & 2) == 0 ? min.y : max.y,
-                    (corner & 4) == 0 ? min.z : max.z);
-                Vector3 screenPoint = sourceCamera.WorldToScreenPoint(worldPoint);
-                if (screenPoint.z <= 0f) continue;
-                anyPointInFront = true;
-                screenMin = Vector2.Min(screenMin, screenPoint);
-                screenMax = Vector2.Max(screenMax, screenPoint);
-            }
-
-            if (!anyPointInFront) return false;
-            Vector2 closestPoint = new Vector2(
-                Mathf.Clamp(lensScreenPosition.x, screenMin.x, screenMax.x),
-                Mathf.Clamp(lensScreenPosition.y, screenMin.y, screenMax.y));
-            float effectiveRadius = lensRadius + discoveryScreenPadding;
-            return (closestPoint - lensScreenPosition).sqrMagnitude <= effectiveRadius * effectiveRadius;
-        }
-
-        private bool HasLineOfSight(DiscoverableObject target, Vector3 targetCenter, float distance)
-        {
-            Vector3 origin = sourceCamera.transform.position;
-            Vector3 direction = (targetCenter - origin).normalized;
-            if (!Physics.Raycast(origin, direction, out RaycastHit hit, distance + 0.1f, discoveryLayers, QueryTriggerInteraction.Ignore))
-                return false;
-            return hit.collider.GetComponentInParent<DiscoverableObject>() == target;
-        }
-
         private void UpdateLensPosition()
         {
-            if (currentMode == MagnifierControlMode.FixedLensCameraAim)
-            {
-                lensScreenPosition = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
-                return;
-            }
-
             if (Mouse.current == null) return;
             lensScreenPosition += Mouse.current.delta.ReadValue() * lensMoveSensitivity;
             float radius = Mathf.Min(Screen.width, Screen.height) * viewportScreenFraction * 0.5f;
@@ -244,8 +184,17 @@ namespace ColorPuzzle
 
         private void EnsureRenderTexture()
         {
-            int desiredHeight = Mathf.Max(128, renderTextureHeight);
-            int desiredWidth = Mathf.Max(128, Mathf.RoundToInt(desiredHeight * (Screen.width / (float)Mathf.Max(1, Screen.height))));
+            int maximumDimension = Mathf.Max(MinimumRenderTextureDimension, SystemInfo.maxTextureSize);
+            int desiredHeight = Mathf.Clamp(renderTextureHeight, MinimumRenderTextureDimension, maximumDimension);
+            float aspect = Screen.width / (float)Mathf.Max(1, Screen.height);
+            if (aspect < MinimumUsableRenderAspect || aspect > MaximumUsableRenderAspect)
+                aspect = sourceCamera != null ? sourceCamera.aspect : DefaultRenderAspect;
+            if (aspect < MinimumUsableRenderAspect || aspect > MaximumUsableRenderAspect)
+                aspect = DefaultRenderAspect;
+            int desiredWidth = Mathf.Clamp(
+                Mathf.RoundToInt(desiredHeight * aspect),
+                MinimumRenderTextureDimension,
+                maximumDimension);
             if (revealTexture != null && desiredWidth == textureWidth && desiredHeight == textureHeight) return;
 
             if (revealTexture != null)
@@ -277,15 +226,6 @@ namespace ColorPuzzle
                 colorCamera.clearFlags = CameraClearFlags.SolidColor;
                 colorCamera.backgroundColor = revealViewSkyColor;
             }
-        }
-
-        private void SetMode(MagnifierControlMode mode)
-        {
-            currentMode = mode;
-            if (mode == MagnifierControlMode.FixedLensCameraAim)
-                lensScreenPosition = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
-            ApplyPlayerControlMode();
-            RefreshModeSelector();
         }
 
         private void SetDevViewMode(DevViewMode mode)
@@ -323,17 +263,17 @@ namespace ColorPuzzle
         private void ApplyPlayerControlMode()
         {
             if (player == null) return;
-            bool allowCameraLook = currentMode == MagnifierControlMode.FixedLensCameraAim;
             bool magnifierActive = active && currentDevViewMode == DevViewMode.PuzzleView;
-            player.SetMagnifierControls(magnifierActive, allowCameraLook);
+            player.SetMagnifierControls(magnifierActive, false);
         }
 
-        private void CreateModeSelector()
+        private void CreateDeveloperPanel()
         {
-            if (!showModeSelector || canvasRect == null) return;
+            if (!enableDeveloperPanel || canvasRect == null) return;
             EnsureEventSystem();
 
-            GameObject selectorObject = new GameObject("MagnifierModeSelector", typeof(RectTransform));
+            GameObject selectorObject = new GameObject("DeveloperViewPanel", typeof(RectTransform));
+            developerPanelRoot = selectorObject;
             RectTransform selector = selectorObject.GetComponent<RectTransform>();
             selector.SetParent(canvasRect, false);
             selector.anchorMin = selector.anchorMax = new Vector2(1f, 1f);
@@ -341,24 +281,30 @@ namespace ColorPuzzle
             selector.anchoredPosition = new Vector2(-modeSelectorMargin.x, -modeSelectorMargin.y);
             float groupWidth = modeButtonSize.x * 2f + modeButtonGap + selectorGroupPadding * 2f;
             float groupHeight = selectorGroupPadding * 3f + selectorGroupLabelHeight + modeButtonSize.y;
-            selector.sizeDelta = new Vector2(groupWidth, groupHeight * 2f + selectorGroupGap);
+            selector.sizeDelta = new Vector2(groupWidth, groupHeight);
             selector.SetAsLastSibling();
 
             Font font = canvas.GetComponentInChildren<Text>(true)?.font;
             if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
-            RectTransform controlGroup = CreateSelectorGroup(selector, "MAGNIFIER CONTROL", 0f, groupWidth, groupHeight, font);
-            moveLensButton = CreateModeButton(controlGroup, "Move Lens", selectorGroupPadding, font);
-            fixedLensButton = CreateModeButton(controlGroup, "Fixed Lens", selectorGroupPadding + modeButtonSize.x + modeButtonGap, font);
-            moveLensButton.onClick.AddListener(() => SetMode(MagnifierControlMode.MoveLens));
-            fixedLensButton.onClick.AddListener(() => SetMode(MagnifierControlMode.FixedLensCameraAim));
-
-            RectTransform devViewGroup = CreateSelectorGroup(selector, "DEV VIEW", groupHeight + selectorGroupGap, groupWidth, groupHeight, font);
-            puzzleViewButton = CreateModeButton(devViewGroup, "Puzzle View", selectorGroupPadding, font);
-            fullColorButton = CreateModeButton(devViewGroup, "Full Color", selectorGroupPadding + modeButtonSize.x + modeButtonGap, font);
+            RectTransform devViewGroup = CreateSelectorGroup(selector, "DEVELOPER VIEW", 0f, groupWidth, groupHeight, font);
+            puzzleViewButton = CreateModeButton(devViewGroup, GreyscaleButtonLabel, selectorGroupPadding, font);
+            fullColorButton = CreateModeButton(devViewGroup, FullColorButtonLabel, selectorGroupPadding + modeButtonSize.x + modeButtonGap, font);
             puzzleViewButton.onClick.AddListener(() => SetDevViewMode(DevViewMode.PuzzleView));
             fullColorButton.onClick.AddListener(() => SetDevViewMode(DevViewMode.FullColor));
             RefreshModeSelector();
+            SetDeveloperPanelOpen(false);
+        }
+
+        private void SetDeveloperPanelOpen(bool open)
+        {
+            developerPanelOpen = open && developerPanelRoot != null;
+            if (developerPanelRoot != null) developerPanelRoot.SetActive(developerPanelOpen);
+            if (developerPanelOpen) SetActive(false);
+
+            if (!unlockCursorWhilePanelOpen) return;
+            Cursor.lockState = developerPanelOpen ? CursorLockMode.None : CursorLockMode.Locked;
+            Cursor.visible = developerPanelOpen;
         }
 
         private RectTransform CreateSelectorGroup(RectTransform parent, string label, float offsetY, float width, float height, Font font)
@@ -426,10 +372,6 @@ namespace ColorPuzzle
 
         private void RefreshModeSelector()
         {
-            if (moveLensButton != null)
-                moveLensButton.targetGraphic.color = currentMode == MagnifierControlMode.MoveLens ? selectedModeColor : unselectedModeColor;
-            if (fixedLensButton != null)
-                fixedLensButton.targetGraphic.color = currentMode == MagnifierControlMode.FixedLensCameraAim ? selectedModeColor : unselectedModeColor;
             if (puzzleViewButton != null)
                 puzzleViewButton.targetGraphic.color = currentDevViewMode == DevViewMode.PuzzleView ? selectedModeColor : unselectedModeColor;
             if (fullColorButton != null)

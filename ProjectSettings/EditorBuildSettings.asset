@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/ColorPuzzle/Scenes/ColorPuzzleUnderwaterDemo.unity
+    guid: 43e21bde59805451b9f623de72e8d3b6
+  - enabled: 1
     path: Assets/ColorPuzzle/Scenes/ColorPuzzleVerticalSlice.unity
     guid: 6aec37a488f6847d68e9179a95fe89ef
   m_configObjects:
