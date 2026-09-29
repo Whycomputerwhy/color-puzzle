@@ -3847,6 +3847,10 @@ PrefabInstance:
       value: -8
       objectReference: {fileID: 0}
     - target: {fileID: 9175544705949783069, guid: c3cbf2c226a94488cac59d5a30072b2f, type: 3}
+      propertyPath: lensMoveEasing
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 9175544705949783069, guid: c3cbf2c226a94488cac59d5a30072b2f, type: 3}
       propertyPath: discoveryDistance
       value: 64
       objectReference: {fileID: 0}
@@ -3881,6 +3885,10 @@ PrefabInstance:
     - target: {fileID: 9175544705949783069, guid: c3cbf2c226a94488cac59d5a30072b2f, type: 3}
       propertyPath: viewportScreenFraction
       value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 9175544705949783069, guid: c3cbf2c226a94488cac59d5a30072b2f, type: 3}
+      propertyPath: resetLensToCenterOnOpen
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

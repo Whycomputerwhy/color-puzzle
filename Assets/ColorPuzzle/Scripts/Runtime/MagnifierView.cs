@@ -44,6 +44,7 @@ namespace ColorPuzzle
 
         [Header("Lens Motion")]
         [SerializeField, Min(0f)] private float lensMoveSensitivity = 1f;
+        [SerializeField, Min(0f)] private float lensMoveEasing = 18f;
         [SerializeField, Min(0f)] private float screenEdgePadding = 8f;
         [SerializeField] private bool resetLensToCenterOnOpen = true;
 
@@ -74,6 +75,7 @@ namespace ColorPuzzle
         private RectTransform canvasRect;
         private Canvas canvas;
         private Vector2 lensScreenPosition;
+        private Vector2 lensTargetScreenPosition;
         private int textureWidth;
         private int textureHeight;
         private bool active;
@@ -94,6 +96,7 @@ namespace ColorPuzzle
             canvas = circularViewport != null ? circularViewport.GetComponentInParent<Canvas>() : null;
             canvasRect = canvas != null ? canvas.GetComponent<RectTransform>() : null;
             lensScreenPosition = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+            lensTargetScreenPosition = lensScreenPosition;
             // Move Lens + Greyscale are the player-facing interaction. Full Color remains
             // available only through the hidden developer panel.
             currentDevViewMode = DevViewMode.PuzzleView;
@@ -149,19 +152,34 @@ namespace ColorPuzzle
         {
             active = value && currentDevViewMode == DevViewMode.PuzzleView;
             if (value && resetLensToCenterOnOpen)
+            {
                 lensScreenPosition = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+                lensTargetScreenPosition = lensScreenPosition;
+            }
             ApplyDevViewMode();
             ApplyPlayerControlMode();
         }
 
         private void UpdateLensPosition()
         {
-            if (Mouse.current == null) return;
-            lensScreenPosition += Mouse.current.delta.ReadValue() * lensMoveSensitivity;
+            if (Mouse.current != null)
+                lensTargetScreenPosition += Mouse.current.delta.ReadValue() * lensMoveSensitivity;
+
             float radius = Mathf.Min(Screen.width, Screen.height) * viewportScreenFraction * 0.5f;
             float margin = radius + screenEdgePadding;
-            lensScreenPosition.x = Mathf.Clamp(lensScreenPosition.x, margin, Screen.width - margin);
-            lensScreenPosition.y = Mathf.Clamp(lensScreenPosition.y, margin, Screen.height - margin);
+            float maximumX = Mathf.Max(margin, Screen.width - margin);
+            float maximumY = Mathf.Max(margin, Screen.height - margin);
+            lensTargetScreenPosition.x = Mathf.Clamp(lensTargetScreenPosition.x, margin, maximumX);
+            lensTargetScreenPosition.y = Mathf.Clamp(lensTargetScreenPosition.y, margin, maximumY);
+
+            // Exponential response gives the same feel at different frame rates. Zero is
+            // intentionally an immediate response for easy A/B tuning in the Inspector.
+            float blend = lensMoveEasing <= 0f
+                ? 1f
+                : 1f - Mathf.Exp(-lensMoveEasing * Time.unscaledDeltaTime);
+            lensScreenPosition = Vector2.Lerp(lensScreenPosition, lensTargetScreenPosition, blend);
+            lensScreenPosition.x = Mathf.Clamp(lensScreenPosition.x, margin, maximumX);
+            lensScreenPosition.y = Mathf.Clamp(lensScreenPosition.y, margin, maximumY);
         }
 
         private void UpdateViewportLayout()

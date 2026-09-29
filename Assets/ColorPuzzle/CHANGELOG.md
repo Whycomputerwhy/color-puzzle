@@ -2,6 +2,212 @@
 
 This log is intended for people and AI agents continuing the same Unity project. Append new entries; do not rewrite past decisions without explaining the migration.
 
+## 0.2.21 — 2026-09-29 — White-circle placement targeting
+
+### Changed
+
+- Placement now targets the top-surface point beneath the goal's placement socket, matching the center of the visible white circle instead of accepting the pedestal's whole collider.
+- The existing `Placement Cast Radius` now defines forgiving world-space room around that marked point; its `0.75 m` default remains unchanged.
+- Direct, assisted, and standing-on-top placement paths all require the same target-proximity test and an unobstructed path to the marked surface.
+- Aiming at the pedestal body outside the white-circle region now falls through to the normal object-drop behavior.
+
+### Safety
+
+- Runtime scripts and documentation only; no scene, prefab, material, HUD, camera, or Build Settings asset was rewritten.
+
+## 0.2.20 — 2026-09-29 — Eased magnifier movement
+
+### Changed
+
+- Split magnifier motion into a raw mouse-driven target and a displayed lens position that eases toward it.
+- Added frame-rate-independent exponential smoothing using unscaled time, keeping the lens responsive even if game time is altered.
+- Added an Inspector `Lens Move Easing` control, defaulting to a subtle `18` response per second; zero restores immediate movement.
+- Re-centering the magnifier now resets both motion states together, so opening it never glides in from a stale position.
+
+### Safety
+
+- Runtime script and documentation only; no scene, prefab, material, HUD, camera, or Build Settings asset was rewritten.
+
+## 0.2.19 — 2026-09-29 — Reliable pickup aim
+
+### Fixed
+
+- Replaced the fragile zero-width-only pickup test with an occlusion-aware two-stage aim query.
+- An interactive exact center-ray hit remains authoritative; otherwise a small sphere cast provides forgiveness around the crosshair, including when the thin ray narrowly misses the object and reaches the floor behind it.
+- Both aim stages ignore the player hierarchy and select only the nearest remaining collider, preventing assisted pickup through walls or props.
+- Added a null-safe shared player-collider filter used by pickup and drop queries.
+
+### Added
+
+- Added an Inspector `Pickup Aim Radius` control, defaulting to `0.16 m`; setting it to zero restores exact-ray-only targeting.
+
+### Safety
+
+- Runtime script and documentation only; no scene, prefab, material, HUD, camera, or Build Settings asset was rewritten.
+
+## 0.2.18 — 2026-09-29 — Skyward drop player pass-through
+
+### Fixed
+
+- Downward floor probes now inspect all hits and explicitly skip the player hierarchy instead of accepting the first collider.
+- A drop aimed into empty sky can no longer treat the CharacterController's head as a supporting surface, place the object above the player, or leave it frozen in midair.
+- The probe continues straight through the player to the nearest valid world surface below; the existing temporary player-collision ignore remains active if the final object volume overlaps the player.
+
+### Safety
+
+- Runtime script and documentation only; no scene, prefab, material, HUD, camera, or Build Settings asset was rewritten.
+
+## 0.2.17 — 2026-09-29 — Drop surface and player-overlap exceptions
+
+### Fixed
+
+- A fallback animation whose start would be inside solid geometry or at/below the resolved horizontal resting center is now skipped; the object appears directly on that surface instead of floating upward out of a volume.
+- Close focused walls retain player-side clearance but now animate from a short near-camera start down to the floor instead of placing instantly.
+- A dropped object's world collision activates normally, while only its collision with an overlapping player is ignored until the player fully exits the object's expanded volume. This prevents dropped objects from pushing the player away.
+
+### Added
+
+- Added Inspector controls for close-wall animation start distance and player-exit collision clearance.
+
+### Safety
+
+- Runtime scripts and documentation only; no scene, prefab, material, HUD, camera, or Build Settings asset was rewritten.
+
+## 0.2.16 — 2026-09-29 — Crosshair-aligned distant drops
+
+### Fixed
+
+- Corrected the interpretation of the requested Z-axis behavior from world-vertical Y to the camera's forward/local-Z focus point.
+- Distant and empty-air drops now start with the object's bounds center exactly on the crosshair at `Drop Distance`, regardless of whether the player looks up or down.
+- The fallback floor probe uses that same camera-forward point, so the object falls to the ground directly beneath its visible start instead of appearing above or below the focus before release.
+- Removed the world-height animation control that caused the pitch-dependent screen offset.
+
+### Preserved
+
+- Immediate close-surface placement, close wall clearance, forward-only movement influence, collision validation, static final objects, and exact goal placement.
+
+### Safety
+
+- Runtime scripts and documentation only; no scene, prefab, material, HUD, camera, or Build Settings asset was rewritten.
+
+## 0.2.15 — 2026-09-29 — Simplified near/far drop split
+
+### Changed
+
+- Replaced overlapping aimed-ground and forward-distance behavior with one center-focus distance rule.
+- A usable focused surface at or inside `Drop Distance` receives the object immediately at the validated intersection, without animation or movement lead.
+- A farther, absent, or unsuitable focused surface uses the forward fallback and animates from directly above the final point, producing a straight world-Y drop with no diagonal screen-center travel.
+- Removed the separate aimed-surface range and screen-center animation-start controls; `Drop Distance` is now the sole near/far threshold.
+
+### Preserved
+
+- Exact goal placement, close wall clearance, forward-only lead on distant fallback drops, grounding, overlap rejection, static final objects, and manual scene/prefab edits.
+
+### Safety
+
+- Runtime scripts and documentation only; no scene, prefab, material, HUD, camera, or Build Settings asset was rewritten.
+
+## 0.2.14 — 2026-09-29 — Aim-distance ground drops
+
+### Changed
+
+- Looking down at a floor or other supporting surface now drops the carried object at the actual center-ray hit point instead of forcing the normal forward drop distance.
+- Very close aimed ground points remain very close; the fixed forward distance is now only a fallback when no supporting surface is under the crosshair.
+- Wall-side placement, forward movement lead, downward grounding, overlap validation, and the quick kinematic drop animation remain active.
+- Added an Inspector control for maximum aimed-supporting-surface recognition distance; it does not impose a minimum distance.
+
+### Safety
+
+- Runtime scripts and documentation only; no scene, prefab, material, HUD, camera, or Build Settings asset was rewritten.
+
+## 0.2.13 — 2026-09-28 — Subtle first-person view motion
+
+### Added
+
+- Added a low-amplitude vertical camera bob driven by actual grounded horizontal speed.
+- Added a very short smooth camera squat before physical jump launch, followed by a quick recovery to the manually authored camera-pivot position.
+- View-motion offsets freeze while the magnifier locks movement, preserving the existing fixed camera position during inspection.
+- Added Inspector controls for enabling view motion, walk amplitude/frequency/threshold/smoothing, and jump squat depth/anticipation/recovery timing.
+
+### Safety
+
+- The animation is an additive runtime offset from the authored camera-pivot position and never writes that position back to the prefab or scene.
+- Runtime scripts and documentation only; no scene, prefab, material, HUD, camera, or Build Settings asset was rewritten.
+
+## 0.2.12 — 2026-09-28 — Forward-only drop lead
+
+### Changed
+
+- Restricted movement-matched drop displacement to the player's forward velocity component.
+- Strafing and backward movement now produce the same stationary drop destination as standing still.
+- Forward wall safety, grounding, overlap validation, animation, and exact goal placement remain unchanged.
+
+### Safety
+
+- Runtime scripts and documentation only; no scene, prefab, material, HUD, camera, or Build Settings asset was rewritten.
+
+## 0.2.11 — 2026-09-28 — Movement-matched object drop
+
+### Changed
+
+- Ordinary drops now inherit a small bounded displacement from the player's current horizontal movement, giving the quick descent a matching directional drift.
+- Movement lead is projected along an aimed wall instead of through it, and the shifted destination still passes through all existing grounding, wall-clearance, and overlap checks.
+- Exact goal placement remains unchanged.
+- Added Inspector controls for movement lead time, maximum offset, and minimum activation speed.
+
+### Safety
+
+- Runtime scripts and documentation only; no scene, prefab, material, HUD, camera, or Build Settings asset was rewritten.
+
+## 0.2.10 — 2026-09-28 — Underfoot pickup and fall
+
+### Changed
+
+- Left-click pickup now retains the centered aim path as its first priority, then checks a short sphere probe directly beneath the player's feet.
+- A mission object supporting the player can therefore be collected without aiming down at it.
+- Pickup disables the supporting object's collider as before, allowing the existing CharacterController gravity to lower the player naturally onto the next surface.
+- Added Inspector controls for underfoot probe radius, starting height, and distance.
+
+### Safety
+
+- Runtime scripts and documentation only; no scene, prefab, material, HUD, camera, or Build Settings asset was rewritten.
+
+## 0.2.9 — 2026-09-28 — Facing-wall drop priority
+
+### Fixed
+
+- A mostly vertical surface directly under the crosshair now takes priority over the higher flat surface on top of that obstacle.
+- The drop destination is moved to the player-facing side of the wall before the downward floor probe, so the ball lands beside and leans against the obstacle instead of jumping onto it.
+- Existing overlap rejection, horizontal clearance, grounding, and quick kinematic drop animation remain active.
+
+### Safety
+
+- Runtime scripts and documentation only; no scene, prefab, material, HUD, camera, or Build Settings asset was rewritten.
+
+## 0.2.8 — 2026-09-28 — Quick kinematic drop animation
+
+### Changed
+
+- Restored a brief visible drop from the viewport center to the collision-safe grounded destination.
+- The animation uses frame-rate-independent, gravity-like interpolation rather than Rigidbody motion; collision remains disabled in transit and activates only after the object reaches its static resting point.
+- Added Inspector controls for duration, viewport-center depth, minimum fall height, and fall-curve exponent.
+
+### Safety
+
+- Runtime scripts and documentation only; no scene, prefab, material, HUD, camera, or Build Settings asset was rewritten.
+
+## 0.2.7 — 2026-09-28 — Collision-safe object drops
+
+### Changed
+
+- Dropping now sphere-casts along the horizontal path and stops objects on the player-facing side of walls and props instead of allowing placement through them.
+- Final drop positions are grounded vertically, pushed horizontally out of intersecting colliders with bounded penetration-resolution passes, and rejected if any blocking overlap remains.
+- Added Inspector controls for wall clearance, collision tolerance, resolution passes, and the wall-normal threshold.
+
+### Safety
+
+- Runtime scripts and documentation only; no scene, prefab, material, HUD, camera, or Build Settings asset was rewritten.
+
 ## 0.2.6 — 2026-09-28 — Placement scale and kinematic warning fix
 
 ### Fixed

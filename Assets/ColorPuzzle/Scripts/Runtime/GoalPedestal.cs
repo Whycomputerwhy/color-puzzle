@@ -31,6 +31,15 @@ namespace ColorPuzzle
         private Material completionDoorRevealMaterial;
         public bool IsComplete => complete;
         public Bounds PlacementBounds => pedestalRenderer != null ? pedestalRenderer.bounds : GetComponent<Collider>().bounds;
+        public Vector3 PlacementAimPosition
+        {
+            get
+            {
+                Bounds bounds = PlacementBounds;
+                Vector3 anchor = placementSocket != null ? placementSocket.position : bounds.center;
+                return new Vector3(anchor.x, bounds.max.y, anchor.z);
+            }
+        }
         public static IEnumerable<GoalPedestal> ActiveGoals => ActivePedestals;
 
         private void OnEnable() => ActivePedestals.Add(this);

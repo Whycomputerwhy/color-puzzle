@@ -20,11 +20,30 @@ namespace ColorPuzzle
         [SerializeField, Range(1f, 89f)] private float verticalLookLimit = 85f;
         [SerializeField] private bool lockCursorOnStart = true;
 
+        [Header("View Motion")]
+        [SerializeField] private bool enableViewMotion = true;
+        [SerializeField, Min(0f)] private float walkBobAmplitude = 0.025f;
+        [SerializeField, Min(0f)] private float walkBobFrequency = 1.8f;
+        [SerializeField, Min(0f)] private float walkBobMinimumSpeed = 0.15f;
+        [SerializeField, Min(0f)] private float walkBobSmoothing = 14f;
+        [SerializeField, Min(0f)] private float jumpSquatDepth = 0.055f;
+        [SerializeField, Min(0f)] private float jumpSquatDuration = 0.07f;
+        [SerializeField, Min(0f)] private float jumpSquatRecoveryDuration = 0.12f;
+
         private CharacterController controller;
+        private Vector3 cameraPivotRestLocalPosition;
         private float verticalVelocity;
         private float pitch;
+        private float walkBobPhase;
+        private float smoothedWalkBobOffset;
+        private float jumpSquatOffset;
+        private float jumpSquatElapsed;
+        private float jumpSquatRecoveryElapsed;
+        private float jumpSquatRecoveryStartOffset;
         private bool movementLocked;
         private bool lookLocked;
+        private bool jumpAnticipating;
+        private bool jumpSquatRecovering;
 
         public Transform CameraPivot => cameraPivot;
         public bool IsGrounded => controller != null && controller.isGrounded;
@@ -33,6 +52,7 @@ namespace ColorPuzzle
         {
             controller = GetComponent<CharacterController>();
             if (cameraPivot == null && Camera.main != null) cameraPivot = Camera.main.transform;
+            if (cameraPivot != null) cameraPivotRestLocalPosition = cameraPivot.localPosition;
         }
 
         private void Start()
@@ -60,6 +80,20 @@ namespace ColorPuzzle
             {
                 ApplyGravityOnly();
             }
+        }
+
+        private void LateUpdate()
+        {
+            UpdateViewMotion();
+        }
+
+        private void OnDisable()
+        {
+            if (cameraPivot != null) cameraPivot.localPosition = cameraPivotRestLocalPosition;
+            jumpAnticipating = false;
+            jumpSquatRecovering = false;
+            jumpSquatOffset = 0f;
+            smoothedWalkBobOffset = 0f;
         }
 
         public void SetControlsLocked(bool locked)
@@ -97,11 +131,34 @@ namespace ColorPuzzle
             if (controller.isGrounded)
             {
                 verticalVelocity = groundedForce;
-                if (Keyboard.current.spaceKey.wasPressedThisFrame)
-                    verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                if (Keyboard.current.spaceKey.wasPressedThisFrame && !jumpAnticipating)
+                {
+                    if (enableViewMotion && jumpSquatDuration > 0f)
+                    {
+                        jumpAnticipating = true;
+                        jumpSquatRecovering = false;
+                        jumpSquatElapsed = 0f;
+                    }
+                    else
+                    {
+                        verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                    }
+                }
+
+                if (jumpAnticipating)
+                {
+                    jumpSquatElapsed += Time.deltaTime;
+                    if (jumpSquatDuration <= 0f || jumpSquatElapsed >= jumpSquatDuration)
+                    {
+                        jumpAnticipating = false;
+                        BeginJumpSquatRecovery(-jumpSquatDepth);
+                        verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                    }
+                }
             }
             else
             {
+                if (jumpAnticipating) CancelJumpAnticipation();
                 verticalVelocity += gravity * Time.deltaTime;
             }
 
@@ -110,9 +167,102 @@ namespace ColorPuzzle
 
         private void ApplyGravityOnly()
         {
+            if (jumpAnticipating) CancelJumpAnticipation();
             if (controller.isGrounded) verticalVelocity = groundedForce;
             else verticalVelocity += gravity * Time.deltaTime;
             controller.Move(Vector3.up * verticalVelocity * Time.deltaTime);
+        }
+
+        private void UpdateViewMotion()
+        {
+            if (cameraPivot == null) return;
+            if (!enableViewMotion)
+            {
+                smoothedWalkBobOffset = 0f;
+                jumpSquatOffset = 0f;
+                cameraPivot.localPosition = cameraPivotRestLocalPosition;
+                return;
+            }
+            if (movementLocked)
+            {
+                cameraPivot.localPosition = cameraPivotRestLocalPosition +
+                                            Vector3.up * (smoothedWalkBobOffset + jumpSquatOffset);
+                return;
+            }
+
+            float planarSpeed = controller == null
+                ? 0f
+                : Vector3.ProjectOnPlane(controller.velocity, Vector3.up).magnitude;
+            bool isWalking = controller != null &&
+                             controller.isGrounded &&
+                             planarSpeed >= walkBobMinimumSpeed;
+
+            float targetWalkBob = 0f;
+            if (isWalking)
+            {
+                float speedScale = moveSpeed > 0.0001f ? planarSpeed / moveSpeed : 1f;
+                walkBobPhase = Mathf.Repeat(
+                    walkBobPhase + Time.deltaTime * walkBobFrequency * speedScale,
+                    1f);
+                targetWalkBob = Mathf.Sin(walkBobPhase * Mathf.PI * 2f) * walkBobAmplitude;
+            }
+            else
+            {
+                walkBobPhase = 0f;
+            }
+
+            float bobBlend = walkBobSmoothing <= 0f
+                ? 1f
+                : 1f - Mathf.Exp(-walkBobSmoothing * Time.deltaTime);
+            smoothedWalkBobOffset = Mathf.Lerp(
+                smoothedWalkBobOffset,
+                targetWalkBob,
+                bobBlend);
+
+            UpdateJumpSquatViewOffset();
+            cameraPivot.localPosition = cameraPivotRestLocalPosition +
+                                        Vector3.up * (smoothedWalkBobOffset + jumpSquatOffset);
+        }
+
+        private void UpdateJumpSquatViewOffset()
+        {
+            if (jumpAnticipating)
+            {
+                float progress = jumpSquatDuration <= 0f
+                    ? 1f
+                    : Mathf.Clamp01(jumpSquatElapsed / jumpSquatDuration);
+                jumpSquatOffset = -jumpSquatDepth * Mathf.SmoothStep(0f, 1f, progress);
+                return;
+            }
+
+            if (!jumpSquatRecovering)
+            {
+                jumpSquatOffset = 0f;
+                return;
+            }
+
+            jumpSquatRecoveryElapsed += Time.deltaTime;
+            float recoveryProgress = jumpSquatRecoveryDuration <= 0f
+                ? 1f
+                : Mathf.Clamp01(jumpSquatRecoveryElapsed / jumpSquatRecoveryDuration);
+            jumpSquatOffset = Mathf.Lerp(
+                jumpSquatRecoveryStartOffset,
+                0f,
+                Mathf.SmoothStep(0f, 1f, recoveryProgress));
+            if (recoveryProgress >= 1f) jumpSquatRecovering = false;
+        }
+
+        private void BeginJumpSquatRecovery(float startOffset)
+        {
+            jumpSquatRecoveryStartOffset = startOffset;
+            jumpSquatRecoveryElapsed = 0f;
+            jumpSquatRecovering = true;
+        }
+
+        private void CancelJumpAnticipation()
+        {
+            jumpAnticipating = false;
+            BeginJumpSquatRecovery(jumpSquatOffset);
         }
 
         private static void SetCursorLocked(bool locked)
