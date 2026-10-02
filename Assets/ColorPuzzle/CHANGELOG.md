@@ -2,6 +2,72 @@
 
 This log is intended for people and AI agents continuing the same Unity project. Append new entries; do not rewrite past decisions without explaining the migration.
 
+## 0.2.38 — 2026-10-01 — Reduced color-view interaction glow
+
+### Changed
+
+- Added an Inspector-visible color-view glow scale, defaulting to 0.5.
+- Color and magnifier cameras now render the white interaction back glow at half the greyscale view's screen-space width and half its composite opacity.
+- The black greyscale glow retains its existing width, softness, color, and intensity.
+
+### Safety
+
+- Runtime outline parameters, player prefab serialization, and documentation only. No scene objects or authored level transforms were modified.
+
+## 0.2.37 — 2026-10-01 — Natural close-range camera lens
+
+### Changed
+
+- Reduced both gameplay cameras from a 58° to a 50° vertical field of view so nearby spheres and greybox structures receive only mild perspective stretching.
+- Reduced mouse sensitivity from 0.11 to 0.095 and pickup aim assist from 0.14 to 0.12 using the same approximate tangent ratio as the lens change.
+- Kept both cameras on the matching 0.1 near clip plane so the greyscale and magnifier views remain aligned around nearby geometry.
+
+### Safety
+
+- Player prefab tuning and documentation only. No scene objects, transforms, or manually authored level changes were modified.
+
+## 0.2.36 — 2026-10-01 — Complex surrounding routes
+
+### Changed
+
+- Added a second additive scene layer that gives the rear and both side perimeters the same multi-height structural density as the original forward route.
+- Built a rear terrace and bridge network, stepped left-side walkway, raised right-side overlook, supporting pillars, screened pockets, and environmental landmarks.
+- Added eight more interactive decoy balls across low, mid-height, elevated, under-bridge, and partially hidden perimeter placements.
+
+### Safety
+
+- New objects are isolated under `--- SURROUNDING EXPANSION 0.2.36 ---`; previous manual and generated scene objects are not moved, regenerated, or replaced.
+- The pass is idempotent and refuses to add a second copy when its named root already exists.
+
+## 0.2.35 — 2026-10-01 — Expanded underwater search space
+
+### Changed
+
+- Moved the player start close to the red goal while aiming into the main route.
+- Relocated the red solution ball to a reachable rear-left grotto outside the initial sightline.
+- Upgraded every underwater decoy ball to use the normal pickup, carry, drop, and interaction-cue mechanics.
+- Wrong-color balls can now be placed on the target and remain pickable, but do not restore the goal or reveal the completion door.
+- Added ten scattered decoy balls, including rear, side-route, elevated, and partially screened placements.
+- Added twenty additive underwater greybox props across the rear, side, and far spaces so the composition continues behind the initial camera.
+
+### Safety
+
+- The scene expansion is additive and stored under `--- GAMEPLAY EXPANSION 0.2.35 ---`; existing environment objects are not rebuilt.
+- Only the explicitly requested player and red-ball transforms are changed. Runtime scripts, the shared decoy prefab, and the underwater scene are updated in place.
+
+## 0.2.34 — 2026-10-01 — Reduced perspective distortion
+
+### Changed
+
+- Reduced the main and magnifier color cameras from a 68° to a 58° vertical field of view to make nearby objects and level geometry look less stretched.
+- Matched both cameras to a 0.1 near clip plane so the magnifier and regular view frame nearby geometry consistently.
+- Reduced mouse sensitivity from 0.13 to 0.11 to preserve the previous on-screen look speed at the narrower field of view.
+- Tightened pickup aim assist from 0.16 to 0.14 world units so its apparent screen-space generosity remains approximately unchanged.
+
+### Safety
+
+- Player prefab tuning and documentation only. No scene files or manually positioned level objects were modified.
+
 ## 0.2.33 — 2026-10-01 — Minimal outlined inventory HUD
 
 ### Changed

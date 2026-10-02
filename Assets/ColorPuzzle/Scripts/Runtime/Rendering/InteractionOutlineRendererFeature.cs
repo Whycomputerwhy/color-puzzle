@@ -132,18 +132,22 @@ namespace ColorPuzzle.Rendering
                 if (!maskTexture.IsValid() || !dilationTexture.IsValid())
                     return;
 
-                Material dilationMaterial = InteractionOutlineRuntime.IsColorCamera(cameraData.camera)
+                bool isColorCamera = InteractionOutlineRuntime.IsColorCamera(cameraData.camera);
+                Material dilationMaterial = isColorCamera
                     ? ColorDilationMaterial
                     : GreyscaleDilationMaterial;
-                Color outlineColor = InteractionOutlineRuntime.IsColorCamera(cameraData.camera)
+                Color outlineColor = isColorCamera
                     ? InteractionOutlineRuntime.ColorViewColor
                     : InteractionOutlineRuntime.GreyscaleColor;
-                dilationMaterial.SetInteger(SpreadId, InteractionOutlineRuntime.WidthPixels);
+                float viewScale = isColorCamera ? InteractionOutlineRuntime.ColorViewScale : 1f;
+                dilationMaterial.SetInteger(
+                    SpreadId,
+                    Mathf.Max(1, Mathf.RoundToInt(InteractionOutlineRuntime.WidthPixels * viewScale)));
                 dilationMaterial.SetFloat(SoftnessId, InteractionOutlineRuntime.Softness);
                 dilationMaterial.SetColor(OutlineColorId, outlineColor);
                 dilationMaterial.SetFloat(
                     OpacityId,
-                    InteractionOutlineRuntime.Opacity * Mathf.Clamp01(outlineColor.a));
+                    InteractionOutlineRuntime.Opacity * Mathf.Clamp01(outlineColor.a) * viewScale);
 
                 using (var builder = renderGraph.AddRasterRenderPass<DrawMaskPassData>(
                            "Interaction Outline: Draw Object Mask",

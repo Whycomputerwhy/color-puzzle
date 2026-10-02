@@ -15,6 +15,7 @@ namespace ColorPuzzle.Rendering
         public static float Opacity { get; private set; }
         public static int WidthPixels { get; private set; } = 18;
         public static float Softness { get; private set; } = 0.8f;
+        public static float ColorViewScale { get; private set; } = 0.5f;
 
         public static bool HasVisibleTarget => TargetRenderer != null && Opacity > 0.001f;
 
@@ -26,6 +27,7 @@ namespace ColorPuzzle.Rendering
             Opacity = 0f;
             WidthPixels = 18;
             Softness = 0.8f;
+            ColorViewScale = 0.5f;
         }
 
         public static void SetColorCamera(Camera camera)
@@ -39,7 +41,8 @@ namespace ColorPuzzle.Rendering
             float widthPixels,
             float softness,
             Color greyscaleColor,
-            Color colorViewColor)
+            Color colorViewColor,
+            float colorViewScale)
         {
             TargetRenderer = targetRenderer;
             Opacity = Mathf.Clamp01(opacity);
@@ -47,6 +50,7 @@ namespace ColorPuzzle.Rendering
             Softness = Mathf.Clamp01(softness);
             GreyscaleColor = greyscaleColor;
             ColorViewColor = colorViewColor;
+            ColorViewScale = Mathf.Clamp01(colorViewScale);
         }
 
         public static void Hide()

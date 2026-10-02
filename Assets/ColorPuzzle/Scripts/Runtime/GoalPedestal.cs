@@ -26,6 +26,7 @@ namespace ColorPuzzle
         [SerializeField] private string completionDoorName = "RestoredColorDoor";
 
         private bool complete;
+        private DiscoverableObject temporarilyPlacedItem;
         private GameObject completionDoor;
         private Material completionDoorBaseMaterial;
         private Material completionDoorRevealMaterial;
@@ -61,16 +62,39 @@ namespace ColorPuzzle
             return !complete && item != null && item.ObjectId == acceptedObjectId;
         }
 
+        public bool CanPlace(DiscoverableObject item)
+        {
+            return !complete && temporarilyPlacedItem == null && item != null;
+        }
+
         public bool TryPlace(DiscoverableObject item)
         {
-            if (!CanAccept(item)) return false;
-            item.Place(placementSocket != null ? placementSocket : transform);
+            if (!CanPlace(item)) return false;
+            Transform socket = placementSocket != null ? placementSocket : transform;
+            if (!CanAccept(item))
+            {
+                item.PlaceTemporarily(socket);
+                temporarilyPlacedItem = item;
+                return true;
+            }
+
+            item.Place(socket);
             complete = true;
             if (pedestalRenderer != null && completedMaterial != null)
                 pedestalRenderer.sharedMaterial = completedMaterial;
             if (colorProxy != null) colorProxy.SetActive(false);
             if (completionDoor != null) completionDoor.SetActive(true);
             return true;
+        }
+
+        private void Update()
+        {
+            // Picking a wrong ball back up disables its collider. That immediately frees the
+            // target for another attempt without requiring a separate interaction on the base.
+            if (temporarilyPlacedItem != null &&
+                (temporarilyPlacedItem.PhysicsCollider == null ||
+                 !temporarilyPlacedItem.PhysicsCollider.enabled))
+                temporarilyPlacedItem = null;
         }
 
         private void CreateCompletionDoor()

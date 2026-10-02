@@ -20,6 +20,7 @@ namespace ColorPuzzle
 
         private Rigidbody body;
         private Collider hitCollider;
+        private Material grayscaleMaterial;
         private bool discovered;
         private Vector3 carriedBoundsCenterOffset;
         private Vector3 carriedBoundsExtents;
@@ -40,14 +41,14 @@ namespace ColorPuzzle
         {
             body = GetComponent<Rigidbody>();
             hitCollider = GetComponent<Collider>();
+            if (grayscaleRenderer != null) grayscaleMaterial = grayscaleRenderer.sharedMaterial;
         }
 
         public void Discover()
         {
             if (discovered) return;
             discovered = true;
-            if (grayscaleRenderer != null && discoveredMaterial != null)
-                grayscaleRenderer.sharedMaterial = discoveredMaterial;
+            ApplyWorldAppearance(true);
         }
 
         public void PickUp()
@@ -122,6 +123,7 @@ namespace ColorPuzzle
         {
             transform.SetParent(null, true);
             transform.position = position;
+            ApplyWorldAppearance(discovered);
             if (grayscaleRenderer != null) grayscaleRenderer.enabled = true;
             hitCollider.enabled = false;
             StopDynamicMotion();
@@ -184,6 +186,40 @@ namespace ColorPuzzle
             if (grayscaleRenderer != null) grayscaleRenderer.enabled = true;
             if (colorProxy != null) colorProxy.SetActive(false);
             Discover();
+        }
+
+        public void PlaceTemporarily(Transform socket)
+        {
+            // A non-matching object may be tested on a goal without becoming the solution.
+            // It stays static but pickable, and returns to greyscale on its next normal drop.
+            RestorePlayerCollisionImmediately();
+            transform.SetParent(null, true);
+            transform.SetPositionAndRotation(socket.position, socket.rotation);
+            StopDynamicMotion();
+            body.isKinematic = true;
+            body.useGravity = false;
+            body.detectCollisions = true;
+            body.interpolation = RigidbodyInterpolation.None;
+            hitCollider.enabled = true;
+            ApplyWorldAppearance(true);
+            if (grayscaleRenderer != null) grayscaleRenderer.enabled = true;
+            if (colorProxy != null) colorProxy.SetActive(false);
+        }
+
+        private void ApplyWorldAppearance(bool showColor)
+        {
+            if (grayscaleRenderer == null) return;
+            Material colorMaterial = discoveredMaterial;
+            if (colorMaterial == null && colorProxy != null)
+            {
+                Renderer proxyRenderer = colorProxy.GetComponentInChildren<Renderer>(true);
+                if (proxyRenderer != null) colorMaterial = proxyRenderer.sharedMaterial;
+            }
+
+            if (showColor && colorMaterial != null)
+                grayscaleRenderer.sharedMaterial = colorMaterial;
+            else if (grayscaleMaterial != null)
+                grayscaleRenderer.sharedMaterial = grayscaleMaterial;
         }
 
         private IEnumerator RestorePlayerCollisionAfterExit()

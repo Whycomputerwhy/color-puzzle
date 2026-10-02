@@ -77,6 +77,7 @@ namespace ColorPuzzle
         [SerializeField, Range(0f, 1f)] private float interactionCueGlowSoftness = 0.9f;
         [SerializeField] private Color interactionCueGreyscaleGlowColor = new Color(0f, 0f, 0f, 0.85f);
         [SerializeField] private Color interactionCueColorGlowColor = new Color(1f, 1f, 1f, 0.86f);
+        [SerializeField, Range(0f, 1f)] private float interactionCueColorViewScale = 0.5f;
 
         [Header("Inventory HUD")]
         [SerializeField] private bool showInventoryHud = true;
@@ -561,7 +562,7 @@ namespace ColorPuzzle
             {
                 GoalPedestal directGoal = directHit.collider.GetComponentInParent<GoalPedestal>();
                 if (directGoal != null &&
-                    directGoal.CanAccept(carried) &&
+                    directGoal.CanPlace(carried) &&
                     IsAimNearPlacementTarget(directGoal) &&
                     HasPlacementLineOfSight(directGoal))
                 {
@@ -591,7 +592,7 @@ namespace ColorPuzzle
             for (int i = 0; i < assistedHits.Length; i++)
             {
                 GoalPedestal candidate = assistedHits[i].collider.GetComponentInParent<GoalPedestal>();
-                if (candidate == null || !candidate.CanAccept(carried)) continue;
+                if (candidate == null || !candidate.CanPlace(carried)) continue;
                 if (!IsAimNearPlacementTarget(candidate) || !HasPlacementLineOfSight(candidate)) continue;
 
                 Vector3 toGoal = candidate.PlacementAimPosition - viewCamera.transform.position;
@@ -614,7 +615,7 @@ namespace ColorPuzzle
             float bestVerticalGap = float.PositiveInfinity;
             foreach (GoalPedestal candidate in GoalPedestal.ActiveGoals)
             {
-                if (candidate == null || !candidate.CanAccept(carried)) continue;
+                if (candidate == null || !candidate.CanPlace(carried)) continue;
                 Bounds bounds = candidate.PlacementBounds;
                 float verticalGap = cameraPosition.y - bounds.max.y;
                 if (verticalGap < 0f || verticalGap > topPlacementMaxCameraHeight) continue;
@@ -786,7 +787,8 @@ namespace ColorPuzzle
                 interactionCueGlowWidthPixels,
                 interactionCueGlowSoftness,
                 interactionCueGreyscaleGlowColor,
-                interactionCueColorGlowColor);
+                interactionCueColorGlowColor,
+                interactionCueColorViewScale);
         }
 
         private void ResetInteractionCue()
