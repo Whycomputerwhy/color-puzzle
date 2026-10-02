@@ -81,6 +81,7 @@ namespace ColorPuzzle.Rendering
             private static readonly int SoftnessId = Shader.PropertyToID("_Softness");
             private static readonly int OutlineColorId = Shader.PropertyToID("_OutlineColor");
             private static readonly int OpacityId = Shader.PropertyToID("_Opacity");
+            private static readonly int ObjectMaskId = Shader.PropertyToID("_InteractionObjectMask");
 
             public Material MaskMaterial { private get; set; }
             public Material GreyscaleDilationMaterial { private get; set; }
@@ -181,9 +182,11 @@ namespace ColorPuzzle.Rendering
                            out BlitPassData passData))
                 {
                     passData.Source = dilationTexture;
+                    passData.Mask = maskTexture;
                     passData.Material = dilationMaterial;
                     passData.PassIndex = 1;
                     builder.UseTexture(dilationTexture);
+                    builder.UseTexture(maskTexture);
                     builder.SetRenderAttachment(screenColor, 0);
                     builder.SetRenderAttachmentDepth(screenDepthStencil, AccessFlags.ReadWrite);
                     builder.SetRenderFunc((BlitPassData data, RasterGraphContext context) =>
@@ -201,6 +204,9 @@ namespace ColorPuzzle.Rendering
 
             private static void Blit(BlitPassData data, RasterGraphContext context)
             {
+                if (data.PassIndex == 1 && data.Mask.IsValid())
+                    context.cmd.SetGlobalTexture(ObjectMaskId, (Texture)data.Mask);
+
                 Blitter.BlitTexture(
                     context.cmd,
                     data.Source,
@@ -218,6 +224,7 @@ namespace ColorPuzzle.Rendering
             private sealed class BlitPassData
             {
                 internal TextureHandle Source;
+                internal TextureHandle Mask;
                 internal Material Material;
                 internal int PassIndex;
             }

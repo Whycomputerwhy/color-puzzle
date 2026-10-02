@@ -23,6 +23,8 @@ Shader "Hidden/ColorPuzzle/InteractionOutlineDilation"
         float _Softness;
         float4 _OutlineColor;
         float _Opacity;
+        TEXTURE2D_X(_InteractionObjectMask);
+        SAMPLER(sampler_InteractionObjectMask);
 
         float SoftFalloff(float normalizedDistance)
         {
@@ -68,15 +70,6 @@ Shader "Hidden/ColorPuzzle/InteractionOutlineDilation"
             ZTest Always
             Blend SrcAlpha OneMinusSrcAlpha
 
-            Stencil
-            {
-                Ref 15
-                Comp NotEqual
-                Pass Zero
-                Fail Zero
-                ZFail Zero
-            }
-
             HLSLPROGRAM
             #pragma vertex Vert
             #pragma fragment FragVertical
@@ -96,7 +89,12 @@ Shader "Hidden/ColorPuzzle/InteractionOutlineDilation"
                     strongest = max(strongest, horizontalStrength * verticalFalloff);
                 }
 
-                return float4(_OutlineColor.rgb, saturate(strongest * _Opacity));
+                float objectCoverage = SAMPLE_TEXTURE2D_X(
+                    _InteractionObjectMask,
+                    sampler_InteractionObjectMask,
+                    input.texcoord).a;
+                float outlineAlpha = strongest * (1.0 - step(0.001, objectCoverage));
+                return float4(_OutlineColor.rgb, saturate(outlineAlpha * _Opacity));
             }
             ENDHLSL
         }

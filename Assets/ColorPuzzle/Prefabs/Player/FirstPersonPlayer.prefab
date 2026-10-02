@@ -546,6 +546,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.MagnifierView
   revealMouseButton: 0
+  defaultPuzzleMode: 0
+  colorSearchObjectiveText: The ocean's colors have vanished! Reveal them with your magnifier, then find the object that belongs on the stone pillar.
+  valueSearchObjectiveText: The ocean shows just light and shadow! Compare each object's shade, then return the one of matching color to the stone pillar.
+  valueDarkBlue: {r: 0.03, g: 0.05, b: 0.12, a: 1}
+  valuePurple: {r: 0.28, g: 0.05, b: 0.36, a: 1}
+  valueTargetRed: {r: 0.95, g: 0.12, b: 0.08, a: 1}
+  valueGreen: {r: 0.05, g: 0.58, b: 0.18, a: 1}
+  valueOrange: {r: 1, g: 0.52, b: 0.06, a: 1}
+  valueCyan: {r: 0.35, g: 0.92, b: 1, a: 1}
   sourceCamera: {fileID: 4634387354463310727}
   colorCamera: {fileID: 4958961330578032067}
   circularViewport: {fileID: 6020526683483137167}
@@ -572,6 +581,15 @@ MonoBehaviour:
   modeButtonTextColor: {r: 1, g: 1, b: 1, a: 1}
   selectorGroupLabelColor: {r: 1, g: 1, b: 1, a: 1}
   selectorGroupBackgroundColor: {r: 0, g: 0, b: 0, a: 0.55}
+  showStoryObjective: 1
+  storyCardSize: {x: 500, y: 96}
+  storyCardMargin: {x: 20, y: 20}
+  storyCardPadding: {x: 22, y: 14}
+  storyFontSize: 19
+  storyCardFillColor: {r: 1, g: 1, b: 1, a: 0.94}
+  storyTextColor: {r: 0.07, g: 0.1, b: 0.15, a: 1}
+  storyCardShadowColor: {r: 0.03, g: 0.08, b: 0.14, a: 0.32}
+  storyCardShadowOffset: {x: 3, y: -4}
   viewportRoot: {fileID: 7665687221992452946}
   player: {fileID: 8013254460384962499}
 --- !u!1 &4097323097767197030

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -11,6 +12,8 @@ namespace ColorPuzzle
     {
         private const string GreyscaleButtonLabel = "Greyscale";
         private const string FullColorButtonLabel = "Full Color";
+        private const string ColorSearchButtonLabel = "Color Search";
+        private const string ValueSearchButtonLabel = "Value Search";
         private const string BackGlowButtonLabel = "Back Glow";
         private const string CenterTextButtonLabel = "Center Text";
         private const int MinimumRenderTextureDimension = 128;
@@ -24,6 +27,12 @@ namespace ColorPuzzle
             FullColor
         }
 
+        public enum PuzzleMode
+        {
+            ColorSearch,
+            ValueSearch
+        }
+
         public enum MagnifierMouseButton
         {
             Right,
@@ -32,12 +41,28 @@ namespace ColorPuzzle
 
         private static bool hasPersistedDeveloperSettings;
         private static DevViewMode persistedDevViewMode = DevViewMode.PuzzleView;
+        private static PuzzleMode persistedPuzzleMode = PuzzleMode.ColorSearch;
         private static PlayerInteraction.InteractionCueMode persistedInteractionCueMode =
             PlayerInteraction.InteractionCueMode.BackGlow;
 
         // CENTRALIZED VISUAL / INTERACTION PARAMETERS (all art-directable values are Inspector-visible)
         [Header("Interaction")]
         [SerializeField] private MagnifierMouseButton revealMouseButton = MagnifierMouseButton.Right;
+
+        [Header("Puzzle Mode")]
+        [SerializeField] private PuzzleMode defaultPuzzleMode = PuzzleMode.ColorSearch;
+        [SerializeField, TextArea(2, 4)] private string colorSearchObjectiveText =
+            "The ocean's colors have vanished. Peer through your magnifier to reveal them, then find the object that belongs atop the stone pillar.";
+        [SerializeField, TextArea(2, 4)] private string valueSearchObjectiveText =
+            "The ocean remembers color only as light and shadow. Compare each object's shade, then return the matching one to the stone pillar.";
+
+        [Header("Value Search Palette (dark to light)")]
+        [SerializeField] private Color valueDarkBlue = new Color(0.03f, 0.05f, 0.12f, 1f);
+        [SerializeField] private Color valuePurple = new Color(0.28f, 0.05f, 0.36f, 1f);
+        [SerializeField] private Color valueTargetRed = new Color(0.9f, 0.03f, 0.03f, 1f);
+        [SerializeField] private Color valueGreen = new Color(0.05f, 0.58f, 0.18f, 1f);
+        [SerializeField] private Color valueOrange = new Color(1f, 0.52f, 0.06f, 1f);
+        [SerializeField] private Color valueCyan = new Color(0.35f, 0.92f, 1f, 1f);
 
         [Header("Composition")]
         [SerializeField] private Camera sourceCamera;
@@ -73,6 +98,17 @@ namespace ColorPuzzle
         [SerializeField] private Color selectorGroupLabelColor = Color.white;
         [SerializeField] private Color selectorGroupBackgroundColor = new Color(0f, 0f, 0f, 0.55f);
 
+        [Header("Story Objective HUD")]
+        [SerializeField] private bool showStoryObjective = true;
+        [SerializeField] private Vector2 storyCardSize = new Vector2(500f, 96f);
+        [SerializeField] private Vector2 storyCardMargin = new Vector2(20f, 20f);
+        [SerializeField] private Vector2 storyCardPadding = new Vector2(22f, 14f);
+        [SerializeField, Min(8)] private int storyFontSize = 19;
+        [SerializeField] private Color storyCardFillColor = new Color(1f, 1f, 1f, 0.94f);
+        [SerializeField] private Color storyTextColor = new Color(0.07f, 0.10f, 0.15f, 1f);
+        [SerializeField] private Color storyCardShadowColor = new Color(0.03f, 0.08f, 0.14f, 0.32f);
+        [SerializeField] private Vector2 storyCardShadowOffset = new Vector2(3f, -4f);
+
         [Header("Layers")]
         [SerializeField] private GameObject viewportRoot;
         [SerializeField] private FirstPersonPlayer player;
@@ -87,19 +123,30 @@ namespace ColorPuzzle
         private int textureWidth;
         private int textureHeight;
         private bool active;
+        private PuzzleMode currentPuzzleMode;
         private DevViewMode currentDevViewMode;
         private float originalColorCameraDepth;
         private int originalColorCameraCullingMask;
         private Button puzzleViewButton;
         private Button fullColorButton;
+        private Button colorSearchButton;
+        private Button valueSearchButton;
         private Button backGlowButton;
         private Button centerTextButton;
         private GameObject developerPanelRoot;
         private bool developerPanelOpen;
         private PlayerInteraction playerInteraction;
+        private GameObject storyObjectiveRoot;
+        private Text storyObjectiveLabel;
+        private GameObject valueSearchOverlayRoot;
+        private RawImage valueSearchOverlay;
+        private Material valueSearchGreyscaleMaterial;
+        private readonly Dictionary<Renderer, Material[]> valueOriginalMaterials = new();
+        private readonly List<Material> valueRuntimeMaterials = new();
 
         public bool IsActive => active;
         public bool IsFullColorView => currentDevViewMode == DevViewMode.FullColor;
+        public bool IsValueSearchMode => currentPuzzleMode == PuzzleMode.ValueSearch;
         public bool IsDeveloperPanelOpen => developerPanelOpen;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -107,6 +154,7 @@ namespace ColorPuzzle
         {
             hasPersistedDeveloperSettings = false;
             persistedDevViewMode = DevViewMode.PuzzleView;
+            persistedPuzzleMode = PuzzleMode.ColorSearch;
             persistedInteractionCueMode = PlayerInteraction.InteractionCueMode.BackGlow;
         }
 
@@ -124,6 +172,9 @@ namespace ColorPuzzle
             currentDevViewMode = hasPersistedDeveloperSettings
                 ? persistedDevViewMode
                 : DevViewMode.PuzzleView;
+            currentPuzzleMode = hasPersistedDeveloperSettings
+                ? persistedPuzzleMode
+                : defaultPuzzleMode;
             if (hasPersistedDeveloperSettings && playerInteraction != null)
                 playerInteraction.SetInteractionCueMode(persistedInteractionCueMode);
             if (colorCamera != null)
@@ -135,13 +186,18 @@ namespace ColorPuzzle
             ApplySolidSkyColors();
             PrepareCompleteColorView();
             EnsureRenderTexture();
+            CreateValueSearchOverlay();
+            CreateStoryObjectiveCard();
             CreateDeveloperPanel();
+            ApplyPuzzleMode();
             SetActive(false);
         }
 
         private void OnDestroy()
         {
             if (revealTexture != null) revealTexture.Release();
+            RestoreValueSearchPalette();
+            if (valueSearchGreyscaleMaterial != null) Destroy(valueSearchGreyscaleMaterial);
         }
 
         private void Update()
@@ -151,6 +207,7 @@ namespace ColorPuzzle
                 SetDeveloperPanelOpen(!developerPanelOpen);
 
             bool held = !developerPanelOpen &&
+                        currentPuzzleMode == PuzzleMode.ColorSearch &&
                         currentDevViewMode == DevViewMode.PuzzleView &&
                         IsRevealButtonHeld() &&
                         player != null &&
@@ -161,23 +218,26 @@ namespace ColorPuzzle
         private void LateUpdate()
         {
             bool fullColor = currentDevViewMode == DevViewMode.FullColor;
-            if ((!active && !fullColor) || sourceCamera == null) return;
+            bool valueSearch = currentPuzzleMode == PuzzleMode.ValueSearch;
+            if ((!active && !fullColor && !valueSearch) || sourceCamera == null) return;
 
-            if (!fullColor) EnsureRenderTexture();
+            if (!fullColor || valueSearch) EnsureRenderTexture();
             if (colorCamera != null)
             {
                 colorCamera.transform.SetPositionAndRotation(sourceCamera.transform.position, sourceCamera.transform.rotation);
                 colorCamera.fieldOfView = sourceCamera.fieldOfView;
             }
 
-            if (fullColor) return;
+            if (fullColor || valueSearch) return;
             UpdateLensPosition();
             UpdateViewportLayout();
         }
 
         private void SetActive(bool value)
         {
-            active = value && currentDevViewMode == DevViewMode.PuzzleView;
+            active = value &&
+                     currentPuzzleMode == PuzzleMode.ColorSearch &&
+                     currentDevViewMode == DevViewMode.PuzzleView;
             if (value && resetLensToCenterOnOpen)
             {
                 lensScreenPosition = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
@@ -257,6 +317,7 @@ namespace ColorPuzzle
             };
             if (colorCamera != null) colorCamera.targetTexture = revealTexture;
             if (revealImage != null) revealImage.texture = revealTexture;
+            if (valueSearchOverlay != null) valueSearchOverlay.texture = revealTexture;
         }
 
         private void ApplySolidSkyColors()
@@ -275,9 +336,12 @@ namespace ColorPuzzle
 
         private void SetDevViewMode(DevViewMode mode)
         {
+            if (currentPuzzleMode == PuzzleMode.ValueSearch && mode == DevViewMode.FullColor)
+                return;
             currentDevViewMode = mode;
             PersistDeveloperSettings();
-            active = mode == DevViewMode.PuzzleView &&
+            active = currentPuzzleMode == PuzzleMode.ColorSearch &&
+                     mode == DevViewMode.PuzzleView &&
                      IsRevealButtonHeld() &&
                      player != null &&
                      player.IsGrounded;
@@ -288,11 +352,20 @@ namespace ColorPuzzle
 
         private void ApplyDevViewMode()
         {
-            bool fullColor = currentDevViewMode == DevViewMode.FullColor;
+            bool valueSearch = currentPuzzleMode == PuzzleMode.ValueSearch;
+            bool fullColor = !valueSearch && currentDevViewMode == DevViewMode.FullColor;
             if (viewportRoot != null) viewportRoot.SetActive(active && !fullColor);
+            if (valueSearchOverlayRoot != null) valueSearchOverlayRoot.SetActive(valueSearch);
             if (colorCamera == null) return;
 
-            if (fullColor)
+            if (valueSearch)
+            {
+                EnsureRenderTexture();
+                colorCamera.targetTexture = revealTexture;
+                colorCamera.depth = originalColorCameraDepth;
+                colorCamera.enabled = true;
+            }
+            else if (fullColor)
             {
                 colorCamera.targetTexture = null;
                 colorCamera.depth = sourceCamera != null ? sourceCamera.depth + 1f : originalColorCameraDepth;
@@ -308,9 +381,37 @@ namespace ColorPuzzle
 
         private void ApplyPlayerControlMode()
         {
-            if (player == null) return;
-            bool magnifierActive = active && currentDevViewMode == DevViewMode.PuzzleView;
-            player.SetMagnifierControls(magnifierActive, false);
+            bool valueSearch = currentPuzzleMode == PuzzleMode.ValueSearch;
+            if (player != null)
+            {
+                bool magnifierActive = !valueSearch &&
+                                       active &&
+                                       currentDevViewMode == DevViewMode.PuzzleView;
+                player.SetMagnifierControls(magnifierActive, false);
+            }
+            if (playerInteraction != null)
+                playerInteraction.SetValueSearchMode(valueSearch);
+        }
+
+        private void SetPuzzleMode(PuzzleMode mode)
+        {
+            if (currentPuzzleMode == mode) return;
+            SetActive(false);
+            currentPuzzleMode = mode;
+            if (mode == PuzzleMode.ValueSearch)
+                currentDevViewMode = DevViewMode.PuzzleView;
+            ApplyPuzzleMode();
+            PersistDeveloperSettings();
+        }
+
+        private void ApplyPuzzleMode()
+        {
+            bool valueSearch = currentPuzzleMode == PuzzleMode.ValueSearch;
+            ApplyValueSearchPalette(valueSearch);
+            RefreshStoryObjective();
+            ApplyDevViewMode();
+            ApplyPlayerControlMode();
+            RefreshModeSelector();
         }
 
         private void CreateDeveloperPanel()
@@ -327,17 +428,34 @@ namespace ColorPuzzle
             selector.anchoredPosition = new Vector2(-modeSelectorMargin.x, -modeSelectorMargin.y);
             float groupWidth = modeButtonSize.x * 2f + modeButtonGap + selectorGroupPadding * 2f;
             float groupHeight = selectorGroupPadding * 3f + selectorGroupLabelHeight + modeButtonSize.y;
-            float interactionGroupOffset = groupHeight + modeButtonGap;
+            float devViewGroupOffset = groupHeight + modeButtonGap;
+            float interactionGroupOffset = devViewGroupOffset + groupHeight + modeButtonGap;
             float panelHeight = playerInteraction != null
-                ? groupHeight * 2f + modeButtonGap
-                : groupHeight;
+                ? groupHeight * 3f + modeButtonGap * 2f
+                : groupHeight * 2f + modeButtonGap;
             selector.sizeDelta = new Vector2(groupWidth, panelHeight);
             selector.SetAsLastSibling();
 
             Font font = canvas.GetComponentInChildren<Text>(true)?.font;
             if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
-            RectTransform devViewGroup = CreateSelectorGroup(selector, "DEVELOPER VIEW", 0f, groupWidth, groupHeight, font);
+            RectTransform puzzleModeGroup = CreateSelectorGroup(selector, "PUZZLE MODE", 0f, groupWidth, groupHeight, font);
+            colorSearchButton = CreateModeButton(puzzleModeGroup, ColorSearchButtonLabel, selectorGroupPadding, font);
+            valueSearchButton = CreateModeButton(
+                puzzleModeGroup,
+                ValueSearchButtonLabel,
+                selectorGroupPadding + modeButtonSize.x + modeButtonGap,
+                font);
+            colorSearchButton.onClick.AddListener(() => SetPuzzleMode(PuzzleMode.ColorSearch));
+            valueSearchButton.onClick.AddListener(() => SetPuzzleMode(PuzzleMode.ValueSearch));
+
+            RectTransform devViewGroup = CreateSelectorGroup(
+                selector,
+                "DEVELOPER VIEW",
+                devViewGroupOffset,
+                groupWidth,
+                groupHeight,
+                font);
             puzzleViewButton = CreateModeButton(devViewGroup, GreyscaleButtonLabel, selectorGroupPadding, font);
             fullColorButton = CreateModeButton(devViewGroup, FullColorButtonLabel, selectorGroupPadding + modeButtonSize.x + modeButtonGap, font);
             puzzleViewButton.onClick.AddListener(() => SetDevViewMode(DevViewMode.PuzzleView));
@@ -371,6 +489,184 @@ namespace ColorPuzzle
             SetDeveloperPanelOpen(false);
         }
 
+        private void CreateStoryObjectiveCard()
+        {
+            if (!showStoryObjective || canvasRect == null || canvas == null) return;
+
+            storyObjectiveRoot = new GameObject(
+                "StoryObjectiveHUD",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Image),
+                typeof(Shadow));
+            RectTransform cardRect = storyObjectiveRoot.GetComponent<RectTransform>();
+            cardRect.SetParent(canvasRect, false);
+            cardRect.anchorMin = cardRect.anchorMax = new Vector2(0f, 1f);
+            cardRect.pivot = new Vector2(0f, 1f);
+            cardRect.anchoredPosition = new Vector2(storyCardMargin.x, -storyCardMargin.y);
+            cardRect.sizeDelta = storyCardSize;
+
+            Image cardImage = storyObjectiveRoot.GetComponent<Image>();
+            cardImage.sprite = null;
+            cardImage.type = Image.Type.Simple;
+            cardImage.color = storyCardFillColor;
+            cardImage.raycastTarget = false;
+
+            Shadow shadow = storyObjectiveRoot.GetComponent<Shadow>();
+            shadow.effectColor = storyCardShadowColor;
+            shadow.effectDistance = storyCardShadowOffset;
+            shadow.useGraphicAlpha = true;
+
+            GameObject textObject = new GameObject(
+                "StoryObjectiveText",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Text));
+            RectTransform textRect = textObject.GetComponent<RectTransform>();
+            textRect.SetParent(cardRect, false);
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = storyCardPadding;
+            textRect.offsetMax = -storyCardPadding;
+
+            storyObjectiveLabel = textObject.GetComponent<Text>();
+            storyObjectiveLabel.font = canvas.GetComponentInChildren<Text>(true)?.font;
+            if (storyObjectiveLabel.font == null)
+                storyObjectiveLabel.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            storyObjectiveLabel.fontSize = storyFontSize;
+            storyObjectiveLabel.alignment = TextAnchor.MiddleLeft;
+            storyObjectiveLabel.color = storyTextColor;
+            storyObjectiveLabel.horizontalOverflow = HorizontalWrapMode.Wrap;
+            storyObjectiveLabel.verticalOverflow = VerticalWrapMode.Truncate;
+            storyObjectiveLabel.raycastTarget = false;
+            RefreshStoryObjective();
+        }
+
+        private void RefreshStoryObjective()
+        {
+            if (storyObjectiveLabel == null) return;
+            storyObjectiveLabel.text = currentPuzzleMode == PuzzleMode.ValueSearch
+                ? valueSearchObjectiveText
+                : colorSearchObjectiveText;
+        }
+
+        private void CreateValueSearchOverlay()
+        {
+            if (canvasRect == null) return;
+            Shader shader = Resources.Load<Shader>("Shaders/ValueGreyscaleUI");
+            if (shader == null)
+            {
+                Debug.LogError("Value Search requires Resources/Shaders/ValueGreyscaleUI.shader.", this);
+                return;
+            }
+
+            valueSearchGreyscaleMaterial = new Material(shader)
+            {
+                name = "Runtime Value Search Greyscale",
+                hideFlags = HideFlags.DontSave
+            };
+            valueSearchOverlayRoot = new GameObject(
+                "ValueSearchGreyscaleView",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(RawImage));
+            RectTransform overlayRect = valueSearchOverlayRoot.GetComponent<RectTransform>();
+            overlayRect.SetParent(canvasRect, false);
+            overlayRect.anchorMin = Vector2.zero;
+            overlayRect.anchorMax = Vector2.one;
+            overlayRect.offsetMin = Vector2.zero;
+            overlayRect.offsetMax = Vector2.zero;
+            overlayRect.SetAsFirstSibling();
+
+            valueSearchOverlay = valueSearchOverlayRoot.GetComponent<RawImage>();
+            valueSearchOverlay.texture = revealTexture;
+            valueSearchOverlay.material = valueSearchGreyscaleMaterial;
+            valueSearchOverlay.color = Color.white;
+            valueSearchOverlay.raycastTarget = false;
+            valueSearchOverlayRoot.SetActive(false);
+        }
+
+        private void ApplyValueSearchPalette(bool enabled)
+        {
+            if (!enabled)
+            {
+                RestoreValueSearchPalette();
+                return;
+            }
+            if (valueOriginalMaterials.Count > 0) return;
+
+            Renderer[] renderers = FindObjectsByType<Renderer>(FindObjectsInactive.Include);
+            for (int rendererIndex = 0; rendererIndex < renderers.Length; rendererIndex++)
+            {
+                Renderer candidate = renderers[rendererIndex];
+                int layerBit = 1 << candidate.gameObject.layer;
+                if ((originalColorCameraCullingMask & layerBit) == 0) continue;
+
+                Material[] originals = candidate.sharedMaterials;
+                Material[] replacements = new Material[originals.Length];
+                bool replacedAny = false;
+                for (int materialIndex = 0; materialIndex < originals.Length; materialIndex++)
+                {
+                    Material original = originals[materialIndex];
+                    if (original == null)
+                    {
+                        replacements[materialIndex] = null;
+                        continue;
+                    }
+
+                    Material replacement = new Material(original)
+                    {
+                        name = $"{original.name} (Value Search)",
+                        hideFlags = HideFlags.DontSave
+                    };
+                    SetMaterialColor(replacement, ChooseValuePaletteColor(original.name));
+                    replacements[materialIndex] = replacement;
+                    valueRuntimeMaterials.Add(replacement);
+                    replacedAny = true;
+                }
+
+                if (!replacedAny) continue;
+                valueOriginalMaterials.Add(candidate, originals);
+                candidate.sharedMaterials = replacements;
+            }
+        }
+
+        private void RestoreValueSearchPalette()
+        {
+            foreach (KeyValuePair<Renderer, Material[]> pair in valueOriginalMaterials)
+            {
+                if (pair.Key != null) pair.Key.sharedMaterials = pair.Value;
+            }
+            valueOriginalMaterials.Clear();
+
+            for (int i = 0; i < valueRuntimeMaterials.Count; i++)
+            {
+                if (valueRuntimeMaterials[i] != null) Destroy(valueRuntimeMaterials[i]);
+            }
+            valueRuntimeMaterials.Clear();
+        }
+
+        private Color ChooseValuePaletteColor(string materialName)
+        {
+            string normalized = materialName.ToLowerInvariant();
+            if (normalized.Contains("red")) return valueTargetRed;
+            if (normalized.Contains("deepblue") || normalized.Contains("blue")) return valueDarkBlue;
+            if (normalized.Contains("purple")) return valuePurple;
+            if (normalized.Contains("kelp") || normalized.Contains("green")) return valueGreen;
+            if (normalized.Contains("orange") ||
+                normalized.Contains("gold") ||
+                normalized.Contains("yellow") ||
+                normalized.Contains("sand")) return valueOrange;
+            if (normalized.Contains("pink")) return valueGreen;
+            return valueCyan;
+        }
+
+        private static void SetMaterialColor(Material material, Color color)
+        {
+            if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", color);
+            else if (material.HasProperty("_Color")) material.SetColor("_Color", color);
+        }
+
         private void SetInteractionCueMode(PlayerInteraction.InteractionCueMode mode)
         {
             if (playerInteraction == null) return;
@@ -382,6 +678,7 @@ namespace ColorPuzzle
         private void PersistDeveloperSettings()
         {
             persistedDevViewMode = currentDevViewMode;
+            persistedPuzzleMode = currentPuzzleMode;
             if (playerInteraction != null)
                 persistedInteractionCueMode = playerInteraction.CurrentInteractionCueMode;
             hasPersistedDeveloperSettings = true;
@@ -463,10 +760,21 @@ namespace ColorPuzzle
 
         private void RefreshModeSelector()
         {
+            if (colorSearchButton != null)
+                colorSearchButton.targetGraphic.color = currentPuzzleMode == PuzzleMode.ColorSearch
+                    ? selectedModeColor
+                    : unselectedModeColor;
+            if (valueSearchButton != null)
+                valueSearchButton.targetGraphic.color = currentPuzzleMode == PuzzleMode.ValueSearch
+                    ? selectedModeColor
+                    : unselectedModeColor;
             if (puzzleViewButton != null)
                 puzzleViewButton.targetGraphic.color = currentDevViewMode == DevViewMode.PuzzleView ? selectedModeColor : unselectedModeColor;
             if (fullColorButton != null)
+            {
+                fullColorButton.interactable = currentPuzzleMode == PuzzleMode.ColorSearch;
                 fullColorButton.targetGraphic.color = currentDevViewMode == DevViewMode.FullColor ? selectedModeColor : unselectedModeColor;
+            }
             if (backGlowButton != null && playerInteraction != null)
                 backGlowButton.targetGraphic.color = playerInteraction.CurrentInteractionCueMode == PlayerInteraction.InteractionCueMode.BackGlow
                     ? selectedModeColor

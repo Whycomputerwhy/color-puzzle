@@ -21,7 +21,10 @@ namespace ColorPuzzle
             NearViewWallAnimation
         }
 
-        private const string InstructionText = "WASD  •  SPACE jump  •  RMB magnifier  •  LMB pick up  •  Q drop/place  •  R reset";
+        private const string ColorSearchInstructionText =
+            "WASD  •  SPACE jump  •  RMB magnifier  •  LMB pick up  •  Q drop/place  •  R reset";
+        private const string ValueSearchInstructionText =
+            "WASD  •  SPACE jump  •  LMB pick up  •  Q drop/place  •  R reset";
 
         [Header("References")]
         [SerializeField] private Camera viewCamera;
@@ -101,6 +104,7 @@ namespace ColorPuzzle
         private string currentCueLabel;
         private float interactionCueDwellElapsed;
         private float interactionCueGlowFadeElapsed;
+        private bool valueSearchMode;
 
         public InteractionCueMode CurrentInteractionCueMode => interactionCueMode;
 
@@ -683,6 +687,12 @@ namespace ColorPuzzle
             ClearInteractionCueVisuals();
         }
 
+        public void SetValueSearchMode(bool enabled)
+        {
+            valueSearchMode = enabled;
+            UpdateStatus();
+        }
+
         private void UpdateInteractionCue()
         {
             if (viewCamera == null || (magnifier != null && magnifier.IsDeveloperPanelOpen))
@@ -844,7 +854,9 @@ namespace ColorPuzzle
         private void UpdateStatus()
         {
             if (statusText == null) return;
-            statusText.text = InstructionText;
+            statusText.text = valueSearchMode
+                ? ValueSearchInstructionText
+                : ColorSearchInstructionText;
         }
 
         private void CreateInventoryHud()

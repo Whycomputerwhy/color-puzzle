@@ -2,6 +2,65 @@
 
 This log is intended for people and AI agents continuing the same Unity project. Append new entries; do not rewrite past decisions without explaining the migration.
 
+## 0.2.42 — 2026-10-01 — Value Search puzzle variation
+
+### Added
+
+- Added a session-persistent `Color Search / Value Search` selector to the Enter developer panel.
+- Value Search disables the magnifier completely and renders the complete scene through a full-screen Rec. 709 greyscale pass.
+- Value Search temporarily reduces reveal-layer materials to six hue families with deliberately separated luminance values, then restores every original material when returning to Color Search.
+- Added mode-specific controls text and story-objective copy; Value Search removes the magnifier hint and frames the mission as comparing light and shadow.
+
+### Changed
+
+- Converted the top-left objective HUD from a generated rounded rectangle to a normal square-corner white box.
+- Full Color is disabled while Value Search is active so the variation remains a strictly greyscale mechanic.
+- R continues to reset gameplay without resetting the selected puzzle mode, developer view, or interaction cue.
+
+### Safety
+
+- The palette remap uses temporary runtime material clones. It does not rewrite scene materials, prefabs, object transforms, or manually authored level geometry.
+
+## 0.2.41 — 2026-10-01 — Persistent story objective card
+
+### Added
+
+- Added an always-visible, top-left story objective card with a white rounded fill, dark text, and a soft separation shadow.
+- Objective copy now reads: “The ocean's colors have vanished. Peer through your magnifier to reveal them, then find the object that belongs atop the stone pillar.”
+- Exposed the card text, visibility, size, margin, padding, corner radius, font size, fill/text colors, and shadow styling in the `MagnifierView` Inspector settings.
+
+### Safety
+
+- The card is created by the existing shared runtime HUD and appears in both Greyscale and Full Color modes. No scene objects, transforms, prefabs, or manually authored level geometry were regenerated.
+
+## 0.2.40 — 2026-10-01 — Corrected ocean-model orientation
+
+### Changed
+
+- Corrected the imported shell axis so collectible shells rest on the ground instead of standing upright.
+- Added deterministic yaw variation across the existing shells for a more naturally scattered layout without moving their authored positions.
+- Corrected the pillar model axis and compensated for the former goal cylinder's nonuniform scale so the pillar remains upright instead of flattened.
+- Re-derived the target marker and placement socket heights from the corrected pillar top.
+
+### Safety
+
+- The migration changes only ocean-model visual orientation and the target/socket alignment required by the corrected pillar. Existing shell positions and level geometry remain untouched.
+
+## 0.2.39 — 2026-10-01 — Ocean pillar and collectible shells
+
+### Changed
+
+- Replaced the underwater cylinder goal's visible mesh with `pillar_ocean`, preserving its embedded colored texture in Greyscale, magnifier, and Full Color views.
+- Replaced the red mission ball and every interactive decoy ball with a normalized `shell_ocean` mesh while retaining existing pickup, placement, outline, and discovery behavior.
+- Extracted the GLBs' embedded PNG artwork into Unity texture assets; shell color variants multiply the original grey shell texture by the existing red/aqua/blue/purple/orange/pink/green/cyan/gold palette.
+- Reduced the shell visual diameter and matching sphere-collider radius from 1.0 to 0.76 local units.
+- Kept the flat white-outlined placement target above the new pillar and adjusted its socket for the smaller shell.
+
+### Safety
+
+- All authored scene object positions, rotations, scales, and level geometry remain unchanged. The underwater scene diff contains only per-instance color-material substitutions for existing decoys.
+- Source GLBs, Unity-native FBXs, extracted textures, normalized mesh, generated materials, and an idempotent editor migration are stored under `Assets/ColorPuzzle` for future tuning.
+
 ## 0.2.38 — 2026-10-01 — Reduced color-view interaction glow
 
 ### Changed

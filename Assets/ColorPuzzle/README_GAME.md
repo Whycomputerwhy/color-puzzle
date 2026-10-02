@@ -2,18 +2,19 @@
 
 ## Game design
 
-Color Puzzle is a casual first-person 3D exploration platformer about restoring color. The prototype starts in **Greyscale** and uses **Move Lens** as its sole player-facing magnifier interaction: holding right click while grounded freezes the player/camera and moves the circular color viewport with the mouse. Magnifier inspection reveals the red ball only inside the lens. Pickup stores the still-unrestored object in a neutral bottom inventory HUD; ordinary drops remain greyscale, and only successful placement on the matching goal permanently restores the object's color. Completing the match also restores the goal and reveals a green door on the map's right side. Full Color remains available as a developer comparison view inside the hidden Enter panel.
+Color Puzzle is a casual first-person 3D exploration platformer about restoring color. The underwater prototype now supports two session-persistent puzzle variations in the hidden Enter panel. **Color Search** is the existing Move Lens loop: holding right click while grounded freezes the player/camera and moves a circular color viewport. **Value Search** removes the magnifier entirely and renders the full scene in greyscale; the player identifies the correct object by comparing the intrinsic lightness of a deliberately reduced six-color palette. Pickup stores the object in a neutral bottom inventory HUD, and only a correct placement completes the goal. Full Color remains a Color Search-only developer comparison.
 
 ### Prototype controls
 
 - **WASD** — move
 - **Mouse** — look
 - **Space** — jump
-- **Hold right click while grounded (Move Lens)** — freeze the player/camera and move the color-revealing magnifier
+- **Hold right click while grounded (Color Search only)** — freeze the player/camera and move the color-revealing magnifier
 - **Left click** — pick up the centered mission object, or the mission object directly beneath the player
 - **Q** — place the carried object on a matching goal, or drop it in front of the player
 - **R** — reset the current scene
 - **Enter** — open/close the developer panel; opening releases the cursor and closing recaptures it
+- **Color Search / Value Search (developer panel)** — switch between magnifier-based hue discovery and full-screen greyscale value comparison
 - **Greyscale / Full Color (developer panel)** — compare the intended monochrome presentation with an always-on color view
 - **Back Glow / Center Text (developer panel)** — compare the two 0.75-second interaction-cue variations
 - **Escape** — release the cursor manually; click outside UI to recapture it
@@ -22,13 +23,13 @@ Color Puzzle is a casual first-person 3D exploration platformer about restoring 
 
 Open `Assets/ColorPuzzle/Scenes/ColorPuzzleVerticalSlice.unity` and press Play. The scene starts in Greyscale with Move Lens. Find the gray ball and hold right click while grounded: the ball appears red only inside the circular lens and returns to gray when the lens closes. Left-click the ball to store it in the bottom inventory HUD. An ordinary drop remains gray in the main view and can be inspected again through the magnifier. Approach the goal with the red top mark, aim at it, and press Q. Placement permanently turns the ball and goal red and reveals the completion door beside the right wall. Press R at any time to restart. Press Enter only when a developer needs to compare Greyscale with Full Color.
 
-Open `Assets/ColorPuzzle/Scenes/ColorPuzzleUnderwaterDemo.unity` for the second demo level. It preserves the same player, HUD, Move Lens interaction, red-ball mission, goal, and completion door, then expands the playable greybox into a colored underwater basin. Layered sand shelves, trenches, ruins, arches, rocks, coral, kelp, bubble columns, treasure-colored markers, and fourteen non-pickable colored spheres create denser exploration landmarks and visual diversions without introducing detailed art or swimming controls. The underwater goal is a cylinder with one flat, collider-free target image: a red center inside a white perimeter ring. Gravity is reduced only in this scene, from `-22` to `-8 m/s²`, for a floatier platforming feel.
+Open `Assets/ColorPuzzle/Scenes/ColorPuzzleUnderwaterDemo.unity` for the active demo level. It starts in Color Search. Press Enter and choose Value Search to replace the lens loop with a full-screen greyscale comparison puzzle. The controls line immediately removes the magnifier instruction, and the top-left square objective box explains the new story/mechanic. The underwater goal is a pillar with one flat, collider-free target image: a red center inside a white perimeter ring. Gravity is reduced only in this scene, from `-22` to `-8 m/s²`, for a floatier platforming feel.
 
 ## Visual system recipe
 
 ### Visual intent
 
-Greyscale is deliberately sparse and monochrome against a solid white sky. Holding right click while grounded adds a movable circle of saturated color, with a warm rim and blue color-view sky. The color pass renders the complete normal world first and draws color proxies afterward, so objects without proxies never disappear. Move Lens freezes the player and camera while the circle moves. Full Color routes the same complete color pass directly to the screen, but only when selected from the hidden developer panel. Holding aim within an actionable shape for 0.75 seconds reveals the selected interaction-cue variation: either a full-resolution screen-space soft outline that follows the object's exact rendered silhouette and eases from transparent to strongly black in grayscale or white in the color pass over 0.25 seconds, or tiny contextual center text (`LC PICKUP` or the special valid-goal cue `Q PLACE`). Ordinary `Q DROP` is never suggested. Lens inspection, pickup, carrying, and ordinary dropping do not mutate permanent color state; only valid goal placement restores the mission object's red material. Grounded movement adds a very small vertical camera bob, and jumping begins with a quick downward anticipation dip before launch. A floor drop briefly reintroduces the object at the screen center, accelerates it toward its prevalidated resting point, and enables its static collision only on arrival. Goal completion restores the pedestal and reveals the right-side door.
+Color Search uses a sparse monochrome base plus a movable circle of saturated color. Value Search instead renders the same complete color pass through a Rec. 709 luminance filter and remaps reveal-layer materials to six hue families whose approximate values are `0.05, 0.12, 0.22, 0.44, 0.59, 0.80`. This makes hue disappear while preserving large, intentional brightness steps. The red solution and red pillar hint occupy the target band near `0.22`; decoys occupy the other bands. Value Search never activates, draws, or advertises the magnifier. Both modes retain pickup, placement, reset, interaction cues, subtle walking/jump motion, and the same level geometry.
 
 ### System breakdown
 
@@ -37,8 +38,10 @@ Greyscale is deliberately sparse and monochrome against a solid white sky. Holdi
 | Base world | Monochrome exploration | Gray materials, main camera mask | Main camera excludes `ColorReveal` layer | Gray scene | Screen base |
 | Color proxies | True-color counterpart | Shared mesh transforms, color materials | Child proxy meshes render only on `ColorReveal` | Colored scene geometry | Reveal camera |
 | Reveal camera | Complete perspective-matched color view | Main camera layers + color-proxy layers, pose/FOV, screen aspect | Renders all ordinary objects, then later-queued color proxies | Complete color frame | Circular UI or Full Color display |
+| Value palette | Six readable brightness families | Original reveal material name, six Inspector colors | Temporarily clones and retints reveal-layer materials; restores originals on mode exit | Controlled hue/value scene | Greyscale value pass |
+| Value greyscale pass | Full-screen value-comparison puzzle | Complete color RenderTexture | Converts RGB to Rec. 709 luminance in a screen-space UI shader | Monochrome frame with intrinsic hue values | HUD composite |
 | Moving circle mask | Magnifying-glass shape | Mouse delta, target coordinate, easing response, RenderTexture, alpha sprite | Accumulates a clamped target, eases the visible mask toward it, and counter-moves the full-screen RawImage from the same eased coordinate | Smooth aligned round viewport | Final composite |
-| Developer panel | Hidden presentation comparison | Enter, view buttons, cue buttons, reveal camera | Enter shows or hides the panel and releases or recaptures the cursor; two grouped selectors choose view and interaction-cue variations | Optional developer comparisons | Final composite |
+| Developer panel | Hidden mechanics/presentation comparison | Enter, puzzle-mode buttons, view buttons, cue buttons | Three grouped selectors choose puzzle mode, developer view, and interaction-cue variation; Full Color is disabled during Value Search | Session-persistent developer comparisons | Final composite |
 | Cue dwell | Intentional focus threshold | Exact object aim or assisted goal aim, unscaled time, 0.75-second threshold | Resets when the aimed target/action changes and reveals only after uninterrupted focus | Active contextual cue | Glow or text variation |
 | Back-glow cue | Soft, shape-matched collectible emphasis | Collectible renderer, full-resolution mask, stencil, width, softness, fade time | Draws an always-visible silhouette mask, performs horizontal and vertical screen-space expansion/softening, then composites only where stencil differs; after dwell, applies a smoothstep opacity envelope over 0.25 seconds | Black/white soft outline that follows the object, survives occluders, and cannot cover its center | Final composite |
 | Center-text cue | Minimal interaction instruction | Current carried state and aimed target | Shows `LC PICKUP`, or `Q PLACE` only when a carried object is aimed at its valid goal; ordinary drops have no cue | Tiny contextual label | HUD composite |
@@ -67,7 +70,11 @@ Greyscale is deliberately sparse and monochrome against a solid white sky. Holdi
 
 `finalView = PuzzleView ? grayscaleBase + circularColorReveal : fullScreenColorCamera`
 
-`magnifierActive = rightMouseHeld ∧ playerGrounded ∧ Greyscale ∧ ¬developerPanelOpen`
+`value = 0.2126R + 0.7152G + 0.0722B`
+
+`ValueSearchView = grayscale(completeColorPass(remapToSixValueBands(colorProxies)))`
+
+`magnifierActive = ColorSearch ∧ rightMouseHeld ∧ playerGrounded ∧ Greyscale ∧ ¬developerPanelOpen`
 
 `revealImageOffset = −lensCanvasOffset`
 
@@ -122,17 +129,17 @@ The reveal camera uses the main camera's world position, rotation, field of view
 ### Layer and execution order
 
 1. Main camera renders grayscale objects (opaque replacement is not used; authored gray materials are cheap and explicit).
-2. Reveal camera renders the complete normal world plus later-queued color proxy meshes into `MagnifierColorRevealRT` while right click is held on the ground.
-3. Mouse delta moves a clamped target while the displayed lens eases toward it; the camera/player remain frozen.
-4. Screen-space HUD clips that texture with `MagnifierCircle.png` and draws it over the base view.
+2. Reveal camera renders the complete normal world plus later-queued color proxy meshes into `MagnifierColorRevealRT` whenever Color Search needs the lens or Value Search needs its full-screen frame.
+3. Color Search moves a clamped lens target from mouse delta, eases the visible circle toward it, and freezes the player/camera only while the grounded lens is held.
+4. Value Search temporarily applies the six-color palette, converts the complete RenderTexture to luminance, and draws it full-screen beneath all HUD; its lens object remains inactive.
 5. In `LateUpdate`, the camera pivot receives the smoothed walk-bob offset plus any active jump-squat offset; mouse-look rotation remains independent.
 6. When dropping, the object renderer moves from the screen-center world point to the collision-safe resting point; its collider remains disabled until the final animation frame.
 7. When placing, the camera ray must pass through the forgiving radius around the marked top-surface center; pedestal-body hits outside that region remain ordinary drops.
 8. The unlit flat marker renders over the pedestal top without casting/receiving shadows or contributing collision.
 9. After the uninterrupted dwell threshold, the selected cue renders: the URP RenderGraph feature draws an exact object mask, expands and softens it at full camera resolution, and composites only outside the stencil while easing to authored opacity over 0.25 seconds. The main camera uses black; the color camera uses white. The alternative contextual center text appears beneath the crosshair.
-10. Crosshair, controls, and bottom inventory HUD render on top; the top-right developer panel is added only while Enter has opened it.
+10. Crosshair, mode-specific controls, square objective box, and bottom inventory HUD render on top; the top-right developer panel is added only while Enter has opened it.
 
-In Full Color, the reveal camera bypasses the RenderTexture and renders directly to the display after matching the main camera pose. Returning to Greyscale reconnects the same camera to the circular reveal texture.
+In Full Color, the reveal camera bypasses the RenderTexture and renders directly to the display after matching the main camera pose. Full Color is unavailable in Value Search. Returning to Color Search + Greyscale reconnects the camera to the circular reveal texture and restores every original reveal material.
 
 ## Inspector variable inventory
 
@@ -158,6 +165,15 @@ All game-feel variables are serialized and editable in the Unity Inspector.
 | FirstPersonPlayer / Jump Squat Duration | 0.07 | seconds, ≥0 | Brief grounded delay used to perform the pre-jump dip |
 | FirstPersonPlayer / Jump Squat Recovery Duration | 0.12 | seconds, ≥0 | Time for the camera to return from the dip after launch |
 | MagnifierView / Reveal Mouse Button | Right | Right/Middle | Hold-to-reveal input; activation also requires grounded state |
+| MagnifierView / Default Puzzle Mode | Color Search | Color Search/Value Search | Fresh-play mechanic variation; R preserves the current session selection |
+| MagnifierView / Color Search Objective Text | story copy | string | Top-left objective shown in the magnifier puzzle |
+| MagnifierView / Value Search Objective Text | story copy | string | Top-left objective shown in the value-comparison puzzle |
+| MagnifierView / Value Dark Blue | `(0.03,0.05,0.12)` | RGBA; luminance ≈0.05 | Darkest Value Search hue family |
+| MagnifierView / Value Purple | `(0.28,0.05,0.36)` | RGBA; luminance ≈0.12 | Second-darkest hue family |
+| MagnifierView / Value Target Red | `(0.90,0.03,0.03)` | RGBA; luminance ≈0.22 | Solution/hint brightness family |
+| MagnifierView / Value Green | `(0.05,0.58,0.18)` | RGBA; luminance ≈0.44 | Middle-light decoy family |
+| MagnifierView / Value Orange | `(1.00,0.52,0.06)` | RGBA; luminance ≈0.59 | Light decoy family |
+| MagnifierView / Value Cyan | `(0.35,0.92,1.00)` | RGBA; luminance ≈0.80 | Lightest decoy family |
 | MagnifierView / Viewport Screen Fraction | 0.25 | 0.08–0.5 | Circle diameter relative to shorter screen side |
 | MagnifierView / Render Texture Height | 720 | pixels, ≥128 | Full-view reveal sharpness and GPU cost; width follows screen aspect |
 | MagnifierView / Regular View Sky Color | white | HDR color | Solid background for the grayscale camera |
@@ -181,6 +197,15 @@ All game-feel variables are serialized and editable in the Unity Inspector.
 | MagnifierView / Mode Button Text Color | white | RGBA | Selector label color |
 | MagnifierView / Selector Group Label Color | white | RGBA | Group-title text color |
 | MagnifierView / Selector Group Background Color | black `(0, 0, 0, 0.55)` | RGBA | Translucent developer-panel backing |
+| MagnifierView / Show Story Objective | true | toggle | Creates the persistent top-left objective box |
+| MagnifierView / Story Card Size | (500, 96) | canvas pixels | Square-corner objective-box bounds |
+| MagnifierView / Story Card Margin | (20, 20) | canvas pixels | Offset from the top-left screen corner |
+| MagnifierView / Story Card Padding | (22, 14) | canvas pixels | Text inset inside the box |
+| MagnifierView / Story Font Size | 19 | points, ≥8 | Objective copy size |
+| MagnifierView / Story Card Fill Color | white `(1,1,1,0.94)` | RGBA | Objective-box fill |
+| MagnifierView / Story Text Color | navy-black `(0.07,0.10,0.15,1)` | RGBA | Objective text color |
+| MagnifierView / Story Card Shadow Color | navy-black `(0.03,0.08,0.14,0.32)` | RGBA | Separation shadow against pale geometry |
+| MagnifierView / Story Card Shadow Offset | (3, -4) | canvas pixels | Shadow direction and distance |
 | PlayerInteraction / Interaction Distance | 4 | meters, ≥0.1 | Pick/place reach |
 | PlayerInteraction / Pickup Aim Radius | 0.16 | meters, ≥0 | Small world-space radius around an otherwise empty center ray; zero restores exact-ray-only pickup |
 | PlayerInteraction / Pickup Below Probe Radius | 0.3 | meters, ≥0 | Horizontal forgiveness for picking up an object beneath the player's feet |
@@ -286,7 +311,7 @@ Goal selection uses the top surface directly beneath the placement socket as its
 
 Interaction cues are created only at runtime. The glow variation applies exclusively to collectible objects; valid placement bases remain eligible for the `Q PLACE` Center Text cue but never receive a halo. A URP renderer feature adapted from Unity Technologies' official Unity 6 RenderGraph outline sample draws the collectible into a full-resolution mask, expands and softens that mask in two screen-space passes, and composites only outside the object's stencil. The mask uses `ZTest Always`, so intervening geometry cannot clip the cue, while the stencil keeps the object surface above the glow. The main camera composites black and the magnifier/Full Color camera composites white. After the 0.75-second dwell, an unscaled-time smoothstep envelope multiplies authored alpha from zero to full strength over 0.25 seconds; changing targets, changing cue modes, losing aim, or opening the developer panel clears it. With empty hands, a collectible produces `LC PICKUP`. While carrying, only a valid matching goal produces `Q PLACE`; looking at an ordinary drop surface produces no hint or glow.
 
-Developer selections are session state rather than game state. Choosing Greyscale/Full Color or Back Glow/Center Text updates a small static session record. Pressing R reloads the scene and resets the player, objects, goal, and door, then reapplies those two selections. Beginning a fresh play session clears the record and returns to Greyscale plus Back Glow. The developer panel itself always closes on reload.
+Developer selections are session state rather than game state. Choosing Color Search/Value Search, Greyscale/Full Color, or Back Glow/Center Text updates a small static session record. Pressing R reloads the scene and resets the player, objects, goal, and door, then reapplies all three selections. Beginning a fresh play session clears the record and returns to Color Search, Greyscale, and Back Glow. Value Search forces Greyscale and disables Full Color until Color Search is restored. The developer panel itself always closes on reload.
 
 Carried objects no longer appear in the camera hierarchy. Pickup first checks the exact center ray and immediately accepts an interactive hit. If that ray misses the interactive object—including when it reaches the floor just beside the ball—a small sphere cast around the same aim line supplies forgiving selection for small or edge-on objects. Only the sphere cast's nearest non-player collider can be selected, so a wall or prop caught by that assisted volume still blocks anything behind it. If aim pickup finds nothing interactive, a short downward sphere probe still checks for a mission object directly beneath the player's feet. Pickup suspends that object's physics/collision and hides its world renderers; if it was supporting the player, the existing CharacterController gravity naturally lowers the player to the next surface while the bottom HUD becomes the authoritative carried-object display. Ordinary dropping retains the near/far focus split with three explicit exceptions. A close horizontal surface places immediately at its validated top with no animation. A close wall receives player-side radius clearance but still animates from a very near camera-forward point down to the floor. For a distant or empty-air fallback, the bounds center normally begins on the crosshair at `Drop Distance`; if that start would overlap solid geometry or sit at/below the resolved horizontal resting center, animation is skipped and the object appears directly on the resolved top surface instead of floating upward out of a volume. Every downward support probe checks all hits, ignores the carried object and the entire player hierarchy, and continues through the player to the nearest real world surface. A skyward drop therefore cannot select the CharacterController's head as a floor or freeze above the player. Every path rests the collider above the local floor and runs bounded penetration-resolution passes that push the object horizontally out of adjacent geometry. The final position must be free of non-player blocking overlaps; otherwise the object remains safely in inventory. On a successful drop, collision with the world activates immediately, but collision with the player's CharacterController is temporarily ignored when their volumes overlap. The object cannot push the player away, and that one collision pair is restored only after the player has fully left the object's expanded volume. Placement restores the mesh at the goal socket in world space without parenting it beneath the scaled pedestal, preserving the object's original proportions. Velocity is cleared only while a Rigidbody is dynamic, avoiding Unity's unsupported kinematic-velocity warnings during later interactions.
 
@@ -296,6 +321,7 @@ Carried objects no longer appear in the camera hierarchy. Pickup first checks th
 - Adjust `Lens Move Sensitivity` without changing player look sensitivity; the two input responses are intentionally independent.
 - `Lens Move Easing` defaults to a subtle `18`. Use roughly `10–14` for a floatier follow or `25+` for a crisper response; set it to zero for immediate movement.
 - Keep Greyscale for normal play. Press Enter to expose the developer panel when comparing either view or interaction-cue variations.
+- Use Value Search to assess the brightness puzzle without any magnifier input. Tune the six palette colors by their Rec. 709 luminance, preserving roughly 0.08 or more between adjacent bands after lighting.
 - Full Color is developer-only; selecting Greyscale restores the intended puzzle loop and right-click lens behavior.
 - `Interaction Cue Dwell Duration` is the shared timing control for both variations. Lower it toward `0.4` for faster feedback or raise it toward `1.0` for more deliberate focus. Back Glow applies only to collectible objects; use Center Text to inspect the valid-goal `Q PLACE` cue.
 - `Interaction Cue Glow Fade In Duration` defaults to `0.25` seconds. Raise it toward `0.4` for a gentler bloom, lower it toward `0.1` for a snappier cue, or set it to zero for an immediate halo.
