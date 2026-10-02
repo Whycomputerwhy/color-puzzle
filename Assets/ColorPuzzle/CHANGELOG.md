@@ -2,6 +2,179 @@
 
 This log is intended for people and AI agents continuing the same Unity project. Append new entries; do not rewrite past decisions without explaining the migration.
 
+## 0.2.33 — 2026-10-01 — Minimal outlined inventory HUD
+
+### Changed
+
+- Replaced the bottom inventory panel with only a small neutral ball glyph and the label `Ball`.
+- Removed the background rectangle and `CARRYING:` prefix.
+- Added a white outline to both the ball glyph and label for contrast in either view.
+- Added Inspector controls for HUD gap, ball size, neutral fill, outline color, and outline distance.
+- Serialized the color-neutral `Ball` display name directly on the collectible prefab so disabled scene/domain reload cannot retain the former runtime default.
+
+### Safety
+
+- Runtime HUD construction, player prefab tuning, and documentation only. No scene or authored HUD asset was saved or regenerated.
+
+## 0.2.32 — 2026-10-01 — Placement-only color restoration
+
+### Changed
+
+- Picking up the mission object no longer permanently reveals its color.
+- Ordinary drops return the object to its greyscale world appearance; the magnifier can still reveal its true color while inspecting it.
+- Permanent object color is restored only by successful placement on the matching goal base.
+- Removed the colored inventory swatch and color word from the object display name. The bottom HUD now shows only the neutral `CARRYING: Ball` label.
+
+### Safety
+
+- Runtime object/HUD logic, player prefab serialization, and documentation only. No scene, camera, level-layout, material, or Build Settings asset was saved or regenerated.
+
+## 0.2.31 — 2026-10-01 — Unity RenderGraph soft outline
+
+### Changed
+
+- Replaced the visibly crescent-shaped mesh-shell cue with a full-resolution screen-space soft outline adapted from Unity Technologies' official Unity 6 Per-Object Outline RenderGraph example.
+- The renderer feature draws the collectible's silhouette to a mask, expands/softens it in two screen-space passes, and composites only outside the object's stencil. The object therefore remains visually on top.
+- The mask ignores scene depth so walls and nearby props cannot cut the interaction cue apart.
+- Preserved the 0.75-second aim dwell and 0.25-second smoothstep fade. Greyscale receives black; the magnifier and Full Color camera receive white.
+- Added automatic, idempotent installation into every URP renderer-data asset and included source attribution under `ThirdParty/UnityPerObjectOutline`.
+
+### Safety
+
+- No scene, prefab, camera, HUD layout, level layout, or Build Settings asset was saved or regenerated. The installer appends one renderer feature without removing existing features such as SSAO.
+
+## 0.2.30 — 2026-10-01 — Recording-driven glow correction
+
+### Fixed
+
+- Reviewed the supplied 10.975-second QHD recording frame by frame. It showed that the interaction cue was only a narrow white edge around the ball; the large orange disc was the magnifier border, not the glow.
+- Expanded the glow from 10 to 28 screen pixels and increased sampling from 6 to 12 nested shells, turning the hard outline into a broader soft falloff.
+- Increased softness from `0.7` to `0.9` and slightly reduced peak alpha to remove the cut-out/sticker appearance.
+- Added `Color Glow Width Ratio` at `0.72`: the white color-view core is now narrower than the underlying black falloff, preserving contrast when the ball sits over the level's nearly white floor.
+
+### Safety
+
+- Adjusted runtime glow parameters, shell-width calculation, player prefab defaults, and documentation only. No scene, camera, HUD layout, input, renderer-data asset, level layout, or build settings were saved or regenerated.
+
+## 0.2.29 — 2026-10-01 — Mesh-conforming soft interaction glow
+
+### Changed
+
+- Replaced the 64-pixel billboard halo with a resolution-independent mesh-shell highlight based on the collectible's actual mesh and normals.
+- Added an exact-silhouette stencil mask, preventing every glow layer from covering the highlighted object itself.
+- Added six nested screen-pixel shells with normalized alpha distribution for a softer falloff, especially in the color view.
+- Preserved the 0.25-second smoothstep fade, object-only eligibility, black Greyscale cue, white color-view cue, and visibility through intervening geometry.
+- Replaced obsolete billboard controls with `Glow Width Pixels`, `Glow Layer Count`, and `Glow Softness` Inspector controls.
+
+### Technique review
+
+- Compared QuickOutline-style world-space shells, Unity's official per-object RenderGraph outline sample, URP Render Objects/stencil passes, and community URP 17 RenderGraph outline features.
+- Chose runtime mesh shells plus stencil for this slice: it solves the current silhouette and resolution defects without importing a package or editing the project's renderer data asset.
+- A RenderGraph edge/dilate outline remains the best later upgrade if highlights must support arbitrary skinned or hard-edged production meshes and many simultaneous targets.
+
+### Safety
+
+- Runtime scripts, two Resources shaders, player prefab cue defaults, and documentation only. No scene, camera, HUD layout, input, renderer-data asset, level layout, or build settings were saved or regenerated.
+
+## 0.2.28 — 2026-10-01 — Back-glow fade-in and technique review
+
+### Changed
+
+- Added an Inspector-adjustable 0.25-second fade-in after the existing 0.75-second aim dwell.
+- The fade uses unscaled time and a smoothstep envelope, so it remains frame-rate independent and starts/ends without a hard opacity corner.
+- Reset the fade whenever aim is lost, the target changes, the cue mode changes, or the developer panel clears the cue.
+
+### Technique decision
+
+- Reviewed established Unity highlight patterns: material-property tint/emission, inverted-hull stencil outlines, and URP renderer-feature screen-space outlines.
+- Retained the center-cutout billboard halo for this greybox slice because it preserves the requested behind-object glow, remains visible through nearby geometry, and avoids scene, renderer-asset, mesh-normal, or authored-material changes.
+- If this cue becomes a production outline rather than a back glow, migrate it to an inverted-hull plus stencil implementation; that approach follows the object silhouette more accurately than a billboard.
+
+### Safety
+
+- Runtime interaction script, player prefab defaults, and documentation only. No scene, camera, HUD layout, input, level-layout, build-setting, or developer-setting asset was saved or regenerated.
+
+## 0.2.27 — 2026-10-01 — Correct zero-alpha halo center
+
+### Fixed
+
+- Corrected the annular-mask calculation: Unity's `Mathf.SmoothStep(from, to, t)` had been given threshold edges as its output range, leaving roughly 70% mask opacity at the sprite center.
+- The generator now normalizes radius with `InverseLerp(innerRadius, innerRadius + innerFeather, radius)` and smooths that zero-to-one value.
+- Every pixel inside the configured inner radius now has exactly zero halo alpha, so the collectible renders unobscured while the outer overlay remains immune to world-depth clipping.
+
+### Safety
+
+- One runtime mask formula and documentation only. No prefab, scene, shader, camera, HUD, input, developer-setting, level-layout, or build-setting asset was changed.
+
+## 0.2.26 — 2026-10-01 — Object-only halo and reset-safe developer settings
+
+### Fixed
+
+- Restricted Back Glow to collectible objects. Goal bases no longer glow; their valid `Q PLACE` feedback remains available in Center Text mode.
+- Enlarged and tightened the halo's transparent center so the collectible itself remains completely unobscured above the overlay.
+- Preserved the selected Greyscale/Full Color and Back Glow/Center Text developer modes when R reloads the gameplay scene.
+
+### Reset behavior
+
+- R still resets all gameplay state through the normal scene reload: player, carried object, object positions, goal completion, and completion door.
+- A fresh play session restores the authored developer defaults. The panel's open/closed state is not preserved.
+
+### Safety
+
+- Runtime scripts, two existing player-prefab cue values, and documentation only. No scenes, level geometry, camera transforms, HUD layout, input bindings, shader assets, or build settings were rewritten.
+
+## 0.2.25 — 2026-10-01 — Unobstructed interaction halo
+
+### Changed
+
+- Replaced the depth-dependent filled glow with a center-cutout annular halo and a dedicated transparent overlay shader.
+- The shader uses an always-pass depth test, so walls, props, and other world geometry cannot cut off the halo.
+- Added Inspector controls for the halo's normalized inner radius and feather so the overlay surrounds the target without painting across its center.
+- Kept the paired layer behavior: black in Greyscale and later white on `ColorReveal`.
+
+### Safety
+
+- Runtime cue rendering, two player-prefab cue values, one Resources shader, and documentation only. No scenes, camera transforms, level geometry, HUD layout, input bindings, or build settings were rewritten.
+
+## 0.2.24 — 2026-09-30 — Placement-only carry cue and stronger grayscale glow
+
+### Changed
+
+- Removed the ordinary `Q DROP` interaction suggestion. While carrying, feedback now appears only for the special valid-goal action `Q PLACE`; pickup feedback remains available while empty-handed.
+- Corrected the player prefab's serialized cue colors so Greyscale uses black and the color pass uses white.
+- Increased the halo scale and opacity, reduced its depth offset, and broadened its radial falloff so the black back glow stays clearly visible around the target silhouette in Greyscale.
+- Restored the authored `0.75 s` dwell threshold on the player prefab.
+
+### Safety
+
+- Changed only the cue-selection runtime logic, the cue fields on the existing player prefab, and documentation. No scenes, level geometry, camera transforms, HUD layout, input bindings, or build settings were rewritten.
+
+## 0.2.23 — 2026-09-30 — Flat underwater goal marker
+
+### Changed
+
+- Replaced the underwater goal's stacked red and white cylinder meshes with one flat transparent image containing a red center and white perimeter ring.
+- The new marker is a single collider-free, unlit quad with shadows and light/reflection probes disabled, so it reads as a painted target instead of a raised button.
+- Added an idempotent editor migration with centralized texture, color, feather, size, and height parameters; it creates the TGA and material and can safely update the same prefab again.
+
+### Safety
+
+- Preserved the existing placement socket, `GoalPedestal`, cylinder collider, root transform, and scene instance placement. No scene, player, camera, HUD, controls, Build Settings, or manually arranged level geometry was rewritten.
+
+## 0.2.22 — 2026-09-30 — Interaction cue variations
+
+### Added
+
+- Added an `INTERACTION CUE` selector group to the Enter developer panel with `Back Glow` and `Center Text` options.
+- Added a shared, Inspector-adjustable `0.75 s` uninterrupted aim dwell before interaction feedback appears.
+- Added a runtime billboard glow behind aimed mission objects and valid goals. The base view receives a black halo, while `ColorReveal` receives a later white halo so the magnifier and Full Color mode show the correct variation.
+- Added tiny contextual center labels: `LC PICKUP` for an aimed collectible, `Q PLACE` for an aimed valid goal, and `Q DROP` for another focused surface while carrying.
+- Added centralized Inspector controls for cue timing, text layout/colors, glow size/depth, mask resolution/falloff, and grayscale/color glow colors.
+
+### Safety
+
+- Runtime scripts and documentation only. Glow textures, materials, sprites, and HUD text are generated transiently at play time; no scene, prefab, material, texture, camera, HUD, or Build Settings asset was rewritten.
+
 ## 0.2.21 — 2026-09-29 — White-circle placement targeting
 
 ### Changed

@@ -8,8 +8,7 @@ namespace ColorPuzzle
     {
         [Header("Identity")]
         [SerializeField] private string objectId = "red-ball";
-        [SerializeField] private string displayName = "Red Ball";
-        [SerializeField] private Color inventoryColor = new Color(0.85f, 0.08f, 0.08f, 1f);
+        [SerializeField] private string displayName = "Ball";
 
         [Header("Discovery Appearance")]
         [SerializeField] private Renderer grayscaleRenderer;
@@ -30,9 +29,10 @@ namespace ColorPuzzle
 
         public string ObjectId => objectId;
         public string DisplayName => displayName;
-        public Color InventoryColor => inventoryColor;
         public bool IsDiscovered => discovered;
         public Collider PhysicsCollider => hitCollider;
+        public Renderer InteractionCueRenderer => grayscaleRenderer;
+        public Bounds InteractionCueBounds => grayscaleRenderer != null ? grayscaleRenderer.bounds : hitCollider.bounds;
         public Vector3 DropBoundsExtents => carriedBoundsExtents;
         public float HorizontalDropRadius => Mathf.Max(carriedBoundsExtents.x, carriedBoundsExtents.z);
 
@@ -52,15 +52,14 @@ namespace ColorPuzzle
 
         public void PickUp()
         {
-            // Pickup, not magnifier inspection, is the commitment point that permanently
-            // exposes this object's color in the grayscale world after it is dropped.
+            // Pickup is inventory-only. Permanent color restoration happens exclusively
+            // when the object reaches its matching goal.
             if (dropAnimation != null)
             {
                 StopCoroutine(dropAnimation);
                 dropAnimation = null;
             }
             RestorePlayerCollisionImmediately();
-            Discover();
             Bounds pickupBounds = hitCollider.bounds;
             carriedBoundsCenterOffset = pickupBounds.center - transform.position;
             carriedBoundsExtents = pickupBounds.extents;

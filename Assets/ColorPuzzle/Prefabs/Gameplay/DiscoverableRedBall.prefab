@@ -245,6 +245,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.DiscoverableObject
   objectId: red-ball
+  displayName: Ball
   grayscaleRenderer: {fileID: 4974384738391916137}
   discoveredMaterial: {fileID: 2100000, guid: 6b96e8f6488cb4635a1845848ea0e2e8, type: 2}
   colorProxy: {fileID: 1151670536954332773}

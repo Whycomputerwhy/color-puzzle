@@ -439,6 +439,7 @@ MonoBehaviour:
   dropOrPlaceKey: 31
   resetKey: 32
   interactionDistance: 5
+  pickupAimRadius: 0.16
   pickupBelowProbeRadius: 0.3
   pickupBelowProbeStartHeight: 0.2
   pickupBelowProbeDistance: 0.8
@@ -457,22 +458,35 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   dropAnimationDuration: 0.35
-  dropAnimationStartDistance: 1.75
-  dropAnimationMinimumHeight: 0.35
   dropAnimationFallExponent: 2.2
+  wallDropAnimationStartDistance: 0.35
   placementDistance: 5.5
   placementCastRadius: 0.75
   topPlacementHorizontalPadding: 0.35
   topPlacementMaxCameraHeight: 3
   topPlacementMinimumDownwardLook: 0.1
+  interactionCueMode: 0
+  interactionCueDwellDuration: 0.75
+  interactionCueGlowFadeInDuration: 0.25
+  interactionCueFontSize: 14
+  interactionCueTextSize: {x: 220, y: 28}
+  interactionCueTextOffset: {x: 0, y: -26}
+  interactionCueGreyscaleTextColor: {r: 0, g: 0, b: 0, a: 1}
+  interactionCueColorTextColor: {r: 1, g: 1, b: 1, a: 1}
+  interactionCueTextOutlineColor: {r: 1, g: 1, b: 1, a: 0.8}
+  interactionCueGlowWidthPixels: 18
+  interactionCueGlowSoftness: 0.9
+  interactionCueGreyscaleGlowColor: {r: 0, g: 0, b: 0, a: 0.85}
+  interactionCueColorGlowColor: {r: 1, g: 1, b: 1, a: 0.86}
   showInventoryHud: 1
-  inventoryHudSize: {x: 260, y: 52}
+  inventoryHudSize: {x: 150, y: 42}
   inventoryHudOffset: {x: 0, y: 92}
-  inventoryHudPadding: 10
-  inventorySwatchSize: 28
+  inventoryHudGap: 8
+  inventoryBallFontSize: 28
   inventoryFontSize: 18
-  inventoryBackgroundColor: {r: 0, g: 0, b: 0, a: 0.72}
-  inventoryTextColor: {r: 1, g: 1, b: 1, a: 1}
+  inventoryFillColor: {r: 0.12, g: 0.12, b: 0.12, a: 1}
+  inventoryOutlineColor: {r: 1, g: 1, b: 1, a: 1}
+  inventoryOutlineDistance: {x: 1, y: -1}
 --- !u!114 &9175544705949783069
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -494,6 +508,7 @@ MonoBehaviour:
   regularViewSkyColor: {r: 1, g: 1, b: 1, a: 1}
   revealViewSkyColor: {r: 0.08, g: 0.34, b: 0.9, a: 1}
   lensMoveSensitivity: 1
+  lensMoveEasing: 18
   screenEdgePadding: 8
   resetLensToCenterOnOpen: 1
   enableDeveloperPanel: 1

@@ -3,6 +3,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
+using ColorPuzzle.Rendering;
 
 namespace ColorPuzzle
 {
@@ -10,6 +11,8 @@ namespace ColorPuzzle
     {
         private const string GreyscaleButtonLabel = "Greyscale";
         private const string FullColorButtonLabel = "Full Color";
+        private const string BackGlowButtonLabel = "Back Glow";
+        private const string CenterTextButtonLabel = "Center Text";
         private const int MinimumRenderTextureDimension = 128;
         private const float DefaultRenderAspect = 16f / 9f;
         private const float MinimumUsableRenderAspect = 0.25f;
@@ -26,6 +29,11 @@ namespace ColorPuzzle
             Right,
             Middle
         }
+
+        private static bool hasPersistedDeveloperSettings;
+        private static DevViewMode persistedDevViewMode = DevViewMode.PuzzleView;
+        private static PlayerInteraction.InteractionCueMode persistedInteractionCueMode =
+            PlayerInteraction.InteractionCueMode.BackGlow;
 
         // CENTRALIZED VISUAL / INTERACTION PARAMETERS (all art-directable values are Inspector-visible)
         [Header("Interaction")]
@@ -84,10 +92,23 @@ namespace ColorPuzzle
         private int originalColorCameraCullingMask;
         private Button puzzleViewButton;
         private Button fullColorButton;
+        private Button backGlowButton;
+        private Button centerTextButton;
         private GameObject developerPanelRoot;
         private bool developerPanelOpen;
+        private PlayerInteraction playerInteraction;
 
         public bool IsActive => active;
+        public bool IsFullColorView => currentDevViewMode == DevViewMode.FullColor;
+        public bool IsDeveloperPanelOpen => developerPanelOpen;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetDeveloperSettingsForNewPlaySession()
+        {
+            hasPersistedDeveloperSettings = false;
+            persistedDevViewMode = DevViewMode.PuzzleView;
+            persistedInteractionCueMode = PlayerInteraction.InteractionCueMode.BackGlow;
+        }
 
         private void Awake()
         {
@@ -95,16 +116,22 @@ namespace ColorPuzzle
             revealImageRect = revealImage != null ? revealImage.rectTransform : null;
             canvas = circularViewport != null ? circularViewport.GetComponentInParent<Canvas>() : null;
             canvasRect = canvas != null ? canvas.GetComponent<RectTransform>() : null;
+            playerInteraction = GetComponent<PlayerInteraction>();
             lensScreenPosition = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
             lensTargetScreenPosition = lensScreenPosition;
-            // Move Lens + Greyscale are the player-facing interaction. Full Color remains
-            // available only through the hidden developer panel.
-            currentDevViewMode = DevViewMode.PuzzleView;
+            // A new play session starts in the authored defaults. Scene reloads caused by R
+            // restore only developer selections; gameplay objects still reset with the scene.
+            currentDevViewMode = hasPersistedDeveloperSettings
+                ? persistedDevViewMode
+                : DevViewMode.PuzzleView;
+            if (hasPersistedDeveloperSettings && playerInteraction != null)
+                playerInteraction.SetInteractionCueMode(persistedInteractionCueMode);
             if (colorCamera != null)
             {
                 originalColorCameraDepth = colorCamera.depth;
                 originalColorCameraCullingMask = colorCamera.cullingMask;
             }
+            InteractionOutlineRuntime.SetColorCamera(colorCamera);
             ApplySolidSkyColors();
             PrepareCompleteColorView();
             EnsureRenderTexture();
@@ -249,6 +276,7 @@ namespace ColorPuzzle
         private void SetDevViewMode(DevViewMode mode)
         {
             currentDevViewMode = mode;
+            PersistDeveloperSettings();
             active = mode == DevViewMode.PuzzleView &&
                      IsRevealButtonHeld() &&
                      player != null &&
@@ -299,7 +327,11 @@ namespace ColorPuzzle
             selector.anchoredPosition = new Vector2(-modeSelectorMargin.x, -modeSelectorMargin.y);
             float groupWidth = modeButtonSize.x * 2f + modeButtonGap + selectorGroupPadding * 2f;
             float groupHeight = selectorGroupPadding * 3f + selectorGroupLabelHeight + modeButtonSize.y;
-            selector.sizeDelta = new Vector2(groupWidth, groupHeight);
+            float interactionGroupOffset = groupHeight + modeButtonGap;
+            float panelHeight = playerInteraction != null
+                ? groupHeight * 2f + modeButtonGap
+                : groupHeight;
+            selector.sizeDelta = new Vector2(groupWidth, panelHeight);
             selector.SetAsLastSibling();
 
             Font font = canvas.GetComponentInChildren<Text>(true)?.font;
@@ -310,8 +342,49 @@ namespace ColorPuzzle
             fullColorButton = CreateModeButton(devViewGroup, FullColorButtonLabel, selectorGroupPadding + modeButtonSize.x + modeButtonGap, font);
             puzzleViewButton.onClick.AddListener(() => SetDevViewMode(DevViewMode.PuzzleView));
             fullColorButton.onClick.AddListener(() => SetDevViewMode(DevViewMode.FullColor));
+
+            if (playerInteraction != null)
+            {
+                RectTransform interactionCueGroup = CreateSelectorGroup(
+                    selector,
+                    "INTERACTION CUE",
+                    interactionGroupOffset,
+                    groupWidth,
+                    groupHeight,
+                    font);
+                backGlowButton = CreateModeButton(
+                    interactionCueGroup,
+                    BackGlowButtonLabel,
+                    selectorGroupPadding,
+                    font);
+                centerTextButton = CreateModeButton(
+                    interactionCueGroup,
+                    CenterTextButtonLabel,
+                    selectorGroupPadding + modeButtonSize.x + modeButtonGap,
+                    font);
+                backGlowButton.onClick.AddListener(() =>
+                    SetInteractionCueMode(PlayerInteraction.InteractionCueMode.BackGlow));
+                centerTextButton.onClick.AddListener(() =>
+                    SetInteractionCueMode(PlayerInteraction.InteractionCueMode.CenterText));
+            }
             RefreshModeSelector();
             SetDeveloperPanelOpen(false);
+        }
+
+        private void SetInteractionCueMode(PlayerInteraction.InteractionCueMode mode)
+        {
+            if (playerInteraction == null) return;
+            playerInteraction.SetInteractionCueMode(mode);
+            PersistDeveloperSettings();
+            RefreshModeSelector();
+        }
+
+        private void PersistDeveloperSettings()
+        {
+            persistedDevViewMode = currentDevViewMode;
+            if (playerInteraction != null)
+                persistedInteractionCueMode = playerInteraction.CurrentInteractionCueMode;
+            hasPersistedDeveloperSettings = true;
         }
 
         private void SetDeveloperPanelOpen(bool open)
@@ -394,6 +467,14 @@ namespace ColorPuzzle
                 puzzleViewButton.targetGraphic.color = currentDevViewMode == DevViewMode.PuzzleView ? selectedModeColor : unselectedModeColor;
             if (fullColorButton != null)
                 fullColorButton.targetGraphic.color = currentDevViewMode == DevViewMode.FullColor ? selectedModeColor : unselectedModeColor;
+            if (backGlowButton != null && playerInteraction != null)
+                backGlowButton.targetGraphic.color = playerInteraction.CurrentInteractionCueMode == PlayerInteraction.InteractionCueMode.BackGlow
+                    ? selectedModeColor
+                    : unselectedModeColor;
+            if (centerTextButton != null && playerInteraction != null)
+                centerTextButton.targetGraphic.color = playerInteraction.CurrentInteractionCueMode == PlayerInteraction.InteractionCueMode.CenterText
+                    ? selectedModeColor
+                    : unselectedModeColor;
         }
 
         private static void EnsureEventSystem()

@@ -2,11 +2,18 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using ColorPuzzle.Rendering;
 
 namespace ColorPuzzle
 {
     public sealed class PlayerInteraction : MonoBehaviour
     {
+        public enum InteractionCueMode
+        {
+            BackGlow,
+            CenterText
+        }
+
         private enum DropPresentation
         {
             Immediate,
@@ -55,28 +62,54 @@ namespace ColorPuzzle
         [SerializeField, Min(0.1f)] private float topPlacementMaxCameraHeight = 3f;
         [SerializeField, Range(0f, 1f)] private float topPlacementMinimumDownwardLook = 0.1f;
 
+        // CENTRALIZED INTERACTION CUE PARAMETERS
+        [Header("Interaction Cues")]
+        [SerializeField] private InteractionCueMode interactionCueMode = InteractionCueMode.BackGlow;
+        [SerializeField, Min(0f)] private float interactionCueDwellDuration = 0.75f;
+        [SerializeField, Min(0f)] private float interactionCueGlowFadeInDuration = 0.25f;
+        [SerializeField, Min(8)] private int interactionCueFontSize = 14;
+        [SerializeField] private Vector2 interactionCueTextSize = new Vector2(220f, 28f);
+        [SerializeField] private Vector2 interactionCueTextOffset = new Vector2(0f, -26f);
+        [SerializeField] private Color interactionCueGreyscaleTextColor = Color.black;
+        [SerializeField] private Color interactionCueColorTextColor = Color.white;
+        [SerializeField] private Color interactionCueTextOutlineColor = new Color(1f, 1f, 1f, 0.8f);
+        [SerializeField, Range(2f, 60f)] private float interactionCueGlowWidthPixels = 18f;
+        [SerializeField, Range(0f, 1f)] private float interactionCueGlowSoftness = 0.9f;
+        [SerializeField] private Color interactionCueGreyscaleGlowColor = new Color(0f, 0f, 0f, 0.85f);
+        [SerializeField] private Color interactionCueColorGlowColor = new Color(1f, 1f, 1f, 0.86f);
+
         [Header("Inventory HUD")]
         [SerializeField] private bool showInventoryHud = true;
-        [SerializeField] private Vector2 inventoryHudSize = new Vector2(260f, 52f);
+        [SerializeField] private Vector2 inventoryHudSize = new Vector2(150f, 42f);
         [SerializeField] private Vector2 inventoryHudOffset = new Vector2(0f, 92f);
-        [SerializeField, Min(0f)] private float inventoryHudPadding = 10f;
-        [SerializeField, Min(8f)] private float inventorySwatchSize = 28f;
+        [SerializeField, Min(0f)] private float inventoryHudGap = 8f;
+        [SerializeField, Min(8)] private int inventoryBallFontSize = 28;
         [SerializeField, Min(8)] private int inventoryFontSize = 18;
-        [SerializeField] private Color inventoryBackgroundColor = new Color(0f, 0f, 0f, 0.72f);
-        [SerializeField] private Color inventoryTextColor = Color.white;
+        [SerializeField] private Color inventoryFillColor = new Color(0.12f, 0.12f, 0.12f, 1f);
+        [SerializeField] private Color inventoryOutlineColor = Color.white;
+        [SerializeField] private Vector2 inventoryOutlineDistance = new Vector2(1f, -1f);
 
         private DiscoverableObject carried;
         private MagnifierView magnifier;
         private CharacterController playerController;
         private GameObject inventoryHudRoot;
-        private Image inventorySwatch;
         private Text inventoryLabel;
+        private GameObject interactionCueTextRoot;
+        private Text interactionCueText;
+        private Object currentCueTarget;
+        private string currentCueLabel;
+        private float interactionCueDwellElapsed;
+        private float interactionCueGlowFadeElapsed;
+
+        public InteractionCueMode CurrentInteractionCueMode => interactionCueMode;
 
         private void Awake()
         {
             magnifier = GetComponent<MagnifierView>();
             playerController = GetComponent<CharacterController>();
             CreateInventoryHud();
+            CreateInteractionCueText();
+            ClearInteractionCueVisuals();
             RefreshInventoryHud();
         }
 
@@ -89,6 +122,7 @@ namespace ColorPuzzle
                 return;
             }
 
+            UpdateInteractionCue();
             if (magnifier != null && magnifier.IsActive) { UpdateStatus(); return; }
 
             if (Mouse.current.leftButton.wasPressedThisFrame && carried == null) TryPickUp();
@@ -104,6 +138,7 @@ namespace ColorPuzzle
             if (item == null) return;
             carried = item;
             carried.PickUp();
+            ResetInteractionCue();
             RefreshInventoryHud();
         }
 
@@ -189,6 +224,7 @@ namespace ColorPuzzle
                 if (goal.TryPlace(carried))
                 {
                     carried = null;
+                    ResetInteractionCue();
                     RefreshInventoryHud();
                     return;
                 }
@@ -221,6 +257,7 @@ namespace ColorPuzzle
                 carried.Drop(restingPosition, playerController);
             }
             carried = null;
+            ResetInteractionCue();
             RefreshInventoryHud();
         }
 
@@ -638,6 +675,170 @@ namespace ColorPuzzle
             return !foundHit || nearestHit.collider.GetComponentInParent<GoalPedestal>() == goal;
         }
 
+        public void SetInteractionCueMode(InteractionCueMode mode)
+        {
+            interactionCueMode = mode;
+            interactionCueGlowFadeElapsed = 0f;
+            ClearInteractionCueVisuals();
+        }
+
+        private void UpdateInteractionCue()
+        {
+            if (viewCamera == null || (magnifier != null && magnifier.IsDeveloperPanelOpen))
+            {
+                ResetInteractionCue();
+                return;
+            }
+
+            if (!TryGetInteractionCueCandidate(
+                    out Object cueTarget,
+                    out Bounds cueBounds,
+                    out string cueLabel,
+                    out bool supportsGlow,
+                    out Renderer cueRenderer))
+            {
+                ResetInteractionCue();
+                return;
+            }
+
+            bool sameCue = currentCueTarget == cueTarget && currentCueLabel == cueLabel;
+            if (!sameCue)
+            {
+                currentCueTarget = cueTarget;
+                currentCueLabel = cueLabel;
+                interactionCueDwellElapsed = 0f;
+                interactionCueGlowFadeElapsed = 0f;
+                ClearInteractionCueVisuals();
+            }
+
+            interactionCueDwellElapsed += Time.unscaledDeltaTime;
+            if (interactionCueDwellElapsed < interactionCueDwellDuration) return;
+
+            if (interactionCueMode == InteractionCueMode.CenterText)
+                ShowInteractionCueText(cueLabel);
+            else if (supportsGlow)
+            {
+                interactionCueGlowFadeElapsed += Time.unscaledDeltaTime;
+                float fadeProgress = interactionCueGlowFadeInDuration <= 0f
+                    ? 1f
+                    : Mathf.Clamp01(interactionCueGlowFadeElapsed / interactionCueGlowFadeInDuration);
+                float easedOpacity = fadeProgress * fadeProgress * (3f - 2f * fadeProgress);
+                ShowInteractionCueGlow(cueRenderer, easedOpacity);
+            }
+        }
+
+        private bool TryGetInteractionCueCandidate(
+            out Object cueTarget,
+            out Bounds cueBounds,
+            out string cueLabel,
+            out bool supportsGlow,
+            out Renderer cueRenderer)
+        {
+            cueTarget = null;
+            cueBounds = default;
+            cueLabel = string.Empty;
+            supportsGlow = false;
+            cueRenderer = null;
+
+            if (carried != null && TryFindPlacementGoal(out GoalPedestal goal))
+            {
+                cueTarget = goal;
+                cueBounds = goal.PlacementBounds;
+                cueLabel = "Q PLACE";
+                // Goal bases keep the explicit text cue but never receive object glow.
+                supportsGlow = false;
+                return true;
+            }
+
+            // Carrying has only one contextual cue: a valid matching placement.
+            // Ordinary drops remain available through Q but are never suggested.
+            if (carried != null) return false;
+
+            if (!TryFindNearestPickupHit(0f, out RaycastHit centerHit)) return false;
+            DiscoverableObject item = centerHit.collider.GetComponentInParent<DiscoverableObject>();
+            if (item == null) return false;
+            cueTarget = item;
+            cueBounds = item.InteractionCueBounds;
+            cueLabel = "LC PICKUP";
+            supportsGlow = true;
+            cueRenderer = item.InteractionCueRenderer;
+            return true;
+        }
+
+        private void ShowInteractionCueText(string cueLabel)
+        {
+            InteractionOutlineRuntime.Hide();
+            if (interactionCueTextRoot == null || interactionCueText == null) return;
+            interactionCueText.text = cueLabel;
+            interactionCueText.color = magnifier != null && magnifier.IsFullColorView
+                ? interactionCueColorTextColor
+                : interactionCueGreyscaleTextColor;
+            interactionCueTextRoot.SetActive(true);
+        }
+
+        private void ShowInteractionCueGlow(Renderer sourceRenderer, float opacity)
+        {
+            if (interactionCueTextRoot != null) interactionCueTextRoot.SetActive(false);
+            if (sourceRenderer == null) return;
+            InteractionOutlineRuntime.Show(
+                sourceRenderer,
+                opacity,
+                interactionCueGlowWidthPixels,
+                interactionCueGlowSoftness,
+                interactionCueGreyscaleGlowColor,
+                interactionCueColorGlowColor);
+        }
+
+        private void ResetInteractionCue()
+        {
+            currentCueTarget = null;
+            currentCueLabel = string.Empty;
+            interactionCueDwellElapsed = 0f;
+            interactionCueGlowFadeElapsed = 0f;
+            ClearInteractionCueVisuals();
+        }
+
+        private void ClearInteractionCueVisuals()
+        {
+            if (interactionCueTextRoot != null) interactionCueTextRoot.SetActive(false);
+            InteractionOutlineRuntime.Hide();
+        }
+
+        private void CreateInteractionCueText()
+        {
+            if (statusText == null) return;
+            Canvas canvas = statusText.GetComponentInParent<Canvas>();
+            if (canvas == null) return;
+
+            interactionCueTextRoot = new GameObject(
+                "InteractionCueText",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Text),
+                typeof(Outline));
+            RectTransform cueRect = interactionCueTextRoot.GetComponent<RectTransform>();
+            cueRect.SetParent(canvas.transform, false);
+            cueRect.anchorMin = cueRect.anchorMax = new Vector2(0.5f, 0.5f);
+            cueRect.pivot = new Vector2(0.5f, 0.5f);
+            cueRect.anchoredPosition = interactionCueTextOffset;
+            cueRect.sizeDelta = interactionCueTextSize;
+            cueRect.SetAsLastSibling();
+
+            interactionCueText = interactionCueTextRoot.GetComponent<Text>();
+            interactionCueText.font = statusText.font != null
+                ? statusText.font
+                : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            interactionCueText.fontSize = interactionCueFontSize;
+            interactionCueText.fontStyle = FontStyle.Bold;
+            interactionCueText.alignment = TextAnchor.MiddleCenter;
+            interactionCueText.raycastTarget = false;
+
+            Outline outline = interactionCueTextRoot.GetComponent<Outline>();
+            outline.effectColor = interactionCueTextOutlineColor;
+            outline.effectDistance = Vector2.one;
+            outline.useGraphicAlpha = true;
+        }
+
         private void UpdateStatus()
         {
             if (statusText == null) return;
@@ -650,41 +851,69 @@ namespace ColorPuzzle
             Canvas canvas = statusText.GetComponentInParent<Canvas>();
             if (canvas == null) return;
 
-            inventoryHudRoot = new GameObject("InventoryHUD", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            inventoryHudRoot = new GameObject("InventoryHUD", typeof(RectTransform));
             RectTransform panelRect = inventoryHudRoot.GetComponent<RectTransform>();
             panelRect.SetParent(canvas.transform, false);
             panelRect.anchorMin = panelRect.anchorMax = new Vector2(0.5f, 0f);
             panelRect.pivot = new Vector2(0.5f, 0f);
             panelRect.anchoredPosition = inventoryHudOffset;
             panelRect.sizeDelta = inventoryHudSize;
-            Image panelImage = inventoryHudRoot.GetComponent<Image>();
-            panelImage.color = inventoryBackgroundColor;
-            panelImage.raycastTarget = false;
             panelRect.SetAsLastSibling();
 
-            GameObject swatchObject = new GameObject("ObjectColor", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-            RectTransform swatchRect = swatchObject.GetComponent<RectTransform>();
-            swatchRect.SetParent(panelRect, false);
-            swatchRect.anchorMin = swatchRect.anchorMax = new Vector2(0f, 0.5f);
-            swatchRect.pivot = new Vector2(0f, 0.5f);
-            swatchRect.anchoredPosition = new Vector2(inventoryHudPadding, 0f);
-            swatchRect.sizeDelta = Vector2.one * inventorySwatchSize;
-            inventorySwatch = swatchObject.GetComponent<Image>();
-            inventorySwatch.raycastTarget = false;
+            Font hudFont = statusText.font != null
+                ? statusText.font
+                : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
-            GameObject labelObject = new GameObject("ObjectLabel", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
+            float ballSlotWidth = Mathf.Max(inventoryBallFontSize, inventoryHudSize.y);
+            GameObject ballObject = new GameObject(
+                "BallShape",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Text),
+                typeof(Outline));
+            RectTransform ballRect = ballObject.GetComponent<RectTransform>();
+            ballRect.SetParent(panelRect, false);
+            ballRect.anchorMin = new Vector2(0f, 0f);
+            ballRect.anchorMax = new Vector2(0f, 1f);
+            ballRect.pivot = new Vector2(0f, 0.5f);
+            ballRect.anchoredPosition = Vector2.zero;
+            ballRect.sizeDelta = new Vector2(ballSlotWidth, 0f);
+            Text ballText = ballObject.GetComponent<Text>();
+            ballText.font = hudFont;
+            ballText.fontSize = inventoryBallFontSize;
+            ballText.alignment = TextAnchor.MiddleCenter;
+            ballText.color = inventoryFillColor;
+            ballText.text = "●";
+            ballText.raycastTarget = false;
+            ConfigureInventoryOutline(ballObject.GetComponent<Outline>());
+
+            GameObject labelObject = new GameObject(
+                "ObjectLabel",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Text),
+                typeof(Outline));
             RectTransform labelRect = labelObject.GetComponent<RectTransform>();
             labelRect.SetParent(panelRect, false);
             labelRect.anchorMin = Vector2.zero;
             labelRect.anchorMax = Vector2.one;
-            labelRect.offsetMin = new Vector2(inventoryHudPadding * 2f + inventorySwatchSize, 0f);
-            labelRect.offsetMax = new Vector2(-inventoryHudPadding, 0f);
+            labelRect.offsetMin = new Vector2(ballSlotWidth + inventoryHudGap, 0f);
+            labelRect.offsetMax = Vector2.zero;
             inventoryLabel = labelObject.GetComponent<Text>();
-            inventoryLabel.font = statusText.font != null ? statusText.font : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            inventoryLabel.font = hudFont;
             inventoryLabel.fontSize = inventoryFontSize;
             inventoryLabel.alignment = TextAnchor.MiddleLeft;
-            inventoryLabel.color = inventoryTextColor;
+            inventoryLabel.color = inventoryFillColor;
             inventoryLabel.raycastTarget = false;
+            ConfigureInventoryOutline(labelObject.GetComponent<Outline>());
+        }
+
+        private void ConfigureInventoryOutline(Outline outline)
+        {
+            if (outline == null) return;
+            outline.effectColor = inventoryOutlineColor;
+            outline.effectDistance = inventoryOutlineDistance;
+            outline.useGraphicAlpha = true;
         }
 
         private void RefreshInventoryHud()
@@ -693,8 +922,18 @@ namespace ColorPuzzle
             bool hasObject = carried != null;
             inventoryHudRoot.SetActive(hasObject);
             if (!hasObject) return;
-            inventorySwatch.color = carried.InventoryColor;
-            inventoryLabel.text = $"CARRYING: {carried.DisplayName}";
+            inventoryLabel.text = carried.DisplayName;
+        }
+
+        private void OnDisable()
+        {
+            ClearInteractionCueVisuals();
+        }
+
+        private void OnDestroy()
+        {
+            if (interactionCueTextRoot != null) Destroy(interactionCueTextRoot);
+            InteractionOutlineRuntime.Hide();
         }
     }
 }
