@@ -204,9 +204,6 @@ namespace ColorPuzzle.Rendering
 
             private static void Blit(BlitPassData data, RasterGraphContext context)
             {
-                if (data.PassIndex == 1 && data.Mask.IsValid())
-                    context.cmd.SetGlobalTexture(ObjectMaskId, (Texture)data.Mask);
-
                 Blitter.BlitTexture(
                     context.cmd,
                     data.Source,

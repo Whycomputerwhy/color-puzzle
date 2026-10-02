@@ -50,6 +50,8 @@ namespace ColorPuzzle.Editor
             public const float ShellColliderRadius = 0.38f;
             public const float ColorProxyScale = 1.002f;
             public static readonly Vector3 ShellAxisEuler = new Vector3(90f, 0f, 0f);
+            public const float ShellScatterYawDegrees = 35f;
+            public const uint ShellScatterSeed = 173u;
 
             // Both models were authored with Z as their thickness/height axis. The pillar
             // wrapper cancels the legacy goal root's (2.2, 0.5, 2.2) non-uniform scale.
@@ -99,7 +101,7 @@ namespace ColorPuzzle.Editor
             AssetDatabase.SaveAssets();
             EditorSceneManager.SaveScene(SceneManager.GetActiveScene(), Config.UnderwaterScene);
             AssetDatabase.Refresh();
-            Debug.Log("Applied corrected ocean-model axes and textured shell visuals while preserving authored shell orientations.");
+            Debug.Log("Applied corrected ocean-model axes, textured shell visuals, and deterministic shell yaw scatter.");
         }
 
         private static void UpdatePickupPrefab(
@@ -231,9 +233,9 @@ namespace ColorPuzzle.Editor
                     EditorUtility.SetDirty(proxyRenderer);
                 }
 
-                // Preserve authored scene orientation. The mesh's axis correction is already
-                // baked into the normalized mesh, so a root yaw can turn flat shells end-on.
-                discoverable.transform.localRotation = Quaternion.identity;
+                float yaw = StableSignedRange(GetHierarchyPath(discoverable.transform), Config.ShellScatterSeed) *
+                            Config.ShellScatterYawDegrees;
+                discoverable.transform.localRotation = Quaternion.Euler(0f, yaw, 0f);
                 PrefabUtility.RecordPrefabInstancePropertyModifications(discoverable.transform);
                 EditorUtility.SetDirty(discoverable.transform);
             }
