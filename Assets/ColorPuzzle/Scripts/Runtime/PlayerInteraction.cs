@@ -706,7 +706,8 @@ namespace ColorPuzzle
                     out Bounds cueBounds,
                     out string cueLabel,
                     out bool supportsGlow,
-                    out Renderer cueRenderer))
+                    out Renderer cueRenderer,
+                    out Renderer cueColorRenderer))
             {
                 ResetInteractionCue();
                 return;
@@ -734,7 +735,7 @@ namespace ColorPuzzle
                     ? 1f
                     : Mathf.Clamp01(interactionCueGlowFadeElapsed / interactionCueGlowFadeInDuration);
                 float easedOpacity = fadeProgress * fadeProgress * (3f - 2f * fadeProgress);
-                ShowInteractionCueGlow(cueRenderer, easedOpacity);
+                ShowInteractionCueGlow(cueRenderer, cueColorRenderer, easedOpacity);
             }
         }
 
@@ -743,13 +744,15 @@ namespace ColorPuzzle
             out Bounds cueBounds,
             out string cueLabel,
             out bool supportsGlow,
-            out Renderer cueRenderer)
+            out Renderer cueRenderer,
+            out Renderer cueColorRenderer)
         {
             cueTarget = null;
             cueBounds = default;
             cueLabel = string.Empty;
             supportsGlow = false;
             cueRenderer = null;
+            cueColorRenderer = null;
 
             if (carried != null && TryFindPlacementGoal(out GoalPedestal goal))
             {
@@ -773,6 +776,7 @@ namespace ColorPuzzle
             cueLabel = "LC PICKUP";
             supportsGlow = true;
             cueRenderer = item.InteractionCueRenderer;
+            cueColorRenderer = item.InteractionCueColorRenderer;
             return true;
         }
 
@@ -787,12 +791,16 @@ namespace ColorPuzzle
             interactionCueTextRoot.SetActive(true);
         }
 
-        private void ShowInteractionCueGlow(Renderer sourceRenderer, float opacity)
+        private void ShowInteractionCueGlow(
+            Renderer sourceRenderer,
+            Renderer colorSourceRenderer,
+            float opacity)
         {
             if (interactionCueTextRoot != null) interactionCueTextRoot.SetActive(false);
             if (sourceRenderer == null) return;
             InteractionOutlineRuntime.Show(
                 sourceRenderer,
+                colorSourceRenderer,
                 opacity,
                 interactionCueGlowWidthPixels,
                 interactionCueGlowSoftness,

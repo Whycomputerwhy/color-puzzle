@@ -105,7 +105,10 @@ namespace ColorPuzzle.Rendering
             {
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
                 UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-                Renderer targetRenderer = InteractionOutlineRuntime.TargetRenderer;
+                bool isColorCamera = InteractionOutlineRuntime.IsColorCamera(cameraData.camera);
+                Renderer targetRenderer = isColorCamera
+                    ? InteractionOutlineRuntime.ColorTargetRenderer
+                    : InteractionOutlineRuntime.GreyscaleTargetRenderer;
                 if (resourceData.isActiveTargetBackBuffer || targetRenderer == null)
                     return;
 
@@ -133,7 +136,6 @@ namespace ColorPuzzle.Rendering
                 if (!maskTexture.IsValid() || !dilationTexture.IsValid())
                     return;
 
-                bool isColorCamera = InteractionOutlineRuntime.IsColorCamera(cameraData.camera);
                 Material dilationMaterial = isColorCamera
                     ? ColorDilationMaterial
                     : GreyscaleDilationMaterial;
@@ -160,6 +162,11 @@ namespace ColorPuzzle.Rendering
                     // The stencil records the real object silhouette. The mask shader uses
                     // ZTest Always so nearby scenery cannot chop the interaction cue apart.
                     builder.SetRenderAttachmentDepth(screenDepthStencil, AccessFlags.ReadWrite);
+                    // Bind the actual silhouette texture for the composite pass. This explicit
+                    // RenderGraph dependency is build-safe; stencil contents are not guaranteed
+                    // to survive the same way across every player graphics backend.
+                    builder.AllowGlobalStateModification(true);
+                    builder.SetGlobalTextureAfterPass(maskTexture, ObjectMaskId);
                     builder.SetRenderFunc((DrawMaskPassData data, RasterGraphContext context) =>
                         DrawObjectMask(data, context));
                 }

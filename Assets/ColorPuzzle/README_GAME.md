@@ -4,6 +4,8 @@
 
 Color Puzzle is a casual first-person 3D exploration platformer about restoring color. The underwater prototype now supports two session-persistent puzzle variations in the hidden Enter panel. **Color Search** is the existing Move Lens loop: holding right click while grounded freezes the player/camera and moves a circular color viewport. **Value Search** removes the magnifier entirely and renders the full scene in greyscale; the player identifies the correct object by comparing the intrinsic lightness of a deliberately reduced six-color palette. Pickup stores the object in a neutral bottom inventory HUD, and only a correct placement completes the goal. Full Color remains a Color Search-only developer comparison.
 
+The active underwater shell and pillar visuals use normalized Unity mesh assets generated from the supplied OBJ source exports. Their Y-forward/Z-up export space is converted to Unity's Y-up convention during normalization, while the resulting mesh bounds match the previous visuals so authored scene placement does not move.
+
 ### Prototype controls
 
 - **WASD** — move

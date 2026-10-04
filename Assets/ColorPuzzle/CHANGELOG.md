@@ -2,6 +2,19 @@
 
 This log is intended for people and AI agents continuing the same Unity project. Append new entries; do not rewrite past decisions without explaining the migration.
 
+## 0.2.43 — 2026-10-04 — OBJ ocean-model source migration
+
+### Changed
+
+- Replaced the shell and pillar visual meshes with assets generated from the supplied `shell.obj` and `pillar.obj` exports.
+- Applied the OBJ export-space correction once during mesh normalization: the exported Z-up model axis becomes Unity Y-up, with forward compensated consistently.
+- Matched each normalized OBJ mesh to the bounds of its outgoing visual mesh before swapping it, preserving every existing shell instance transform, scattered placement, pillar placement, and the goal's placement socket.
+
+### Safety
+
+- The active underwater scene was not regenerated or repositioned. The goal keeps its existing collider, target marker, socket, and gameplay identity; only the visible pillar renderer was exchanged.
+- The original GLB/FBX assets remain in the project as source history. The new OBJ/MTL source files live under `Assets/ColorPuzzle/Models/Ocean/OBJ/` and normalized Unity meshes live under `Generated/Ocean/`.
+
 ## 0.2.42 — 2026-10-01 — Value Search puzzle variation
 
 ### Added

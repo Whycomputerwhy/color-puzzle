@@ -8,7 +8,8 @@ namespace ColorPuzzle.Rendering
     /// </summary>
     public static class InteractionOutlineRuntime
     {
-        public static Renderer TargetRenderer { get; private set; }
+        public static Renderer GreyscaleTargetRenderer { get; private set; }
+        public static Renderer ColorTargetRenderer { get; private set; }
         public static Camera ColorCamera { get; private set; }
         public static Color GreyscaleColor { get; private set; } = new Color(0f, 0f, 0f, 0.9f);
         public static Color ColorViewColor { get; private set; } = new Color(1f, 1f, 1f, 0.9f);
@@ -17,12 +18,13 @@ namespace ColorPuzzle.Rendering
         public static float Softness { get; private set; } = 0.8f;
         public static float ColorViewScale { get; private set; } = 0.5f;
 
-        public static bool HasVisibleTarget => TargetRenderer != null && Opacity > 0.001f;
+        public static bool HasVisibleTarget => GreyscaleTargetRenderer != null && Opacity > 0.001f;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetForPlaySession()
         {
-            TargetRenderer = null;
+            GreyscaleTargetRenderer = null;
+            ColorTargetRenderer = null;
             ColorCamera = null;
             Opacity = 0f;
             WidthPixels = 18;
@@ -36,7 +38,8 @@ namespace ColorPuzzle.Rendering
         }
 
         public static void Show(
-            Renderer targetRenderer,
+            Renderer greyscaleTargetRenderer,
+            Renderer colorTargetRenderer,
             float opacity,
             float widthPixels,
             float softness,
@@ -44,7 +47,8 @@ namespace ColorPuzzle.Rendering
             Color colorViewColor,
             float colorViewScale)
         {
-            TargetRenderer = targetRenderer;
+            GreyscaleTargetRenderer = greyscaleTargetRenderer;
+            ColorTargetRenderer = colorTargetRenderer != null ? colorTargetRenderer : greyscaleTargetRenderer;
             Opacity = Mathf.Clamp01(opacity);
             WidthPixels = Mathf.Clamp(Mathf.RoundToInt(widthPixels), 1, 60);
             Softness = Mathf.Clamp01(softness);
@@ -55,7 +59,8 @@ namespace ColorPuzzle.Rendering
 
         public static void Hide()
         {
-            TargetRenderer = null;
+            GreyscaleTargetRenderer = null;
+            ColorTargetRenderer = null;
             Opacity = 0f;
         }
 

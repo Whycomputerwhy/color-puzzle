@@ -803,25 +803,10 @@ namespace ColorPuzzle
         {
             if (sourceCamera == null || colorCamera == null) return;
 
-            // The color pass must contain the complete ordinary world. Color-proxy layers are
-            // then drawn later to replace the gray surface where a colored counterpart exists.
-            colorCamera.cullingMask = sourceCamera.cullingMask | originalColorCameraCullingMask;
-            Renderer[] renderers = FindObjectsByType<Renderer>(FindObjectsInactive.Include);
-            for (int rendererIndex = 0; rendererIndex < renderers.Length; rendererIndex++)
-            {
-                Renderer candidate = renderers[rendererIndex];
-                int layerBit = 1 << candidate.gameObject.layer;
-                if ((originalColorCameraCullingMask & layerBit) == 0) continue;
-
-                Material[] runtimeMaterials = candidate.materials;
-                for (int materialIndex = 0; materialIndex < runtimeMaterials.Length; materialIndex++)
-                {
-                    Material material = runtimeMaterials[materialIndex];
-                    if (material == null || material.shader == null) continue;
-                    material.renderQueue = Mathf.Max(material.renderQueue, material.shader.renderQueue) + 1;
-                }
-                candidate.materials = runtimeMaterials;
-            }
+            // The authored ColorReveal layer is a complete coloured proxy world. Rendering it
+            // alone prevents any grey source meshes from bleeding into the lens, while the
+            // proxies retain normal URP/Lit depth testing and therefore occlude one another.
+            colorCamera.cullingMask = originalColorCameraCullingMask;
         }
     }
 }

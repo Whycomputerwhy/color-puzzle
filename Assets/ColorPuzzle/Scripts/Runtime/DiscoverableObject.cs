@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ColorPuzzle
@@ -6,9 +7,15 @@ namespace ColorPuzzle
     [RequireComponent(typeof(Collider), typeof(Rigidbody))]
     public sealed class DiscoverableObject : MonoBehaviour
     {
+        private const string GreyscaleShellLayerName = "GreyscaleShell";
+        private static readonly HashSet<DiscoverableObject> ActiveObjects = new();
+
         [Header("Identity")]
         [SerializeField] private string objectId = "red-ball";
-        [SerializeField] private string displayName = "Ball";
+        [SerializeField] private string displayName = "Shell";
+
+        [Header("Authored Start")]
+        [SerializeField] private bool lockAuthoredStartUntilPickup = true;
 
         [Header("Discovery Appearance")]
         [SerializeField] private Renderer grayscaleRenderer;
@@ -21,6 +28,7 @@ namespace ColorPuzzle
         private Rigidbody body;
         private Collider hitCollider;
         private Material grayscaleMaterial;
+        private Renderer colorProxyRenderer;
         private bool discovered;
         private Vector3 carriedBoundsCenterOffset;
         private Vector3 carriedBoundsExtents;
@@ -33,6 +41,14 @@ namespace ColorPuzzle
         public bool IsDiscovered => discovered;
         public Collider PhysicsCollider => hitCollider;
         public Renderer InteractionCueRenderer => grayscaleRenderer;
+        public Renderer GreyscaleRenderer => grayscaleRenderer;
+        public bool HasActiveColorProxy =>
+            colorProxy != null && colorProxy.activeInHierarchy && colorProxyRenderer != null && colorProxyRenderer.enabled;
+        public static IEnumerable<DiscoverableObject> ActiveDiscoverableObjects => ActiveObjects;
+        public Renderer InteractionCueColorRenderer =>
+            HasActiveColorProxy
+                ? colorProxyRenderer
+                : grayscaleRenderer;
         public Bounds InteractionCueBounds => grayscaleRenderer != null ? grayscaleRenderer.bounds : hitCollider.bounds;
         public Vector3 DropBoundsExtents => carriedBoundsExtents;
         public float HorizontalDropRadius => Mathf.Max(carriedBoundsExtents.x, carriedBoundsExtents.z);
@@ -42,6 +58,19 @@ namespace ColorPuzzle
             body = GetComponent<Rigidbody>();
             hitCollider = GetComponent<Collider>();
             if (grayscaleRenderer != null) grayscaleMaterial = grayscaleRenderer.sharedMaterial;
+            int greyscaleShellLayer = LayerMask.NameToLayer(GreyscaleShellLayerName);
+            if (grayscaleRenderer != null && greyscaleShellLayer >= 0)
+                grayscaleRenderer.gameObject.layer = greyscaleShellLayer;
+            if (colorProxy != null)
+                colorProxyRenderer = colorProxy.GetComponentInChildren<Renderer>(true);
+            if (lockAuthoredStartUntilPickup)
+            {
+                StopDynamicMotion();
+                body.isKinematic = true;
+                body.useGravity = false;
+                body.detectCollisions = true;
+                body.interpolation = RigidbodyInterpolation.None;
+            }
         }
 
         public void Discover()
@@ -253,7 +282,13 @@ namespace ColorPuzzle
 
         private void OnDisable()
         {
+            ActiveObjects.Remove(this);
             RestorePlayerCollisionImmediately();
+        }
+
+        private void OnEnable()
+        {
+            ActiveObjects.Add(this);
         }
 
         private void StopDynamicMotion()
