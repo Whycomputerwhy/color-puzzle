@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace ColorPuzzle
@@ -7,9 +6,6 @@ namespace ColorPuzzle
     [RequireComponent(typeof(Collider), typeof(Rigidbody))]
     public sealed class DiscoverableObject : MonoBehaviour
     {
-        private const string GreyscaleShellLayerName = "GreyscaleShell";
-        private static readonly HashSet<DiscoverableObject> ActiveObjects = new();
-
         [Header("Identity")]
         [SerializeField] private string objectId = "red-ball";
         [SerializeField] private string displayName = "Shell";
@@ -41,12 +37,8 @@ namespace ColorPuzzle
         public bool IsDiscovered => discovered;
         public Collider PhysicsCollider => hitCollider;
         public Renderer InteractionCueRenderer => grayscaleRenderer;
-        public Renderer GreyscaleRenderer => grayscaleRenderer;
-        public bool HasActiveColorProxy =>
-            colorProxy != null && colorProxy.activeInHierarchy && colorProxyRenderer != null && colorProxyRenderer.enabled;
-        public static IEnumerable<DiscoverableObject> ActiveDiscoverableObjects => ActiveObjects;
         public Renderer InteractionCueColorRenderer =>
-            HasActiveColorProxy
+            colorProxy != null && colorProxy.activeInHierarchy && colorProxyRenderer != null && colorProxyRenderer.enabled
                 ? colorProxyRenderer
                 : grayscaleRenderer;
         public Bounds InteractionCueBounds => grayscaleRenderer != null ? grayscaleRenderer.bounds : hitCollider.bounds;
@@ -58,9 +50,6 @@ namespace ColorPuzzle
             body = GetComponent<Rigidbody>();
             hitCollider = GetComponent<Collider>();
             if (grayscaleRenderer != null) grayscaleMaterial = grayscaleRenderer.sharedMaterial;
-            int greyscaleShellLayer = LayerMask.NameToLayer(GreyscaleShellLayerName);
-            if (grayscaleRenderer != null && greyscaleShellLayer >= 0)
-                grayscaleRenderer.gameObject.layer = greyscaleShellLayer;
             if (colorProxy != null)
                 colorProxyRenderer = colorProxy.GetComponentInChildren<Renderer>(true);
             if (lockAuthoredStartUntilPickup)
@@ -213,8 +202,15 @@ namespace ColorPuzzle
             body.interpolation = RigidbodyInterpolation.None;
             hitCollider.enabled = false;
             if (grayscaleRenderer != null) grayscaleRenderer.enabled = true;
+            // The completed world uses the ColorReveal camera, so the placed shell must retain
+            // a colour-layer renderer rather than disappearing with the greyscale source mesh.
+            // Use the completed source renderer directly: it has the final material and avoids
+            // any duplicate-proxy depth conflict with the pedestal surface.
             if (colorProxy != null) colorProxy.SetActive(false);
             Discover();
+            int colorRevealLayer = LayerMask.NameToLayer("ColorReveal");
+            if (grayscaleRenderer != null && colorRevealLayer >= 0)
+                grayscaleRenderer.gameObject.layer = colorRevealLayer;
         }
 
         public void PlaceTemporarily(Transform socket)
@@ -232,7 +228,9 @@ namespace ColorPuzzle
             hitCollider.enabled = true;
             ApplyWorldAppearance(true);
             if (grayscaleRenderer != null) grayscaleRenderer.enabled = true;
-            if (colorProxy != null) colorProxy.SetActive(false);
+            // A wrong shell remains testable on the pillar. Keep its regular completed-looking
+            // mesh for the main view and its ColourReveal proxy for the magnifier/full-colour view.
+            if (colorProxy != null) colorProxy.SetActive(true);
         }
 
         private void ApplyWorldAppearance(bool showColor)
@@ -282,13 +280,7 @@ namespace ColorPuzzle
 
         private void OnDisable()
         {
-            ActiveObjects.Remove(this);
             RestorePlayerCollisionImmediately();
-        }
-
-        private void OnEnable()
-        {
-            ActiveObjects.Add(this);
         }
 
         private void StopDynamicMotion()

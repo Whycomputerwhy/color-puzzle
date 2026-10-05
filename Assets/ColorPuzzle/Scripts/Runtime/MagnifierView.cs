@@ -123,6 +123,7 @@ namespace ColorPuzzle
         private int textureWidth;
         private int textureHeight;
         private bool active;
+        private bool worldRestored;
         private PuzzleMode currentPuzzleMode;
         private DevViewMode currentDevViewMode;
         private float originalColorCameraDepth;
@@ -145,8 +146,8 @@ namespace ColorPuzzle
         private readonly List<Material> valueRuntimeMaterials = new();
 
         public bool IsActive => active;
-        public bool IsFullColorView => currentDevViewMode == DevViewMode.FullColor;
-        public bool IsValueSearchMode => currentPuzzleMode == PuzzleMode.ValueSearch;
+        public bool IsFullColorView => worldRestored || currentDevViewMode == DevViewMode.FullColor;
+        public bool IsValueSearchMode => !worldRestored && currentPuzzleMode == PuzzleMode.ValueSearch;
         public bool IsDeveloperPanelOpen => developerPanelOpen;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -207,6 +208,7 @@ namespace ColorPuzzle
                 SetDeveloperPanelOpen(!developerPanelOpen);
 
             bool held = !developerPanelOpen &&
+                        !worldRestored &&
                         currentPuzzleMode == PuzzleMode.ColorSearch &&
                         currentDevViewMode == DevViewMode.PuzzleView &&
                         IsRevealButtonHeld() &&
@@ -217,8 +219,8 @@ namespace ColorPuzzle
 
         private void LateUpdate()
         {
-            bool fullColor = currentDevViewMode == DevViewMode.FullColor;
-            bool valueSearch = currentPuzzleMode == PuzzleMode.ValueSearch;
+            bool fullColor = worldRestored || currentDevViewMode == DevViewMode.FullColor;
+            bool valueSearch = !worldRestored && currentPuzzleMode == PuzzleMode.ValueSearch;
             if ((!active && !fullColor && !valueSearch) || sourceCamera == null) return;
 
             if (!fullColor || valueSearch) EnsureRenderTexture();
@@ -236,6 +238,7 @@ namespace ColorPuzzle
         private void SetActive(bool value)
         {
             active = value &&
+                     !worldRestored &&
                      currentPuzzleMode == PuzzleMode.ColorSearch &&
                      currentDevViewMode == DevViewMode.PuzzleView;
             if (value && resetLensToCenterOnOpen)
@@ -336,6 +339,7 @@ namespace ColorPuzzle
 
         private void SetDevViewMode(DevViewMode mode)
         {
+            if (worldRestored) return;
             if (currentPuzzleMode == PuzzleMode.ValueSearch && mode == DevViewMode.FullColor)
                 return;
             currentDevViewMode = mode;
@@ -352,8 +356,8 @@ namespace ColorPuzzle
 
         private void ApplyDevViewMode()
         {
-            bool valueSearch = currentPuzzleMode == PuzzleMode.ValueSearch;
-            bool fullColor = !valueSearch && currentDevViewMode == DevViewMode.FullColor;
+            bool valueSearch = !worldRestored && currentPuzzleMode == PuzzleMode.ValueSearch;
+            bool fullColor = worldRestored || (!valueSearch && currentDevViewMode == DevViewMode.FullColor);
             if (viewportRoot != null) viewportRoot.SetActive(active && !fullColor);
             if (valueSearchOverlayRoot != null) valueSearchOverlayRoot.SetActive(valueSearch);
             if (colorCamera == null) return;
@@ -381,7 +385,7 @@ namespace ColorPuzzle
 
         private void ApplyPlayerControlMode()
         {
-            bool valueSearch = currentPuzzleMode == PuzzleMode.ValueSearch;
+            bool valueSearch = !worldRestored && currentPuzzleMode == PuzzleMode.ValueSearch;
             if (player != null)
             {
                 bool magnifierActive = !valueSearch &&
@@ -391,6 +395,23 @@ namespace ColorPuzzle
             }
             if (playerInteraction != null)
                 playerInteraction.SetValueSearchMode(valueSearch);
+        }
+
+        /// <summary>
+        /// Completes the colour-search state for the current run. This is intentionally
+        /// transient: reloading the scene with R starts the authored puzzle state again.
+        /// </summary>
+        public void RestoreWorldColor()
+        {
+            if (worldRestored) return;
+
+            worldRestored = true;
+            active = false;
+            RestoreValueSearchPalette();
+            ApplyDevViewMode();
+            ApplyPlayerControlMode();
+            RefreshStoryObjective();
+            RefreshModeSelector();
         }
 
         private void SetPuzzleMode(PuzzleMode mode)
@@ -406,7 +427,7 @@ namespace ColorPuzzle
 
         private void ApplyPuzzleMode()
         {
-            bool valueSearch = currentPuzzleMode == PuzzleMode.ValueSearch;
+            bool valueSearch = !worldRestored && currentPuzzleMode == PuzzleMode.ValueSearch;
             ApplyValueSearchPalette(valueSearch);
             RefreshStoryObjective();
             ApplyDevViewMode();

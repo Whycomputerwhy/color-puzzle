@@ -10,11 +10,16 @@ namespace ColorPuzzle
         [Header("Matching")]
         [SerializeField] private string acceptedObjectId = "red-ball";
         [SerializeField] private Transform placementSocket;
+        [SerializeField, Min(0f)] private float placedObjectSurfaceClearance = 0.015f;
 
         [Header("Completion Appearance")]
         [SerializeField] private Renderer pedestalRenderer;
         [SerializeField] private Material completedMaterial;
         [SerializeField] private GameObject colorProxy;
+
+        [Header("Interaction Hitbox")]
+        [SerializeField] private bool useVisualBoundsHitbox = true;
+        [SerializeField, Min(0f)] private float hitboxPadding = 0.08f;
 
         [Header("Completion Door")]
         [SerializeField] private bool createCompletionDoor = true;
@@ -30,6 +35,9 @@ namespace ColorPuzzle
         private GameObject completionDoor;
         private Material completionDoorBaseMaterial;
         private Material completionDoorRevealMaterial;
+        private MagnifierView magnifierView;
+        private BoxCollider runtimeInteractionHitbox;
+        private GameObject placementTargetColorProxy;
         public bool IsComplete => complete;
         public Bounds PlacementBounds => pedestalRenderer != null ? pedestalRenderer.bounds : GetComponent<Collider>().bounds;
         public Vector3 PlacementAimPosition
@@ -48,6 +56,10 @@ namespace ColorPuzzle
 
         private void Awake()
         {
+            magnifierView = FindAnyObjectByType<MagnifierView>(FindObjectsInactive.Include);
+            EnsureColorProxy();
+            EnsurePlacementTargetColorProxy();
+            ConfigureInteractionHitbox();
             if (createCompletionDoor) CreateCompletionDoor();
         }
 
@@ -71,20 +83,39 @@ namespace ColorPuzzle
         {
             if (!CanPlace(item)) return false;
             Transform socket = placementSocket != null ? placementSocket : transform;
+            Vector3 placedPosition = GetPlacedObjectPosition(item, socket);
             if (!CanAccept(item))
             {
                 item.PlaceTemporarily(socket);
+                item.transform.position = placedPosition;
                 temporarilyPlacedItem = item;
                 return true;
             }
 
             item.Place(socket);
+            item.transform.position = placedPosition;
             complete = true;
             if (pedestalRenderer != null && completedMaterial != null)
                 pedestalRenderer.sharedMaterial = completedMaterial;
-            if (colorProxy != null) colorProxy.SetActive(false);
+            if (colorProxy != null) colorProxy.SetActive(true);
             if (completionDoor != null) completionDoor.SetActive(true);
+            magnifierView?.RestoreWorldColor();
             return true;
+        }
+
+        private Vector3 GetPlacedObjectPosition(DiscoverableObject item, Transform socket)
+        {
+            // Imported model sockets can be offset from the visible cap. Every shell uses the
+            // same rendered-top support point so a decoy cannot sit at a different Y position.
+            Bounds pillarBounds = PlacementBounds;
+            Vector3 supportSurface = new Vector3(
+                socket.position.x,
+                pillarBounds.max.y,
+                socket.position.z);
+            return item.GetRestingPosition(
+                supportSurface,
+                Vector3.up,
+                placedObjectSurfaceClearance);
         }
 
         private void Update()
@@ -125,6 +156,68 @@ namespace ColorPuzzle
             completionDoorRevealMaterial = CreateDoorMaterial(shader, completionDoorRevealColor, 2001);
             revealSurface.GetComponent<Renderer>().material = completionDoorRevealMaterial;
             completionDoor.SetActive(false);
+        }
+
+        private void EnsureColorProxy()
+        {
+            if (colorProxy != null || pedestalRenderer == null) return;
+
+            GameObject visualClone = Instantiate(
+                pedestalRenderer.gameObject,
+                pedestalRenderer.transform.parent);
+            visualClone.name = "ColorProxy_Pillar";
+            visualClone.transform.SetPositionAndRotation(
+                pedestalRenderer.transform.position,
+                pedestalRenderer.transform.rotation);
+            visualClone.transform.localScale = pedestalRenderer.transform.localScale * 1.002f;
+
+            int colorRevealLayer = LayerMask.NameToLayer("ColorReveal");
+            foreach (Transform child in visualClone.GetComponentsInChildren<Transform>(true))
+                if (colorRevealLayer >= 0) child.gameObject.layer = colorRevealLayer;
+            foreach (Collider collider in visualClone.GetComponentsInChildren<Collider>(true))
+                Destroy(collider);
+
+            colorProxy = visualClone;
+        }
+
+        private void ConfigureInteractionHitbox()
+        {
+            if (!useVisualBoundsHitbox || pedestalRenderer == null) return;
+
+            Collider existingCollider = GetComponent<Collider>();
+            if (existingCollider != null) existingCollider.enabled = false;
+
+            runtimeInteractionHitbox = GetComponent<BoxCollider>();
+            if (runtimeInteractionHitbox == null)
+                runtimeInteractionHitbox = gameObject.AddComponent<BoxCollider>();
+
+            Bounds visualBounds = pedestalRenderer.bounds;
+            runtimeInteractionHitbox.center = transform.InverseTransformPoint(visualBounds.center);
+            Vector3 localSize = transform.InverseTransformVector(visualBounds.size);
+            runtimeInteractionHitbox.size = new Vector3(
+                Mathf.Abs(localSize.x) + hitboxPadding * 2f,
+                Mathf.Abs(localSize.y) + hitboxPadding * 2f,
+                Mathf.Abs(localSize.z) + hitboxPadding * 2f);
+        }
+
+        private void EnsurePlacementTargetColorProxy()
+        {
+            Transform target = transform.Find("PlacementTargetFlatImage");
+            Renderer targetRenderer = target != null ? target.GetComponent<Renderer>() : null;
+            if (targetRenderer == null || placementTargetColorProxy != null) return;
+
+            placementTargetColorProxy = Instantiate(targetRenderer.gameObject, targetRenderer.transform.parent);
+            placementTargetColorProxy.name = "ColorProxy_PlacementTarget";
+            placementTargetColorProxy.transform.SetPositionAndRotation(
+                targetRenderer.transform.position + Vector3.up * 0.002f,
+                targetRenderer.transform.rotation);
+            placementTargetColorProxy.transform.localScale = targetRenderer.transform.localScale * 1.002f;
+
+            int colorRevealLayer = LayerMask.NameToLayer("ColorReveal");
+            foreach (Transform child in placementTargetColorProxy.GetComponentsInChildren<Transform>(true))
+                if (colorRevealLayer >= 0) child.gameObject.layer = colorRevealLayer;
+            foreach (Collider collider in placementTargetColorProxy.GetComponentsInChildren<Collider>(true))
+                Destroy(collider);
         }
 
         private static Material CreateDoorMaterial(Shader shader, Color color, int renderQueue)
