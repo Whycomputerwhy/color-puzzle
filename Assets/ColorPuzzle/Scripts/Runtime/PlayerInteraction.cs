@@ -30,6 +30,11 @@ namespace ColorPuzzle
         [SerializeField] private Camera viewCamera;
         [SerializeField] private Text statusText;
 
+        [Header("Control HUD Styling")]
+        [SerializeField] private bool applyStatusTextOutline = true;
+        [SerializeField] private Color statusTextOutlineColor = new Color(1f, 1f, 1f, 0.92f);
+        [SerializeField] private Vector2 statusTextOutlineDistance = new Vector2(1.5f, -1.5f);
+
         [Header("Controls")]
         [SerializeField] private Key dropOrPlaceKey = Key.Q;
         [SerializeField] private Key resetKey = Key.R;
@@ -112,10 +117,23 @@ namespace ColorPuzzle
         {
             magnifier = GetComponent<MagnifierView>();
             playerController = GetComponent<CharacterController>();
+            ConfigureStatusTextOutline();
             CreateInventoryHud();
             CreateInteractionCueText();
             ClearInteractionCueVisuals();
             RefreshInventoryHud();
+        }
+
+        private void ConfigureStatusTextOutline()
+        {
+            if (!applyStatusTextOutline || statusText == null) return;
+
+            Outline outline = statusText.GetComponent<Outline>();
+            if (outline == null)
+                outline = statusText.gameObject.AddComponent<Outline>();
+            outline.effectColor = statusTextOutlineColor;
+            outline.effectDistance = statusTextOutlineDistance;
+            outline.useGraphicAlpha = true;
         }
 
         private void Update()

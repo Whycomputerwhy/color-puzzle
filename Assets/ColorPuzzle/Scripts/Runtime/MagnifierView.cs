@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -16,6 +17,10 @@ namespace ColorPuzzle
         private const string ValueSearchButtonLabel = "Value Search";
         private const string BackGlowButtonLabel = "Back Glow";
         private const string CenterTextButtonLabel = "Center Text";
+        private const string ChilankaFontLabel = "Chilanka";
+        private const string ComingSoonFontLabel = "Coming Soon";
+        private const string MargarineFontLabel = "Margarine";
+        private const string NerkoOneFontLabel = "Nerko One";
         private const int MinimumRenderTextureDimension = 128;
         private const float DefaultRenderAspect = 16f / 9f;
         private const float MinimumUsableRenderAspect = 0.25f;
@@ -39,11 +44,21 @@ namespace ColorPuzzle
             Middle
         }
 
+        public enum DisplayFont
+        {
+            Default,
+            Chilanka,
+            ComingSoon,
+            Margarine,
+            NerkoOne
+        }
+
         private static bool hasPersistedDeveloperSettings;
         private static DevViewMode persistedDevViewMode = DevViewMode.PuzzleView;
         private static PuzzleMode persistedPuzzleMode = PuzzleMode.ColorSearch;
         private static PlayerInteraction.InteractionCueMode persistedInteractionCueMode =
             PlayerInteraction.InteractionCueMode.BackGlow;
+        private static DisplayFont persistedDisplayFont = DisplayFont.Chilanka;
 
         // CENTRALIZED VISUAL / INTERACTION PARAMETERS (all art-directable values are Inspector-visible)
         [Header("Interaction")]
@@ -75,6 +90,20 @@ namespace ColorPuzzle
         [SerializeField] private Color regularViewSkyColor = Color.white;
         [SerializeField] private Color revealViewSkyColor = new Color(0.08f, 0.34f, 0.9f);
 
+        [Header("Background Music")]
+        [SerializeField] private AudioClip backgroundMusicClip;
+        [SerializeField, Range(0f, 1f)] private float backgroundMusicVolume = 0.12f;
+        [SerializeField, Min(0.5f)] private float backgroundMusicLoopDuration = 37f;
+        [SerializeField, Range(0.05f, 5f)] private float backgroundMusicLoopCrossfadeDuration = 1f;
+        [SerializeField, Min(0.05f)] private float backgroundMusicFadeOutDuration = 1.5f;
+
+        [Header("World Color Reveal")]
+        [SerializeField, Min(0.1f)] private float worldRevealDuration = 2.4f;
+        [SerializeField, Min(0f)] private float worldRevealStartRadius = 0.18f;
+        [SerializeField, Min(0.1f)] private float worldRevealEndRadius = 42f;
+        [SerializeField, Min(0.001f)] private float worldRevealEdgeFeather = 0.8f;
+        [SerializeField] private AnimationCurve worldRevealEasing = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
         [Header("Lens Motion")]
         [SerializeField, Min(0f)] private float lensMoveSensitivity = 1f;
         [SerializeField, Min(0f)] private float lensMoveEasing = 18f;
@@ -97,6 +126,9 @@ namespace ColorPuzzle
         [SerializeField] private Color modeButtonTextColor = Color.white;
         [SerializeField] private Color selectorGroupLabelColor = Color.white;
         [SerializeField] private Color selectorGroupBackgroundColor = new Color(0f, 0f, 0f, 0.55f);
+
+        [Header("Typography")]
+        [SerializeField] private DisplayFont defaultDisplayFont = DisplayFont.Chilanka;
 
         [Header("Story Objective HUD")]
         [SerializeField] private bool showStoryObjective = true;
@@ -126,6 +158,7 @@ namespace ColorPuzzle
         private bool worldRestored;
         private PuzzleMode currentPuzzleMode;
         private DevViewMode currentDevViewMode;
+        private DisplayFont currentDisplayFont;
         private float originalColorCameraDepth;
         private int originalColorCameraCullingMask;
         private Button puzzleViewButton;
@@ -142,6 +175,15 @@ namespace ColorPuzzle
         private GameObject valueSearchOverlayRoot;
         private RawImage valueSearchOverlay;
         private Material valueSearchGreyscaleMaterial;
+        private GameObject worldRevealRoot;
+        private RawImage worldRevealImage;
+        private Material worldRevealMaterial;
+        private bool worldRevealAnimating;
+        private AudioSource backgroundMusicSource;
+        private AudioSource backgroundMusicAlternateSource;
+        private Coroutine backgroundMusicFadeCoroutine;
+        private Coroutine backgroundMusicLoopCoroutine;
+        private readonly Dictionary<DisplayFont, Button> displayFontButtons = new();
         private readonly Dictionary<Renderer, Material[]> valueOriginalMaterials = new();
         private readonly List<Material> valueRuntimeMaterials = new();
 
@@ -157,6 +199,7 @@ namespace ColorPuzzle
             persistedDevViewMode = DevViewMode.PuzzleView;
             persistedPuzzleMode = PuzzleMode.ColorSearch;
             persistedInteractionCueMode = PlayerInteraction.InteractionCueMode.BackGlow;
+            persistedDisplayFont = DisplayFont.Chilanka;
         }
 
         private void Awake()
@@ -176,6 +219,9 @@ namespace ColorPuzzle
             currentPuzzleMode = hasPersistedDeveloperSettings
                 ? persistedPuzzleMode
                 : defaultPuzzleMode;
+            currentDisplayFont = hasPersistedDeveloperSettings && persistedDisplayFont != DisplayFont.Default
+                ? persistedDisplayFont
+                : DisplayFont.Chilanka;
             if (hasPersistedDeveloperSettings && playerInteraction != null)
                 playerInteraction.SetInteractionCueMode(persistedInteractionCueMode);
             if (colorCamera != null)
@@ -183,13 +229,18 @@ namespace ColorPuzzle
                 originalColorCameraDepth = colorCamera.depth;
                 originalColorCameraCullingMask = colorCamera.cullingMask;
             }
+            if (sourceCamera != null)
+                sourceCamera.depthTextureMode |= DepthTextureMode.Depth;
             InteractionOutlineRuntime.SetColorCamera(colorCamera);
             ApplySolidSkyColors();
+            ConfigureBackgroundMusic();
             PrepareCompleteColorView();
             EnsureRenderTexture();
             CreateValueSearchOverlay();
+            CreateWorldRevealOverlay();
             CreateStoryObjectiveCard();
             CreateDeveloperPanel();
+            ApplyDisplayFont(currentDisplayFont);
             ApplyPuzzleMode();
             SetActive(false);
         }
@@ -199,6 +250,7 @@ namespace ColorPuzzle
             if (revealTexture != null) revealTexture.Release();
             RestoreValueSearchPalette();
             if (valueSearchGreyscaleMaterial != null) Destroy(valueSearchGreyscaleMaterial);
+            if (worldRevealMaterial != null) Destroy(worldRevealMaterial);
         }
 
         private void Update()
@@ -221,16 +273,16 @@ namespace ColorPuzzle
         {
             bool fullColor = worldRestored || currentDevViewMode == DevViewMode.FullColor;
             bool valueSearch = !worldRestored && currentPuzzleMode == PuzzleMode.ValueSearch;
-            if ((!active && !fullColor && !valueSearch) || sourceCamera == null) return;
+            if ((!active && !fullColor && !valueSearch && !worldRevealAnimating) || sourceCamera == null) return;
 
-            if (!fullColor || valueSearch) EnsureRenderTexture();
+            if (!fullColor || valueSearch || worldRevealAnimating) EnsureRenderTexture();
             if (colorCamera != null)
             {
                 colorCamera.transform.SetPositionAndRotation(sourceCamera.transform.position, sourceCamera.transform.rotation);
                 colorCamera.fieldOfView = sourceCamera.fieldOfView;
             }
 
-            if (fullColor || valueSearch) return;
+            if (fullColor || valueSearch || worldRevealAnimating) return;
             UpdateLensPosition();
             UpdateViewportLayout();
         }
@@ -321,6 +373,7 @@ namespace ColorPuzzle
             if (colorCamera != null) colorCamera.targetTexture = revealTexture;
             if (revealImage != null) revealImage.texture = revealTexture;
             if (valueSearchOverlay != null) valueSearchOverlay.texture = revealTexture;
+            if (worldRevealImage != null) worldRevealImage.texture = revealTexture;
         }
 
         private void ApplySolidSkyColors()
@@ -335,6 +388,146 @@ namespace ColorPuzzle
                 colorCamera.clearFlags = CameraClearFlags.SolidColor;
                 colorCamera.backgroundColor = revealViewSkyColor;
             }
+        }
+
+        private void ConfigureBackgroundMusic()
+        {
+            if (backgroundMusicClip == null)
+                backgroundMusicClip = Resources.Load<AudioClip>("Audio/UnderwaterBackgroundMusic");
+            if (backgroundMusicClip == null) return;
+
+            GameObject musicObject = new GameObject("BackgroundMusic", typeof(AudioSource));
+            musicObject.transform.SetParent(transform, false);
+            backgroundMusicSource = musicObject.GetComponent<AudioSource>();
+            backgroundMusicSource.clip = backgroundMusicClip;
+            backgroundMusicSource.volume = backgroundMusicVolume;
+            backgroundMusicSource.loop = false;
+            backgroundMusicSource.playOnAwake = false;
+            backgroundMusicSource.spatialBlend = 0f;
+
+            GameObject alternateMusicObject = new GameObject("BackgroundMusicLoopBridge", typeof(AudioSource));
+            alternateMusicObject.transform.SetParent(transform, false);
+            backgroundMusicAlternateSource = alternateMusicObject.GetComponent<AudioSource>();
+            backgroundMusicAlternateSource.clip = backgroundMusicClip;
+            backgroundMusicAlternateSource.volume = 0f;
+            backgroundMusicAlternateSource.loop = false;
+            backgroundMusicAlternateSource.playOnAwake = false;
+            backgroundMusicAlternateSource.spatialBlend = 0f;
+
+            backgroundMusicLoopCoroutine = StartCoroutine(LoopBackgroundMusicSegment());
+        }
+
+        private IEnumerator LoopBackgroundMusicSegment()
+        {
+            if (backgroundMusicSource == null || backgroundMusicAlternateSource == null || backgroundMusicClip == null)
+                yield break;
+
+            float segmentDuration = Mathf.Min(backgroundMusicLoopDuration, backgroundMusicClip.length);
+            float crossfadeDuration = Mathf.Min(backgroundMusicLoopCrossfadeDuration, segmentDuration * 0.5f);
+            AudioSource currentSource = backgroundMusicSource;
+            AudioSource nextSource = backgroundMusicAlternateSource;
+            currentSource.time = 0f;
+            currentSource.volume = backgroundMusicVolume;
+            currentSource.Play();
+
+            while (true)
+            {
+                yield return new WaitForSecondsRealtime(segmentDuration - crossfadeDuration);
+
+                nextSource.time = 0f;
+                nextSource.volume = 0f;
+                nextSource.Play();
+                float elapsed = 0f;
+                while (elapsed < crossfadeDuration)
+                {
+                    elapsed += Time.unscaledDeltaTime;
+                    float blend = Mathf.Clamp01(elapsed / crossfadeDuration);
+                    currentSource.volume = backgroundMusicVolume * (1f - blend);
+                    nextSource.volume = backgroundMusicVolume * blend;
+                    yield return null;
+                }
+
+                currentSource.Stop();
+                currentSource.volume = 0f;
+                AudioSource previousSource = currentSource;
+                currentSource = nextSource;
+                nextSource = previousSource;
+            }
+        }
+
+        public void FadeOutBackgroundMusic()
+        {
+            if (backgroundMusicSource == null && backgroundMusicAlternateSource == null) return;
+
+            if (backgroundMusicFadeCoroutine != null)
+                StopCoroutine(backgroundMusicFadeCoroutine);
+            if (backgroundMusicLoopCoroutine != null)
+                StopCoroutine(backgroundMusicLoopCoroutine);
+            backgroundMusicFadeCoroutine = StartCoroutine(FadeOutBackgroundMusicRoutine());
+        }
+
+        private IEnumerator FadeOutBackgroundMusicRoutine()
+        {
+            float primaryStartingVolume = backgroundMusicSource != null ? backgroundMusicSource.volume : 0f;
+            float alternateStartingVolume = backgroundMusicAlternateSource != null ? backgroundMusicAlternateSource.volume : 0f;
+            float elapsed = 0f;
+            while (elapsed < backgroundMusicFadeOutDuration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float fade = 1f - Mathf.Clamp01(elapsed / backgroundMusicFadeOutDuration);
+                if (backgroundMusicSource != null)
+                    backgroundMusicSource.volume = primaryStartingVolume * fade;
+                if (backgroundMusicAlternateSource != null)
+                    backgroundMusicAlternateSource.volume = alternateStartingVolume * fade;
+                yield return null;
+            }
+
+            if (backgroundMusicSource != null)
+            {
+                backgroundMusicSource.volume = 0f;
+                backgroundMusicSource.Stop();
+            }
+            if (backgroundMusicAlternateSource != null)
+            {
+                backgroundMusicAlternateSource.volume = 0f;
+                backgroundMusicAlternateSource.Stop();
+            }
+            backgroundMusicFadeCoroutine = null;
+        }
+
+        private void CreateWorldRevealOverlay()
+        {
+            if (canvasRect == null || worldRevealRoot != null) return;
+
+            Shader revealShader = Shader.Find("ColorPuzzle/UI/WorldSphereReveal");
+            if (revealShader == null)
+            {
+                Debug.LogWarning("World color reveal shader could not be found.");
+                return;
+            }
+
+            worldRevealMaterial = new Material(revealShader)
+            {
+                name = "WorldSphereReveal_Runtime"
+            };
+            worldRevealRoot = new GameObject(
+                "WorldColorReveal",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(RawImage));
+            RectTransform rect = worldRevealRoot.GetComponent<RectTransform>();
+            rect.SetParent(canvasRect, false);
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            rect.SetAsFirstSibling();
+
+            worldRevealImage = worldRevealRoot.GetComponent<RawImage>();
+            worldRevealImage.texture = revealTexture;
+            worldRevealImage.material = worldRevealMaterial;
+            worldRevealImage.raycastTarget = false;
+            worldRevealRoot.SetActive(false);
         }
 
         private void SetDevViewMode(DevViewMode mode)
@@ -360,9 +553,17 @@ namespace ColorPuzzle
             bool fullColor = worldRestored || (!valueSearch && currentDevViewMode == DevViewMode.FullColor);
             if (viewportRoot != null) viewportRoot.SetActive(active && !fullColor);
             if (valueSearchOverlayRoot != null) valueSearchOverlayRoot.SetActive(valueSearch);
+            if (worldRevealRoot != null) worldRevealRoot.SetActive(worldRevealAnimating);
             if (colorCamera == null) return;
 
-            if (valueSearch)
+            if (worldRevealAnimating)
+            {
+                EnsureRenderTexture();
+                colorCamera.targetTexture = revealTexture;
+                colorCamera.depth = originalColorCameraDepth;
+                colorCamera.enabled = true;
+            }
+            else if (valueSearch)
             {
                 EnsureRenderTexture();
                 colorCamera.targetTexture = revealTexture;
@@ -403,15 +604,62 @@ namespace ColorPuzzle
         /// </summary>
         public void RestoreWorldColor()
         {
-            if (worldRestored) return;
+            Vector3 fallbackOrigin = sourceCamera != null ? sourceCamera.transform.position : transform.position;
+            RestoreWorldColor(fallbackOrigin);
+        }
 
-            worldRestored = true;
+        public void RestoreWorldColor(Vector3 revealOrigin)
+        {
+            if (worldRestored || worldRevealAnimating) return;
+
             active = false;
             RestoreValueSearchPalette();
             ApplyDevViewMode();
             ApplyPlayerControlMode();
             RefreshStoryObjective();
             RefreshModeSelector();
+            StartCoroutine(AnimateWorldColorReveal(revealOrigin));
+        }
+
+        private IEnumerator AnimateWorldColorReveal(Vector3 revealOrigin)
+        {
+            worldRevealAnimating = true;
+            ApplyDevViewMode();
+
+            float elapsed = 0f;
+            while (elapsed < worldRevealDuration)
+            {
+                float normalizedTime = worldRevealDuration <= 0f
+                    ? 1f
+                    : Mathf.Clamp01(elapsed / worldRevealDuration);
+                UpdateWorldRevealMask(revealOrigin, normalizedTime);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            UpdateWorldRevealMask(revealOrigin, 1f);
+            worldRevealAnimating = false;
+            worldRestored = true;
+            ApplyDevViewMode();
+            ApplyPlayerControlMode();
+            RefreshStoryObjective();
+            RefreshModeSelector();
+        }
+
+        private void UpdateWorldRevealMask(Vector3 revealOrigin, float normalizedTime)
+        {
+            if (worldRevealMaterial == null || sourceCamera == null) return;
+
+            float easedTime = worldRevealEasing != null
+                ? Mathf.Clamp01(worldRevealEasing.Evaluate(normalizedTime))
+                : normalizedTime;
+            float radius = Mathf.Lerp(worldRevealStartRadius, worldRevealEndRadius, easedTime);
+            Matrix4x4 gpuProjection = GL.GetGPUProjectionMatrix(sourceCamera.projectionMatrix, false);
+            Matrix4x4 inverseViewProjection = (gpuProjection * sourceCamera.worldToCameraMatrix).inverse;
+            worldRevealMaterial.SetVector("_RevealOriginRadius", new Vector4(
+                revealOrigin.x, revealOrigin.y, revealOrigin.z, radius));
+            worldRevealMaterial.SetFloat("_RevealEdgeFeather", worldRevealEdgeFeather);
+            worldRevealMaterial.SetMatrix("_RevealInverseViewProjection", inverseViewProjection);
         }
 
         private void SetPuzzleMode(PuzzleMode mode)
@@ -451,9 +699,10 @@ namespace ColorPuzzle
             float groupHeight = selectorGroupPadding * 3f + selectorGroupLabelHeight + modeButtonSize.y;
             float devViewGroupOffset = groupHeight + modeButtonGap;
             float interactionGroupOffset = devViewGroupOffset + groupHeight + modeButtonGap;
-            float panelHeight = playerInteraction != null
-                ? groupHeight * 3f + modeButtonGap * 2f
-                : groupHeight * 2f + modeButtonGap;
+            float fontGroupHeight = selectorGroupPadding * 3f + selectorGroupLabelHeight +
+                                    modeButtonSize.y * 2f + modeButtonGap;
+            float fontGroupOffset = (playerInteraction != null ? interactionGroupOffset + groupHeight : devViewGroupOffset + groupHeight) + modeButtonGap;
+            float panelHeight = fontGroupOffset + fontGroupHeight;
             selector.sizeDelta = new Vector2(groupWidth, panelHeight);
             selector.SetAsLastSibling();
 
@@ -506,6 +755,18 @@ namespace ColorPuzzle
                 centerTextButton.onClick.AddListener(() =>
                     SetInteractionCueMode(PlayerInteraction.InteractionCueMode.CenterText));
             }
+
+            RectTransform fontGroup = CreateSelectorGroup(
+                selector,
+                "DISPLAY FONT",
+                fontGroupOffset,
+                groupWidth,
+                fontGroupHeight,
+                font);
+            AddDisplayFontButton(fontGroup, DisplayFont.Chilanka, ChilankaFontLabel, 0, 0, font);
+            AddDisplayFontButton(fontGroup, DisplayFont.ComingSoon, ComingSoonFontLabel, 1, 0, font);
+            AddDisplayFontButton(fontGroup, DisplayFont.Margarine, MargarineFontLabel, 0, 1, font);
+            AddDisplayFontButton(fontGroup, DisplayFont.NerkoOne, NerkoOneFontLabel, 1, 1, font);
             RefreshModeSelector();
             SetDeveloperPanelOpen(false);
         }
@@ -696,10 +957,44 @@ namespace ColorPuzzle
             RefreshModeSelector();
         }
 
+        private void SetDisplayFont(DisplayFont displayFont)
+        {
+            currentDisplayFont = displayFont;
+            ApplyDisplayFont(displayFont);
+            PersistDeveloperSettings();
+            RefreshModeSelector();
+        }
+
+        private void ApplyDisplayFont(DisplayFont displayFont)
+        {
+            Font font = LoadDisplayFont(displayFont);
+            if (font == null || canvas == null) return;
+
+            Text[] labels = canvas.GetComponentsInChildren<Text>(true);
+            for (int index = 0; index < labels.Length; index++)
+                labels[index].font = font;
+        }
+
+        private static Font LoadDisplayFont(DisplayFont displayFont)
+        {
+            string resourcePath = displayFont switch
+            {
+                DisplayFont.Chilanka => "Fonts/Chilanka-Regular",
+                DisplayFont.ComingSoon => "Fonts/ComingSoon-Regular",
+                DisplayFont.Margarine => "Fonts/Margarine-Regular",
+                DisplayFont.NerkoOne => "Fonts/NerkoOne-Regular",
+                _ => null
+            };
+            return resourcePath != null
+                ? Resources.Load<Font>(resourcePath)
+                : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        }
+
         private void PersistDeveloperSettings()
         {
             persistedDevViewMode = currentDevViewMode;
             persistedPuzzleMode = currentPuzzleMode;
+            persistedDisplayFont = currentDisplayFont;
             if (playerInteraction != null)
                 persistedInteractionCueMode = playerInteraction.CurrentInteractionCueMode;
             hasPersistedDeveloperSettings = true;
@@ -746,14 +1041,15 @@ namespace ColorPuzzle
             return groupRect;
         }
 
-        private Button CreateModeButton(RectTransform parent, string label, float offsetX, Font font)
+        private Button CreateModeButton(RectTransform parent, string label, float offsetX, Font font, int row = 0)
         {
             GameObject buttonObject = new GameObject(label, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
             RectTransform buttonRect = buttonObject.GetComponent<RectTransform>();
             buttonRect.SetParent(parent, false);
             buttonRect.anchorMin = buttonRect.anchorMax = new Vector2(0f, 1f);
             buttonRect.pivot = new Vector2(0f, 1f);
-            float buttonOffsetY = selectorGroupPadding * 2f + selectorGroupLabelHeight;
+            float buttonOffsetY = selectorGroupPadding * 2f + selectorGroupLabelHeight +
+                                  row * (modeButtonSize.y + modeButtonGap);
             buttonRect.anchoredPosition = new Vector2(offsetX, -buttonOffsetY);
             buttonRect.sizeDelta = modeButtonSize;
 
@@ -779,6 +1075,20 @@ namespace ColorPuzzle
             return button;
         }
 
+        private void AddDisplayFontButton(
+            RectTransform parent,
+            DisplayFont displayFont,
+            string label,
+            int column,
+            int row,
+            Font font)
+        {
+            float offsetX = selectorGroupPadding + column * (modeButtonSize.x + modeButtonGap);
+            Button button = CreateModeButton(parent, label, offsetX, font, row);
+            button.onClick.AddListener(() => SetDisplayFont(displayFont));
+            displayFontButtons.Add(displayFont, button);
+        }
+
         private void RefreshModeSelector()
         {
             if (colorSearchButton != null)
@@ -802,6 +1112,10 @@ namespace ColorPuzzle
                     : unselectedModeColor;
             if (centerTextButton != null && playerInteraction != null)
                 centerTextButton.targetGraphic.color = playerInteraction.CurrentInteractionCueMode == PlayerInteraction.InteractionCueMode.CenterText
+                    ? selectedModeColor
+                    : unselectedModeColor;
+            foreach (KeyValuePair<DisplayFont, Button> fontButton in displayFontButtons)
+                fontButton.Value.targetGraphic.color = fontButton.Key == currentDisplayFont
                     ? selectedModeColor
                     : unselectedModeColor;
         }

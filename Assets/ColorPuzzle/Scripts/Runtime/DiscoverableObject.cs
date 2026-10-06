@@ -21,6 +21,14 @@ namespace ColorPuzzle
         [Header("Dropped Collision")]
         [SerializeField, Min(0f)] private float playerExitClearance = 0.03f;
 
+        [Header("Drop Audio")]
+        [SerializeField] private AudioClip dropClip;
+        [SerializeField, Range(0f, 1f)] private float dropVolume = 0.18f;
+
+        [Header("Pickup Audio")]
+        [SerializeField] private AudioClip pickupClip;
+        [SerializeField, Range(0f, 1f)] private float pickupVolume = 0.16f;
+
         private Rigidbody body;
         private Collider hitCollider;
         private Material grayscaleMaterial;
@@ -31,6 +39,7 @@ namespace ColorPuzzle
         private Coroutine dropAnimation;
         private Coroutine playerCollisionRestore;
         private Collider ignoredPlayerCollider;
+        private AudioSource dropAudioSource;
 
         public string ObjectId => objectId;
         public string DisplayName => displayName;
@@ -52,6 +61,15 @@ namespace ColorPuzzle
             if (grayscaleRenderer != null) grayscaleMaterial = grayscaleRenderer.sharedMaterial;
             if (colorProxy != null)
                 colorProxyRenderer = colorProxy.GetComponentInChildren<Renderer>(true);
+            if (dropClip == null)
+                dropClip = Resources.Load<AudioClip>("Audio/ItemDropBookClose");
+            if (pickupClip == null)
+                pickupClip = Resources.Load<AudioClip>("Audio/ItemPickupCardDraw");
+            dropAudioSource = GetComponent<AudioSource>();
+            if (dropAudioSource == null)
+                dropAudioSource = gameObject.AddComponent<AudioSource>();
+            dropAudioSource.playOnAwake = false;
+            dropAudioSource.spatialBlend = 0f;
             if (lockAuthoredStartUntilPickup)
             {
                 StopDynamicMotion();
@@ -90,6 +108,7 @@ namespace ColorPuzzle
             transform.SetParent(null, true);
             if (grayscaleRenderer != null) grayscaleRenderer.enabled = false;
             if (colorProxy != null) colorProxy.SetActive(false);
+            PlayPickupAudio();
         }
 
         public Vector3 GetRestingPosition(Vector3 surfacePoint, Vector3 surfaceNormal, float clearance)
@@ -176,6 +195,7 @@ namespace ColorPuzzle
         private void FinishDrop(Vector3 restingPosition, Collider playerCollider)
         {
             transform.position = restingPosition;
+            PlayDropAudio();
             body.detectCollisions = true;
             hitCollider.enabled = true;
 
@@ -208,6 +228,7 @@ namespace ColorPuzzle
             // any duplicate-proxy depth conflict with the pedestal surface.
             if (colorProxy != null) colorProxy.SetActive(false);
             Discover();
+            PlayDropAudio();
             int colorRevealLayer = LayerMask.NameToLayer("ColorReveal");
             if (grayscaleRenderer != null && colorRevealLayer >= 0)
                 grayscaleRenderer.gameObject.layer = colorRevealLayer;
@@ -231,6 +252,19 @@ namespace ColorPuzzle
             // A wrong shell remains testable on the pillar. Keep its regular completed-looking
             // mesh for the main view and its ColourReveal proxy for the magnifier/full-colour view.
             if (colorProxy != null) colorProxy.SetActive(true);
+            PlayDropAudio();
+        }
+
+        private void PlayDropAudio()
+        {
+            if (dropAudioSource != null && dropClip != null)
+                dropAudioSource.PlayOneShot(dropClip, dropVolume);
+        }
+
+        private void PlayPickupAudio()
+        {
+            if (dropAudioSource != null && pickupClip != null)
+                dropAudioSource.PlayOneShot(pickupClip, pickupVolume);
         }
 
         private void ApplyWorldAppearance(bool showColor)

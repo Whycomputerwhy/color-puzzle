@@ -455,6 +455,9 @@ MonoBehaviour:
   jumpHeight: 1.35
   gravity: -22
   groundedForce: -2
+  footstepClips: []
+  footstepDistance: 2.1
+  footstepVolume: 0.12
   cameraPivot: {fileID: 8214052168426382451}
   mouseSensitivity: 0.125
   verticalLookLimit: 85
@@ -481,6 +484,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.PlayerInteraction
   viewCamera: {fileID: 4634387354463310727}
   statusText: {fileID: 1249724961138011793}
+  applyStatusTextOutline: 1
+  statusTextOutlineColor: {r: 1, g: 1, b: 1, a: 0.92}
+  statusTextOutlineDistance: {x: 1.5, y: -1.5}
   dropOrPlaceKey: 31
   resetKey: 32
   interactionDistance: 5
@@ -562,6 +568,39 @@ MonoBehaviour:
   renderTextureHeight: 720
   regularViewSkyColor: {r: 1, g: 1, b: 1, a: 1}
   revealViewSkyColor: {r: 0.08, g: 0.34, b: 0.9, a: 1}
+  backgroundMusicClip: {fileID: 0}
+  backgroundMusicVolume: 0.12
+  backgroundMusicLoopDuration: 37
+  backgroundMusicLoopCrossfadeDuration: 1
+  backgroundMusicFadeOutDuration: 1.5
+  worldRevealDuration: 2.4
+  worldRevealStartRadius: 0.18
+  worldRevealEndRadius: 42
+  worldRevealEdgeFeather: 0.8
+  worldRevealEasing:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   lensMoveSensitivity: 1
   lensMoveEasing: 18
   screenEdgePadding: 8
@@ -581,6 +620,7 @@ MonoBehaviour:
   modeButtonTextColor: {r: 1, g: 1, b: 1, a: 1}
   selectorGroupLabelColor: {r: 1, g: 1, b: 1, a: 1}
   selectorGroupBackgroundColor: {r: 0, g: 0, b: 0, a: 0.55}
+  defaultDisplayFont: 0
   showStoryObjective: 1
   storyCardSize: {x: 500, y: 96}
   storyCardMargin: {x: 20, y: 20}
@@ -976,7 +1016,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 24
+    m_FontSize: 28
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 10
@@ -1000,6 +1040,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Outline
-  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
-  m_EffectDistance: {x: 1, y: -1}
+  m_EffectColor: {r: 1, g: 1, b: 1, a: 0.5}
+  m_EffectDistance: {x: 1.5, y: -1.5}
   m_UseGraphicAlpha: 1

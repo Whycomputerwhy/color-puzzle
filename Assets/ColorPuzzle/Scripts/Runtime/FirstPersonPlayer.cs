@@ -14,6 +14,15 @@ namespace ColorPuzzle
         [SerializeField] private float gravity = -22f;
         [SerializeField, Min(0f)] private float groundedForce = -2f;
 
+        [Header("Footstep Audio")]
+        [SerializeField] private AudioClip[] footstepClips;
+        [SerializeField, Min(0.1f)] private float footstepDistance = 2.1f;
+        [SerializeField, Range(0f, 1f)] private float footstepVolume = 0.12f;
+
+        [Header("Jump Audio")]
+        [SerializeField] private bool useFootstepForJump = true;
+        [SerializeField, Range(0f, 1f)] private float jumpFootstepVolume = 0.1f;
+
         [Header("Look")]
         [SerializeField] private Transform cameraPivot;
         [SerializeField, Min(0f)] private float mouseSensitivity = 0.13f;
@@ -44,6 +53,9 @@ namespace ColorPuzzle
         private bool lookLocked;
         private bool jumpAnticipating;
         private bool jumpSquatRecovering;
+        private AudioSource footstepAudioSource;
+        private float distanceSinceFootstep;
+        private int previousFootstepIndex = -1;
 
         public Transform CameraPivot => cameraPivot;
         public bool IsGrounded => controller != null && controller.isGrounded;
@@ -53,6 +65,12 @@ namespace ColorPuzzle
             controller = GetComponent<CharacterController>();
             if (cameraPivot == null && Camera.main != null) cameraPivot = Camera.main.transform;
             if (cameraPivot != null) cameraPivotRestLocalPosition = cameraPivot.localPosition;
+            LoadFootsteps();
+            footstepAudioSource = GetComponent<AudioSource>();
+            if (footstepAudioSource == null)
+                footstepAudioSource = gameObject.AddComponent<AudioSource>();
+            footstepAudioSource.playOnAwake = false;
+            footstepAudioSource.spatialBlend = 0f;
         }
 
         private void Start()
@@ -125,7 +143,8 @@ namespace ColorPuzzle
             if (Keyboard.current.aKey.isPressed) input.x -= 1f;
             input = Vector2.ClampMagnitude(input, 1f);
 
-            float control = controller.isGrounded ? 1f : airControl;
+            bool wasGrounded = controller.isGrounded;
+            float control = wasGrounded ? 1f : airControl;
             Vector3 planar = (transform.right * input.x + transform.forward * input.y) * (moveSpeed * control);
 
             if (controller.isGrounded)
@@ -142,6 +161,7 @@ namespace ColorPuzzle
                     else
                     {
                         verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                        PlayJumpFootstep();
                     }
                 }
 
@@ -153,6 +173,7 @@ namespace ColorPuzzle
                         jumpAnticipating = false;
                         BeginJumpSquatRecovery(-jumpSquatDepth);
                         verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                        PlayJumpFootstep();
                     }
                 }
             }
@@ -163,6 +184,7 @@ namespace ColorPuzzle
             }
 
             controller.Move((planar + Vector3.up * verticalVelocity) * Time.deltaTime);
+            UpdateFootsteps(planar, wasGrounded);
         }
 
         private void ApplyGravityOnly()
@@ -171,6 +193,54 @@ namespace ColorPuzzle
             if (controller.isGrounded) verticalVelocity = groundedForce;
             else verticalVelocity += gravity * Time.deltaTime;
             controller.Move(Vector3.up * verticalVelocity * Time.deltaTime);
+            distanceSinceFootstep = 0f;
+        }
+
+        private void LoadFootsteps()
+        {
+            if (footstepClips != null && footstepClips.Length > 0) return;
+            footstepClips = new[]
+            {
+                Resources.Load<AudioClip>("Audio/FootstepConcrete01"),
+                Resources.Load<AudioClip>("Audio/FootstepConcrete02"),
+                Resources.Load<AudioClip>("Audio/FootstepConcrete03"),
+                Resources.Load<AudioClip>("Audio/FootstepConcrete04")
+            };
+        }
+
+        private void UpdateFootsteps(Vector3 planarVelocity, bool wasGrounded)
+        {
+            if (!wasGrounded || planarVelocity.sqrMagnitude < 0.01f ||
+                footstepClips == null || footstepClips.Length == 0)
+            {
+                distanceSinceFootstep = 0f;
+                return;
+            }
+
+            distanceSinceFootstep += planarVelocity.magnitude * Time.deltaTime;
+            if (distanceSinceFootstep < footstepDistance) return;
+            distanceSinceFootstep -= footstepDistance;
+
+            PlayFootstep(footstepVolume);
+        }
+
+        private void PlayJumpFootstep()
+        {
+            if (!useFootstepForJump) return;
+            distanceSinceFootstep = 0f;
+            PlayFootstep(jumpFootstepVolume);
+        }
+
+        private void PlayFootstep(float volume)
+        {
+            if (footstepClips == null || footstepClips.Length == 0) return;
+
+            int index = Random.Range(0, footstepClips.Length);
+            if (footstepClips.Length > 1 && index == previousFootstepIndex)
+                index = (index + 1) % footstepClips.Length;
+            previousFootstepIndex = index;
+            if (footstepAudioSource != null && footstepClips[index] != null)
+                footstepAudioSource.PlayOneShot(footstepClips[index], volume);
         }
 
         private void UpdateViewMotion()
