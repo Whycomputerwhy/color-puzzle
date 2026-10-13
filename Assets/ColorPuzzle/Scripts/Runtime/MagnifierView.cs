@@ -135,6 +135,13 @@ namespace ColorPuzzle
         [SerializeField] private Color selectorGroupLabelColor = Color.white;
         [SerializeField] private Color selectorGroupBackgroundColor = new Color(0f, 0f, 0f, 0.55f);
 
+        [Header("Telemetry Guide")]
+        [SerializeField] private bool showTelemetryGuideInDeveloperPanel = true;
+        [SerializeField, TextArea(3, 6)] private string telemetryGuideText =
+            "Auto-saves on portal entry, level exit, and quit.\nF9 writes a snapshot. Exact file path is printed in Console.";
+        [SerializeField, Min(8)] private int telemetryGuideFontSize = 14;
+        [SerializeField, Min(50f)] private float telemetryGuideContentHeight = 76f;
+
         [Header("Typography")]
         [SerializeField] private DisplayFont defaultDisplayFont = DisplayFont.Chilanka;
 
@@ -302,10 +309,13 @@ namespace ColorPuzzle
 
         private void SetActive(bool value)
         {
+            bool wasActive = active;
             active = value &&
                      !worldRestored &&
                      currentPuzzleMode == PuzzleMode.ColorSearch &&
                      currentDevViewMode == DevViewMode.PuzzleView;
+            if (active && !wasActive)
+                TelemetryManager.RecordMagnifierUse();
             if (value && resetLensToCenterOnOpen)
             {
                 lensScreenPosition = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
@@ -735,13 +745,18 @@ namespace ColorPuzzle
                                              modeButtonSize.y * 2f + modeButtonGap;
             float fontGroupHeight = selectorGroupPadding * 3f + selectorGroupLabelHeight +
                                     modeButtonSize.y * 2f + modeButtonGap;
+            float telemetryGroupHeight = selectorGroupPadding * 3f + selectorGroupLabelHeight +
+                                         telemetryGuideContentHeight;
             float puzzleModeGroupOffset = showLevelSequenceInDeveloperPanel
                 ? levelSequenceGroupHeight + modeButtonGap
                 : 0f;
             float devViewGroupOffset = puzzleModeGroupOffset + groupHeight + modeButtonGap;
             float interactionGroupOffset = devViewGroupOffset + groupHeight + modeButtonGap;
             float fontGroupOffset = (playerInteraction != null ? interactionGroupOffset + groupHeight : devViewGroupOffset + groupHeight) + modeButtonGap;
-            float panelHeight = fontGroupOffset + fontGroupHeight;
+            float telemetryGroupOffset = fontGroupOffset + fontGroupHeight + modeButtonGap;
+            float panelHeight = showTelemetryGuideInDeveloperPanel
+                ? telemetryGroupOffset + telemetryGroupHeight
+                : fontGroupOffset + fontGroupHeight;
             selector.sizeDelta = new Vector2(groupWidth, panelHeight);
             selector.SetAsLastSibling();
 
@@ -821,6 +836,12 @@ namespace ColorPuzzle
             AddDisplayFontButton(fontGroup, DisplayFont.ComingSoon, ComingSoonFontLabel, 1, 0, font);
             AddDisplayFontButton(fontGroup, DisplayFont.Margarine, MargarineFontLabel, 0, 1, font);
             AddDisplayFontButton(fontGroup, DisplayFont.NerkoOne, NerkoOneFontLabel, 1, 1, font);
+            if (showTelemetryGuideInDeveloperPanel)
+            {
+                RectTransform telemetryGroup = CreateSelectorGroup(
+                    selector, "TELEMETRY", telemetryGroupOffset, groupWidth, telemetryGroupHeight, font);
+                CreateTelemetryGuideText(telemetryGroup, groupWidth, font);
+            }
             RefreshModeSelector();
             SetDeveloperPanelOpen(false);
         }
@@ -1151,6 +1172,32 @@ namespace ColorPuzzle
             text.color = modeButtonTextColor;
             text.raycastTarget = false;
             return button;
+        }
+
+        private void CreateTelemetryGuideText(RectTransform parent, float groupWidth, Font font)
+        {
+            GameObject textObject = new GameObject(
+                "TelemetryGuide", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
+            RectTransform textRect = textObject.GetComponent<RectTransform>();
+            textRect.SetParent(parent, false);
+            textRect.anchorMin = textRect.anchorMax = new Vector2(0f, 1f);
+            textRect.pivot = new Vector2(0f, 1f);
+            textRect.anchoredPosition = new Vector2(
+                selectorGroupPadding,
+                -(selectorGroupPadding * 2f + selectorGroupLabelHeight));
+            textRect.sizeDelta = new Vector2(
+                groupWidth - selectorGroupPadding * 2f,
+                telemetryGuideContentHeight);
+
+            Text text = textObject.GetComponent<Text>();
+            text.text = telemetryGuideText;
+            text.font = font;
+            text.fontSize = telemetryGuideFontSize;
+            text.alignment = TextAnchor.UpperLeft;
+            text.color = modeButtonTextColor;
+            text.horizontalOverflow = HorizontalWrapMode.Wrap;
+            text.verticalOverflow = VerticalWrapMode.Truncate;
+            text.raycastTarget = false;
         }
 
         private void AddDisplayFontButton(

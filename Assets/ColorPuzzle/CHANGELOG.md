@@ -1,6 +1,21 @@
 # Color Puzzle Version History
 This log is intended for people and AI agents continuing the same Unity project. Append new entries; do not rewrite past decisions without explaining the migration.
 
+## 0.5.0 — 2026-10-13 — Playtest telemetry
+
+### Added
+
+- Added an automatically bootstrapped, persistent `TelemetryManager`, based on the supplied USC package's manager/metric pattern and updated for the current Input System.
+- Added per-level measurements for time to portal unlock, magnifier activations, pickup actions, and time from portal unlock to first portal entry.
+- Added an append-only `ColorPuzzle-Telemetry.txt` output under `Application.persistentDataPath/Telemetry`; final records save on portal entry, level exit, and quit, while F9 appends a manual snapshot.
+- Added a trigger-only portal-entry reporter to the existing runtime-generated completion door without changing its visual transform.
+- Added a concise telemetry usage guide to the Enter developer panel.
+
+### Safety
+
+- No authored scene hierarchy, manual object placement, materials, cameras, or level geometry were rewritten.
+- The supplied package was used as an architectural reference rather than imported verbatim, avoiding its legacy input calls and timestamp-file proliferation.
+
 ## 0.3.0 — 2026-10-13 — Alpha level sequence and production HUD
 
 ### Added

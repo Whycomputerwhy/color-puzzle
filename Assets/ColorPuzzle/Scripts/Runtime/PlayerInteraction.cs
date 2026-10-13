@@ -162,6 +162,7 @@ namespace ColorPuzzle
             if (item == null) return;
             carried = item;
             carried.PickUp();
+            TelemetryManager.RecordObjectPickup();
             ResetInteractionCue();
             RefreshInventoryHud();
         }

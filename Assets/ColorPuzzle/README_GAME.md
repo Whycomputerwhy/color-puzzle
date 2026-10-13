@@ -18,6 +18,7 @@ The active underwater shell and pillar visuals use normalized Unity mesh assets 
 - **Q** — place the carried object on a matching goal, or drop it in front of the player
 - **R** — reset the current scene
 - **Enter** — open/close the developer panel; opening releases the cursor and closing recaptures it
+- **F9** — append a manual snapshot of the current level telemetry to the telemetry text file
 - **Forest / Ocean / Village (developer panel)** — load any level in the alpha sequence
 - **Color Search / Value Search (developer panel)** — switch between magnifier-based hue discovery and full-screen greyscale value comparison
 - **Greyscale / Full Color (developer panel)** — compare the intended monochrome presentation with an always-on color view
@@ -27,6 +28,17 @@ The active underwater shell and pillar visuals use normalized Unity mesh assets 
 ### Play paths
 
 `ColorPuzzleStartMenu.unity` is the build entry. Play begins at `ColorPuzzleForestTutorial.unity`, the Level 1 placeholder. `ColorPuzzleUnderwaterDemo.unity` is Level 2 and remains the active authored demo. `ColorPuzzleVillageEnding.unity` is the Level 3 placeholder. Press Enter in any level and use the Level Sequence group to move directly between them. Escape opens the shared pause menu. The production HUD no longer creates the top-left objective card or displays the bottom control legend; interaction cues and the carried-shell inventory remain available.
+
+### Playtest telemetry
+
+`TelemetryManager` is created automatically before the first scene loads and persists across the level sequence. It follows the supplied USC TelemetryManager package's persistent-manager/event-recording pattern while using this project's current Input System and an append-only text format. Each tracked level records:
+
+- elapsed real time from level load to the correct shell unlocking the portal;
+- number of magnifier activations;
+- number of successful pickup actions, including picking the same shell up again;
+- elapsed real time from portal unlock to the player's first portal crossing.
+
+Final records are appended automatically when the player enters the portal, leaves the level, or quits. Press **F9** for a non-destructive snapshot during a playtest. The exact path is printed in the Unity Console after each write; the file is stored at `Application.persistentDataPath/Telemetry/ColorPuzzle-Telemetry.txt`. Open the Enter developer panel to see the short in-game usage guide. Timing uses unscaled real time, so pauses are included in the observed play session.
 
 ## Visual system recipe
 
@@ -215,6 +227,15 @@ All game-feel variables are serialized and editable in the Unity Inspector.
 | MagnifierView / Mode Button Text Color | white | RGBA | Selector label color |
 | MagnifierView / Selector Group Label Color | white | RGBA | Group-title text color |
 | MagnifierView / Selector Group Background Color | black `(0, 0, 0, 0.55)` | RGBA | Translucent developer-panel backing |
+| MagnifierView / Show Telemetry Guide In Developer Panel | true | toggle | Shows the compact collection/export guide in the Enter panel |
+| MagnifierView / Telemetry Guide Text | auto-save/F9/path copy | string | Developer-facing usage instructions |
+| MagnifierView / Telemetry Guide Font Size | 14 | points, ≥8 | Guide body size |
+| MagnifierView / Telemetry Guide Content Height | 76 | canvas pixels, ≥50 | Reserved guide body height |
+| TelemetryManager / Manual Snapshot Key | F9 | key | Appends a snapshot without ending the current level session |
+| TelemetryManager / Write Incomplete Sessions | true | toggle | Preserves partial data on level exit or application quit |
+| TelemetryManager / Output Directory Name | Telemetry | folder name | Subfolder inside `Application.persistentDataPath` |
+| TelemetryManager / Output File Name | ColorPuzzle-Telemetry.txt | file name | Append-only human-readable telemetry log |
+| TelemetryManager / Log Output Path | true | toggle | Prints the exact saved-file path after each successful write |
 | MagnifierView / Show Story Objective | false | toggle | Production default hides the former top-left objective box |
 | MagnifierView / Story Card Size | (500, 96) | canvas pixels | Square-corner objective-box bounds |
 | MagnifierView / Story Card Margin | (20, 20) | canvas pixels | Offset from the top-left screen corner |
@@ -315,7 +336,7 @@ Assets/ColorPuzzle/
 ├── Scenes/                    # Forest placeholder, authored Ocean level, Village placeholder, and archived prototype scene
 ├── Scripts/
 │   ├── Editor/                # Validator, renderer-feature installer, and targeted asset migrations
-│   └── Runtime/               # Gameplay plus the URP RenderGraph interaction-outline feature
+│   └── Runtime/               # Gameplay, persistent telemetry/portal tracking, menus, and the URP RenderGraph outline feature
 ├── ThirdParty/                # Source attribution for adapted open-source reference code
 ├── CHANGELOG.md               # Agent-readable version history
 └── README_GAME.md             # This design and architecture guide

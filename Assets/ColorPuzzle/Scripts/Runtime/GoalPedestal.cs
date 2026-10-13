@@ -108,6 +108,7 @@ namespace ColorPuzzle
                 pedestalRenderer.sharedMaterial = completedMaterial;
             if (colorProxy != null) colorProxy.SetActive(true);
             if (completionDoor != null) completionDoor.SetActive(true);
+            TelemetryManager.RecordPortalUnlocked();
             PlayPlacementAudio(correctPlacementAndRevealClip, correctPlacementVolume);
             magnifierView?.FadeOutBackgroundMusic();
             magnifierView?.RestoreWorldColor(PlacementAimPosition);
@@ -174,6 +175,9 @@ namespace ColorPuzzle
                 completionDoorWorldPosition,
                 Quaternion.Euler(completionDoorWorldEulerAngles));
             completionDoor.transform.localScale = completionDoorWorldScale;
+            BoxCollider portalCollider = completionDoor.GetComponent<BoxCollider>();
+            if (portalCollider != null) portalCollider.isTrigger = true;
+            completionDoor.AddComponent<TelemetryPortalTrigger>();
             completionDoorBaseMaterial = CreateDoorMaterial(shader, completionDoorBaseColor, 2000);
             completionDoor.GetComponent<Renderer>().material = completionDoorBaseMaterial;
 

@@ -626,6 +626,12 @@ MonoBehaviour:
   modeButtonTextColor: {r: 1, g: 1, b: 1, a: 1}
   selectorGroupLabelColor: {r: 1, g: 1, b: 1, a: 1}
   selectorGroupBackgroundColor: {r: 0, g: 0, b: 0, a: 0.55}
+  showTelemetryGuideInDeveloperPanel: 1
+  telemetryGuideText: 'Auto-saves on portal entry, level exit, and quit.
+
+    F9 writes a snapshot. Exact file path is printed in Console.'
+  telemetryGuideFontSize: 14
+  telemetryGuideContentHeight: 76
   defaultDisplayFont: 0
   showStoryObjective: 0
   storyCardSize: {x: 500, y: 96}
