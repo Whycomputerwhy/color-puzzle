@@ -2,6 +2,19 @@
 
 This log is intended for people and AI agents continuing the same Unity project. Append new entries; do not rewrite past decisions without explaining the migration.
 
+## 0.2.44 — 2026-10-12 — Open-water ocean volume
+
+### Added
+
+- Added `UnderwaterOceanBackdrop`, a lightweight runtime ocean-volume layer for the two existing cameras.
+- Each camera receives a camera-facing upper-to-lower water gradient, replacing the room-like sky/background with an open submerged volume.
+- Converted the visible boundary walls into invisible collision boundaries at runtime: they continue to contain the player without reading as a room.
+
+### Safety
+
+- No authored level transforms, props, floor geometry, imported shell/pillar materials, or colliders were moved or replaced.
+- All art-direction controls live on the `UnderwaterOceanBackdrop` component on `FirstPersonPlayer`.
+
 ## 0.2.43 — 2026-10-04 — OBJ ocean-model source migration
 
 ### Changed

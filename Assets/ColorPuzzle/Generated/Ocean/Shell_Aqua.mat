@@ -8,9 +8,10 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Shell_Aqua
-  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
+  m_Shader: {fileID: 4800000, guid: 307f1f5eb60c44ce1980eaf71db4710f, type: 3}
+  m_Parent: {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400001, type: 2}
+  m_ModifiedSerializedProperties:
+  - _Color
   m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4

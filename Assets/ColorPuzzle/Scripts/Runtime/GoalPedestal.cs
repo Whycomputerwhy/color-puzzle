@@ -161,7 +161,10 @@ namespace ColorPuzzle
 
         private void CreateCompletionDoor()
         {
-            Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+            // Match the authored environment in either camera. The fallback preserves the
+            // completion door if this project is ever opened without the cel shader asset.
+            Shader shader = Shader.Find("ColorPuzzle/Flexible Cel URP/Outline");
+            if (shader == null) shader = Shader.Find("Universal Render Pipeline/Lit");
             if (shader == null) shader = Shader.Find("Standard");
             if (shader == null) return;
 
@@ -260,6 +263,7 @@ namespace ColorPuzzle
                 renderQueue = renderQueue
             };
             if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", color);
+            if (material.HasProperty("_Color")) material.SetColor("_Color", color);
             return material;
         }
     }

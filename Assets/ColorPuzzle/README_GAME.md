@@ -166,6 +166,12 @@ All game-feel variables are serialized and editable in the Unity Inspector.
 | FirstPersonPlayer / Jump Squat Depth | 0.055 | meters, ≥0 | Downward camera anticipation before launch |
 | FirstPersonPlayer / Jump Squat Duration | 0.07 | seconds, ≥0 | Brief grounded delay used to perform the pre-jump dip |
 | FirstPersonPlayer / Jump Squat Recovery Duration | 0.12 | seconds, ≥0 | Time for the camera to return from the dip after launch |
+| UnderwaterOceanBackdrop / Backdrop Distance | 90 | meters, ≥10 | Distance of the camera-facing ocean gradient; keep below camera far clip plane. |
+| UnderwaterOceanBackdrop / Backdrop Overscan | 1.2 | multiplier, ≥1 | Extra gradient size that prevents edge exposure at the screen corners. |
+| UnderwaterOceanBackdrop / Vertical Blend Power | 1.15 | 0.25–4 | Shapes the upper-light to lower-dark transition; higher concentrates bright water toward the top. |
+| UnderwaterOceanBackdrop / Greyscale Upper/Lower Water | 0.30 / 0.06 | RGB | Brightness of the upper and lower ocean in Greyscale view. |
+| UnderwaterOceanBackdrop / Color Upper/Lower Water | teal / deep blue | RGB | Brightness and hue of the upper and lower ocean in color/magnifier views. |
+| UnderwaterOceanBackdrop / Hide Boundary Renderers | true | toggle | Keeps named wall colliders but hides their visible meshes at runtime. |
 | MagnifierView / Reveal Mouse Button | Right | Right/Middle | Hold-to-reveal input; activation also requires grounded state |
 | MagnifierView / Default Puzzle Mode | Color Search | Color Search/Value Search | Fresh-play mechanic variation; R preserves the current session selection |
 | MagnifierView / Color Search Objective Text | story copy | string | Top-left objective shown in the magnifier puzzle |

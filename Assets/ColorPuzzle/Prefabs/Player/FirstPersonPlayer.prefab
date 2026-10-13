@@ -55,7 +55,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Text
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 0.9}
@@ -389,6 +389,7 @@ GameObject:
   - component: {fileID: 8013254460384962499}
   - component: {fileID: 3460739725101912303}
   - component: {fileID: 9175544705949783069}
+  - component: {fileID: 6546902326841184771}
   m_Layer: 0
   m_Name: FirstPersonPlayer
   m_TagString: Untagged
@@ -1043,3 +1044,35 @@ MonoBehaviour:
   m_EffectColor: {r: 1, g: 1, b: 1, a: 0.5}
   m_EffectDistance: {x: 1.5, y: -1.5}
   m_UseGraphicAlpha: 1
+--- !u!114 &6546902326841184771
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4024485789046865348}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 467a2764c6904908b5df5cb943be7312, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.UnderwaterOceanBackdrop
+  greyscaleCamera: {fileID: 4634387354463310727}
+  colorCamera: {fileID: 4958961330578032067}
+  greyscaleCameraName: MainCamera
+  colorCameraName: ColorRevealCamera
+  backdropDistance: 90
+  backdropOverscan: 1.2
+  verticalBlendPower: 1.15
+  greyscaleUpperWater: {r: 0.3, g: 0.3, b: 0.3, a: 1}
+  greyscaleLowerWater: {r: 0.06, g: 0.06, b: 0.06, a: 1}
+  colorUpperWater: {r: 0.1, g: 0.42, b: 0.56, a: 1}
+  colorLowerWater: {r: 0.025, g: 0.12, b: 0.22, a: 1}
+  hideBoundaryRenderers: 1
+  boundaryRendererNames:
+  - SideWallRight
+  - SideWallLeft
+  - BackWall
+  - FrontWall
+  - LeftNiche_Wall
+  - RightNiche_Wall
+  - RearRight_PocketWall
