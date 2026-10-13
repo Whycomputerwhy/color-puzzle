@@ -163,5 +163,11 @@ Shader "ColorPuzzle/Flexible Cel URP/Outline"
             half4 OutlineFragment(Varyings input) : SV_Target { return _OutlineColor; }
             ENDHLSL
         }
+
+        // Reuse URP's standard geometry-only passes. The custom forward pass above
+        // samples shadow attenuation; this makes cel-shaded meshes also write into
+        // the main-light shadow map so they can cast onto one another.
+        UsePass "Universal Render Pipeline/Lit/ShadowCaster"
+        UsePass "Universal Render Pipeline/Lit/DepthOnly"
     }
 }

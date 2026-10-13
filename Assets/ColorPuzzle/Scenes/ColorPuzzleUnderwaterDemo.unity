@@ -1288,7 +1288,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3940759437787456924, guid: 8da430fb7c9cf4e67b500a987db24b04, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 2.07
+      value: 3.69
       objectReference: {fileID: 0}
     - target: {fileID: 3940759437787456924, guid: 8da430fb7c9cf4e67b500a987db24b04, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1296,7 +1296,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3940759437787456924, guid: 8da430fb7c9cf4e67b500a987db24b04, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 3
+      value: -6.41
       objectReference: {fileID: 0}
     - target: {fileID: 3940759437787456924, guid: 8da430fb7c9cf4e67b500a987db24b04, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1863,12 +1863,12 @@ Light:
   m_InnerSpotAngle: 21.802082
   m_CookieSize2D: {x: 0.5, y: 0.5}
   m_Shadows:
-    m_Type: 0
+    m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
+    m_Strength: 0.72
+    m_Bias: 0.03
+    m_NormalBias: 0.3
     m_NearPlane: 0.2
     m_CullingMatrixOverride:
       e00: 1
@@ -8058,7 +8058,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6624632397855646244, guid: 29611a37544b940c6a62a96070240f72, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.4
+      value: -0.2
       objectReference: {fileID: 0}
     - target: {fileID: 6624632397855646244, guid: 29611a37544b940c6a62a96070240f72, type: 3}
       propertyPath: m_LocalPosition.z

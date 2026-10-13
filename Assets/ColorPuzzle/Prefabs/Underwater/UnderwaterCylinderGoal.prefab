@@ -354,11 +354,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.GoalPedestal
   acceptedObjectId: red-ball
   placementSocket: {fileID: 4917496708394265834}
+  placedObjectSurfaceClearance: 0.015
   pedestalRenderer: {fileID: 29276921583764019}
   completedMaterial: {fileID: 0}
   colorProxy: {fileID: 0}
+  wrongPlacementClip: {fileID: 0}
+  correctPlacementAndRevealClip: {fileID: 0}
+  wrongPlacementVolume: 0.24
+  correctPlacementVolume: 0.3
+  useVisualBoundsHitbox: 1
+  hitboxPadding: 0.08
   createCompletionDoor: 1
-  completionDoorWorldPosition: {x: 10.4, y: 1.5, z: 5.5}
+  completionDoorWorldPosition: {x: 10.7, y: 4.7, z: 7.3}
   completionDoorWorldEulerAngles: {x: 0, y: 0, z: 0}
   completionDoorWorldScale: {x: 0.35, y: 3, z: 2}
   completionDoorBaseColor: {r: 0.35, g: 0.35, b: 0.35, a: 1}

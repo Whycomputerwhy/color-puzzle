@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace ColorPuzzle
 {
@@ -39,12 +40,17 @@ namespace ColorPuzzle
             "LeftNiche_Wall", "RightNiche_Wall", "RearRight_PocketWall"
         };
 
+        [Header("Shadow Casting")]
+        [Tooltip("Colour-reveal proxies are a second visual copy of the level. Keep them out of shadow-map generation so they cannot conflict with the normal world.")]
+        [SerializeField] private bool disableColorProxyShadowCasting = true;
+
         private const int GreyscaleLayer = 0;
         private const int ColorRevealLayer = 8;
         private const string GradientShaderName = "ColorPuzzle/Underwater Gradient Backdrop";
 
         private readonly List<Renderer> hiddenBoundaryRenderers = new();
         private readonly List<Material> runtimeMaterials = new();
+        private readonly Dictionary<Renderer, ShadowCastingMode> colorShadowCasters = new();
         private GameObject greyscaleBackdrop;
         private GameObject colorBackdrop;
         private Material greyscaleBackdropMaterial;
@@ -56,6 +62,11 @@ namespace ColorPuzzle
             BuildOceanVolume();
         }
 
+        private void Start()
+        {
+            DisableColorProxyShadowCasting();
+        }
+
         private void LateUpdate()
         {
             ResolveCameras();
@@ -65,6 +76,8 @@ namespace ColorPuzzle
 
         private void OnDestroy()
         {
+            RestoreColorProxyShadowCasters();
+
             foreach (Renderer renderer in hiddenBoundaryRenderers)
             {
                 if (renderer != null) renderer.enabled = true;
@@ -126,7 +139,13 @@ namespace ColorPuzzle
             backdrop.name = objectName;
             backdrop.layer = layer;
             Destroy(backdrop.GetComponent<Collider>());
-            backdrop.GetComponent<Renderer>().sharedMaterial = material;
+            Renderer backdropRenderer = backdrop.GetComponent<Renderer>();
+            backdropRenderer.sharedMaterial = material;
+            // These are camera-facing atmosphere cards, not physical world geometry.
+            // Letting one enter the directional-light shadow map creates a moving,
+            // scene-wide shadow sheet as the player looks around.
+            backdropRenderer.shadowCastingMode = ShadowCastingMode.Off;
+            backdropRenderer.receiveShadows = false;
             return backdrop;
         }
 
@@ -154,6 +173,34 @@ namespace ColorPuzzle
                     renderer.enabled = false;
                     hiddenBoundaryRenderers.Add(renderer);
                 }
+            }
+        }
+
+        private void DisableColorProxyShadowCasting()
+        {
+            if (!disableColorProxyShadowCasting) return;
+
+            foreach (Renderer renderer in FindObjectsByType<Renderer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (renderer == null) continue;
+                if (renderer.gameObject.layer == ColorRevealLayer)
+                    CacheShadowCaster(renderer, colorShadowCasters);
+            }
+
+            foreach (KeyValuePair<Renderer, ShadowCastingMode> entry in colorShadowCasters)
+                if (entry.Key != null) entry.Key.shadowCastingMode = ShadowCastingMode.Off;
+        }
+
+        private static void CacheShadowCaster(Renderer renderer, Dictionary<Renderer, ShadowCastingMode> cache)
+        {
+            if (!cache.ContainsKey(renderer)) cache.Add(renderer, renderer.shadowCastingMode);
+        }
+
+        private void RestoreColorProxyShadowCasters()
+        {
+            foreach (KeyValuePair<Renderer, ShadowCastingMode> entry in colorShadowCasters)
+            {
+                if (entry.Key != null) entry.Key.shadowCastingMode = entry.Value;
             }
         }
 

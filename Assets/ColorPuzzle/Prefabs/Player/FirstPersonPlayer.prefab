@@ -1068,6 +1068,7 @@ MonoBehaviour:
   colorUpperWater: {r: 0.1, g: 0.42, b: 0.56, a: 1}
   colorLowerWater: {r: 0.025, g: 0.12, b: 0.22, a: 1}
   hideBoundaryRenderers: 1
+  disableColorProxyShadowCasting: 1
   boundaryRendererNames:
   - SideWallRight
   - SideWallLeft
