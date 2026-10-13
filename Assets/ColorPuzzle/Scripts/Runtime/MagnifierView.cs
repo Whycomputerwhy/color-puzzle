@@ -560,7 +560,13 @@ namespace ColorPuzzle
             {
                 EnsureRenderTexture();
                 colorCamera.targetTexture = revealTexture;
-                colorCamera.depth = originalColorCameraDepth;
+                // Render the colour texture before the main camera. The following UI
+                // pass reconstructs positions from the main camera's depth buffer to
+                // form a world-space sphere, so it must not inherit the colour
+                // camera's depth state on the same frame.
+                colorCamera.depth = sourceCamera != null
+                    ? sourceCamera.depth - 1f
+                    : originalColorCameraDepth;
                 colorCamera.enabled = true;
             }
             else if (valueSearch)
@@ -624,6 +630,9 @@ namespace ColorPuzzle
         private IEnumerator AnimateWorldColorReveal(Vector3 revealOrigin)
         {
             worldRevealAnimating = true;
+            // Seed the material before enabling its UI overlay. This avoids one
+            // unmasked frame and makes the expansion visibly begin at the pillar.
+            UpdateWorldRevealMask(revealOrigin, 0f);
             ApplyDevViewMode();
 
             float elapsed = 0f;
@@ -654,12 +663,24 @@ namespace ColorPuzzle
                 ? Mathf.Clamp01(worldRevealEasing.Evaluate(normalizedTime))
                 : normalizedTime;
             float radius = Mathf.Lerp(worldRevealStartRadius, worldRevealEndRadius, easedTime);
-            Matrix4x4 gpuProjection = GL.GetGPUProjectionMatrix(sourceCamera.projectionMatrix, false);
-            Matrix4x4 inverseViewProjection = (gpuProjection * sourceCamera.worldToCameraMatrix).inverse;
+            Vector3 pillarViewportPosition = sourceCamera.WorldToViewportPoint(revealOrigin);
+            float distanceToPillar = Mathf.Max(0.01f, Vector3.Distance(sourceCamera.transform.position, revealOrigin));
+            float verticalProjectionScale = Mathf.Max(
+                0.001f,
+                2f * distanceToPillar * Mathf.Tan(sourceCamera.fieldOfView * Mathf.Deg2Rad * 0.5f));
+
+            // The prior depth-reconstructed version depended on which of the two
+            // cameras last wrote Unity's depth texture. Projecting the sphere's
+            // centre and radius directly is robust across the normal, lens, and
+            // render-texture cameras while preserving the intended expanding sphere.
+            float screenRadius = radius / verticalProjectionScale;
+            float screenFeather = worldRevealEdgeFeather / verticalProjectionScale;
             worldRevealMaterial.SetVector("_RevealOriginRadius", new Vector4(
                 revealOrigin.x, revealOrigin.y, revealOrigin.z, radius));
             worldRevealMaterial.SetFloat("_RevealEdgeFeather", worldRevealEdgeFeather);
-            worldRevealMaterial.SetMatrix("_RevealInverseViewProjection", inverseViewProjection);
+            worldRevealMaterial.SetVector("_RevealScreenCenterRadius", new Vector4(
+                pillarViewportPosition.x, pillarViewportPosition.y, screenRadius, pillarViewportPosition.z));
+            worldRevealMaterial.SetFloat("_RevealScreenFeather", screenFeather);
         }
 
         private void SetPuzzleMode(PuzzleMode mode)

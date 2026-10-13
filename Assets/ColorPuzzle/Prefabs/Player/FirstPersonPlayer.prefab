@@ -574,7 +574,7 @@ MonoBehaviour:
   backgroundMusicLoopDuration: 37
   backgroundMusicLoopCrossfadeDuration: 1
   backgroundMusicFadeOutDuration: 1.5
-  worldRevealDuration: 2.4
+  worldRevealDuration: 4.8
   worldRevealStartRadius: 0.18
   worldRevealEndRadius: 42
   worldRevealEdgeFeather: 0.8

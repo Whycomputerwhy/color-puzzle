@@ -21,7 +21,6 @@ Shader "ColorPuzzle/UI/WorldSphereReveal"
             #pragma vertex Vert
             #pragma fragment Frag
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
             struct Attributes
             {
@@ -44,6 +43,8 @@ Shader "ColorPuzzle/UI/WorldSphereReveal"
             float4 _RevealOriginRadius;
             float _RevealEdgeFeather;
             float4x4 _RevealInverseViewProjection;
+            float4 _RevealScreenCenterRadius;
+            float _RevealScreenFeather;
 
             Varyings Vert(Attributes input)
             {
@@ -56,20 +57,14 @@ Shader "ColorPuzzle/UI/WorldSphereReveal"
 
             half4 Frag(Varyings input) : SV_Target
             {
-                float rawDepth = SampleSceneDepth(input.uv);
-                #if UNITY_REVERSED_Z
-                if (rawDepth <= 0.00001) return half4(0, 0, 0, 0);
-                #else
-                if (rawDepth >= 0.99999) return half4(0, 0, 0, 0);
-                #endif
-
-                float3 worldPosition = ComputeWorldSpacePosition(
-                    input.uv, rawDepth, _RevealInverseViewProjection);
-                float distanceFromPillar = distance(worldPosition, _RevealOriginRadius.xyz);
+                float aspect = _ScreenParams.x / max(1.0, _ScreenParams.y);
+                float2 fromRevealCenter = input.uv - _RevealScreenCenterRadius.xy;
+                fromRevealCenter.x *= aspect;
+                float distanceFromRevealCenter = length(fromRevealCenter);
                 float mask = 1.0 - smoothstep(
-                    _RevealOriginRadius.w - _RevealEdgeFeather,
-                    _RevealOriginRadius.w + _RevealEdgeFeather,
-                    distanceFromPillar);
+                    _RevealScreenCenterRadius.z - _RevealScreenFeather,
+                    _RevealScreenCenterRadius.z + _RevealScreenFeather,
+                    distanceFromRevealCenter);
 
                 half4 color = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv) * input.color;
                 return half4(color.rgb, color.a * mask);
