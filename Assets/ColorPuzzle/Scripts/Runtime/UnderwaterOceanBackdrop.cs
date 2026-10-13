@@ -41,8 +41,9 @@ namespace ColorPuzzle
         };
 
         [Header("Shadow Casting")]
-        [Tooltip("Colour-reveal proxies are a second visual copy of the level. Keep them out of shadow-map generation so they cannot conflict with the normal world.")]
-        [SerializeField] private bool disableColorProxyShadowCasting = true;
+        [Tooltip("Creates stable, shadow-only copies for the colour-reveal camera. The visible colour proxies never cast directly, preventing cross-camera shadow conflicts.")]
+        [SerializeField] private bool createColorProxyShadowCasters = true;
+        [SerializeField, Min(0.1f)] private float colorShadowCasterRefreshInterval = 0.5f;
 
         private const int GreyscaleLayer = 0;
         private const int ColorRevealLayer = 8;
@@ -51,10 +52,12 @@ namespace ColorPuzzle
         private readonly List<Renderer> hiddenBoundaryRenderers = new();
         private readonly List<Material> runtimeMaterials = new();
         private readonly Dictionary<Renderer, ShadowCastingMode> colorShadowCasters = new();
+        private readonly Dictionary<Renderer, GameObject> colorShadowOnlyCopies = new();
         private GameObject greyscaleBackdrop;
         private GameObject colorBackdrop;
         private Material greyscaleBackdropMaterial;
         private Material colorBackdropMaterial;
+        private float nextColorShadowCasterRefreshTime;
 
         private void Awake()
         {
@@ -64,7 +67,7 @@ namespace ColorPuzzle
 
         private void Start()
         {
-            DisableColorProxyShadowCasting();
+            RefreshColorProxyShadowCasters();
         }
 
         private void LateUpdate()
@@ -72,11 +75,18 @@ namespace ColorPuzzle
             ResolveCameras();
             UpdateBackdrop(greyscaleBackdrop, greyscaleCamera);
             UpdateBackdrop(colorBackdrop, colorCamera);
+
+            if (Time.unscaledTime >= nextColorShadowCasterRefreshTime)
+            {
+                RefreshColorProxyShadowCasters();
+                nextColorShadowCasterRefreshTime = Time.unscaledTime + colorShadowCasterRefreshInterval;
+            }
         }
 
         private void OnDestroy()
         {
             RestoreColorProxyShadowCasters();
+            DestroyColorShadowOnlyCopies();
 
             foreach (Renderer renderer in hiddenBoundaryRenderers)
             {
@@ -176,19 +186,58 @@ namespace ColorPuzzle
             }
         }
 
-        private void DisableColorProxyShadowCasting()
+        private void RefreshColorProxyShadowCasters()
         {
-            if (!disableColorProxyShadowCasting) return;
+            if (!createColorProxyShadowCasters) return;
 
             foreach (Renderer renderer in FindObjectsByType<Renderer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
                 if (renderer == null) continue;
-                if (renderer.gameObject.layer == ColorRevealLayer)
-                    CacheShadowCaster(renderer, colorShadowCasters);
+                if (renderer.gameObject.layer != ColorRevealLayer || renderer == colorBackdrop?.GetComponent<Renderer>()) continue;
+                if (renderer.name.StartsWith("ColorShadowOnly_")) continue;
+
+                // Boundary visuals are intentionally disabled to make the ocean feel
+                // open. A disabled renderer must not leave an invisible shadow-only
+                // counterpart behind in the colour view.
+                if (colorShadowOnlyCopies.TryGetValue(renderer, out GameObject existingCopy) && existingCopy != null)
+                    existingCopy.SetActive(renderer.enabled);
+                if (!renderer.enabled) continue;
+
+                CacheShadowCaster(renderer, colorShadowCasters);
+                if (colorShadowCasters[renderer] != ShadowCastingMode.Off &&
+                    !colorShadowOnlyCopies.ContainsKey(renderer))
+                    CreateColorShadowOnlyCopy(renderer);
             }
 
             foreach (KeyValuePair<Renderer, ShadowCastingMode> entry in colorShadowCasters)
                 if (entry.Key != null) entry.Key.shadowCastingMode = ShadowCastingMode.Off;
+        }
+
+        private void CreateColorShadowOnlyCopy(Renderer sourceRenderer)
+        {
+            // The level only uses MeshRenderers for its colour proxies. Copying just
+            // the mesh renderer avoids duplicating gameplay scripts, colliders, or UI.
+            if (sourceRenderer is not MeshRenderer sourceMeshRenderer) return;
+            MeshFilter sourceFilter = sourceMeshRenderer.GetComponent<MeshFilter>();
+            if (sourceFilter == null || sourceFilter.sharedMesh == null) return;
+
+            GameObject copy = new GameObject($"ColorShadowOnly_{sourceRenderer.name}");
+            Transform sourceTransform = sourceRenderer.transform;
+            copy.layer = ColorRevealLayer;
+            copy.transform.SetParent(sourceTransform.parent, false);
+            copy.transform.localPosition = sourceTransform.localPosition;
+            copy.transform.localRotation = sourceTransform.localRotation;
+            copy.transform.localScale = sourceTransform.localScale;
+
+            MeshFilter copyFilter = copy.AddComponent<MeshFilter>();
+            copyFilter.sharedMesh = sourceFilter.sharedMesh;
+            MeshRenderer copyRenderer = copy.AddComponent<MeshRenderer>();
+            copyRenderer.sharedMaterials = sourceMeshRenderer.sharedMaterials;
+            copyRenderer.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+            copyRenderer.receiveShadows = false;
+            copyRenderer.renderingLayerMask = sourceMeshRenderer.renderingLayerMask;
+            copyRenderer.allowOcclusionWhenDynamic = false;
+            colorShadowOnlyCopies.Add(sourceRenderer, copy);
         }
 
         private static void CacheShadowCaster(Renderer renderer, Dictionary<Renderer, ShadowCastingMode> cache)
@@ -202,6 +251,13 @@ namespace ColorPuzzle
             {
                 if (entry.Key != null) entry.Key.shadowCastingMode = entry.Value;
             }
+        }
+
+        private void DestroyColorShadowOnlyCopies()
+        {
+            foreach (GameObject copy in colorShadowOnlyCopies.Values)
+                DestroyRuntimeObject(copy);
+            colorShadowOnlyCopies.Clear();
         }
 
         private static Camera FindCamera(string cameraName)
