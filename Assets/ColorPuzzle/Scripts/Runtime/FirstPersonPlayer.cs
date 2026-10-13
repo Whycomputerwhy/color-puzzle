@@ -81,8 +81,8 @@ namespace ColorPuzzle
         private void Update()
         {
             if (Keyboard.current == null || Mouse.current == null) return;
+            if (PauseMenuController.IsPaused) return;
 
-            if (Keyboard.current.escapeKey.wasPressedThisFrame) SetCursorLocked(false);
             if (Mouse.current.leftButton.wasPressedThisFrame &&
                 Cursor.lockState != CursorLockMode.Locked &&
                 (EventSystem.current == null || !EventSystem.current.IsPointerOverGameObject()))
@@ -102,6 +102,7 @@ namespace ColorPuzzle
 
         private void LateUpdate()
         {
+            if (PauseMenuController.IsPaused) return;
             UpdateViewMotion();
         }
 

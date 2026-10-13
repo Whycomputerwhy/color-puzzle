@@ -1,6 +1,24 @@
 # Color Puzzle Version History
-
 This log is intended for people and AI agents continuing the same Unity project. Append new entries; do not rewrite past decisions without explaining the migration.
+
+## 0.3.0 — 2026-10-13 — Alpha level sequence and production HUD
+
+### Added
+
+- Established the alpha build order: Forest Tutorial (Level 1), Ocean (Level 2), and Village Ending (Level 3).
+- Added intentionally empty Forest and Village scene placeholders with the shared player/dev panel but no authored level content.
+- Added a Level Sequence group to the Enter developer panel for direct Forest/Ocean/Village loading.
+- Updated the read-only build validator for the three-scene alpha sequence.
+
+### Changed
+
+- Disabled the persistent top-left objective card and bottom controls legend for the production HUD.
+- Forest is now build index 0; the current underwater scene is preserved unchanged at index 1; Village is index 2.
+
+### Safety
+
+- No underwater scene transforms, objects, materials, camera settings, or manually authored level layout were modified.
+- The previous vertical-slice scene remains in the project as reference history but is not included in the alpha build sequence.
 
 ## 0.2.44 — 2026-10-12 — Open-water ocean volume
 
@@ -763,3 +781,11 @@ This log is intended for people and AI agents continuing the same Unity project.
 - No E-key/NPC interactions yet, as requested.
 - No save system, pause menu, audio, animation, or final art.
 - The magnifier is a circular color view with a simple rim; a modeled hand/glass overlay can replace the HUD later without changing discovery logic.
+# 0.4.0 - Start and Pause Menus
+
+- Added `ColorPuzzleStartMenu.unity` as build index 0 with Play and Quit actions; Play enters the Forest tutorial placeholder.
+- Added a reusable `PauseMenuController` to the shared player prefab. Escape pauses/resumes, halts time and gameplay input, exposes fixed control instructions and a persistent master-volume slider, and can return to the start menu.
+- Added `GameAudioSettings` so the chosen master volume persists across scene changes and future launches.
+- Added a real URP camera and audio listener to the start-menu scene so the menu no longer reports or renders as camera-less.
+- Updated the alpha build validator for Start Menu -> Forest -> Ocean -> Village.
+- Preserved the manually authored underwater scene and all scene-instance transforms; this change touches runtime scripts, the shared player prefab, a new menu scene, Build Settings, and documentation only.

@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using ColorPuzzle.Rendering;
 
@@ -21,6 +22,9 @@ namespace ColorPuzzle
         private const string ComingSoonFontLabel = "Coming Soon";
         private const string MargarineFontLabel = "Margarine";
         private const string NerkoOneFontLabel = "Nerko One";
+        private const string ForestLevelButtonLabel = "Forest";
+        private const string OceanLevelButtonLabel = "Ocean";
+        private const string VillageLevelButtonLabel = "Village";
         private const int MinimumRenderTextureDimension = 128;
         private const float DefaultRenderAspect = 16f / 9f;
         private const float MinimumUsableRenderAspect = 0.25f;
@@ -114,6 +118,10 @@ namespace ColorPuzzle
         [SerializeField] private bool enableDeveloperPanel = true;
         [SerializeField] private Key developerPanelToggleKey = Key.Enter;
         [SerializeField] private bool unlockCursorWhilePanelOpen = true;
+        [SerializeField] private bool showLevelSequenceInDeveloperPanel = true;
+        [SerializeField] private string forestTutorialSceneName = "ColorPuzzleForestTutorial";
+        [SerializeField] private string oceanSceneName = "ColorPuzzleUnderwaterDemo";
+        [SerializeField] private string villageEndingSceneName = "ColorPuzzleVillageEnding";
         [SerializeField] private Vector2 modeButtonSize = new Vector2(140f, 36f);
         [SerializeField, Min(0f)] private float modeButtonGap = 8f;
         [SerializeField, Min(0f)] private float selectorGroupPadding = 8f;
@@ -167,6 +175,9 @@ namespace ColorPuzzle
         private Button valueSearchButton;
         private Button backGlowButton;
         private Button centerTextButton;
+        private Button forestLevelButton;
+        private Button oceanLevelButton;
+        private Button villageLevelButton;
         private GameObject developerPanelRoot;
         private bool developerPanelOpen;
         private PlayerInteraction playerInteraction;
@@ -255,6 +266,7 @@ namespace ColorPuzzle
 
         private void Update()
         {
+            if (PauseMenuController.IsPaused) return;
             if (enableDeveloperPanel && developerPanelToggleKey != Key.None && Keyboard.current != null &&
                 Keyboard.current[developerPanelToggleKey].wasPressedThisFrame)
                 SetDeveloperPanelOpen(!developerPanelOpen);
@@ -271,6 +283,7 @@ namespace ColorPuzzle
 
         private void LateUpdate()
         {
+            if (PauseMenuController.IsPaused) return;
             bool fullColor = worldRestored || currentDevViewMode == DevViewMode.FullColor;
             bool valueSearch = !worldRestored && currentPuzzleMode == PuzzleMode.ValueSearch;
             if ((!active && !fullColor && !valueSearch && !worldRevealAnimating) || sourceCamera == null) return;
@@ -718,10 +731,15 @@ namespace ColorPuzzle
             selector.anchoredPosition = new Vector2(-modeSelectorMargin.x, -modeSelectorMargin.y);
             float groupWidth = modeButtonSize.x * 2f + modeButtonGap + selectorGroupPadding * 2f;
             float groupHeight = selectorGroupPadding * 3f + selectorGroupLabelHeight + modeButtonSize.y;
-            float devViewGroupOffset = groupHeight + modeButtonGap;
-            float interactionGroupOffset = devViewGroupOffset + groupHeight + modeButtonGap;
+            float levelSequenceGroupHeight = selectorGroupPadding * 3f + selectorGroupLabelHeight +
+                                             modeButtonSize.y * 2f + modeButtonGap;
             float fontGroupHeight = selectorGroupPadding * 3f + selectorGroupLabelHeight +
                                     modeButtonSize.y * 2f + modeButtonGap;
+            float puzzleModeGroupOffset = showLevelSequenceInDeveloperPanel
+                ? levelSequenceGroupHeight + modeButtonGap
+                : 0f;
+            float devViewGroupOffset = puzzleModeGroupOffset + groupHeight + modeButtonGap;
+            float interactionGroupOffset = devViewGroupOffset + groupHeight + modeButtonGap;
             float fontGroupOffset = (playerInteraction != null ? interactionGroupOffset + groupHeight : devViewGroupOffset + groupHeight) + modeButtonGap;
             float panelHeight = fontGroupOffset + fontGroupHeight;
             selector.sizeDelta = new Vector2(groupWidth, panelHeight);
@@ -730,7 +748,22 @@ namespace ColorPuzzle
             Font font = canvas.GetComponentInChildren<Text>(true)?.font;
             if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
-            RectTransform puzzleModeGroup = CreateSelectorGroup(selector, "PUZZLE MODE", 0f, groupWidth, groupHeight, font);
+            if (showLevelSequenceInDeveloperPanel)
+            {
+                RectTransform levelSequenceGroup = CreateSelectorGroup(
+                    selector, "LEVEL SEQUENCE", 0f, groupWidth, levelSequenceGroupHeight, font);
+                forestLevelButton = CreateModeButton(levelSequenceGroup, ForestLevelButtonLabel, selectorGroupPadding, font);
+                oceanLevelButton = CreateModeButton(
+                    levelSequenceGroup, OceanLevelButtonLabel,
+                    selectorGroupPadding + modeButtonSize.x + modeButtonGap, font);
+                villageLevelButton = CreateModeButton(levelSequenceGroup, VillageLevelButtonLabel, selectorGroupPadding, font, 1);
+                forestLevelButton.onClick.AddListener(() => LoadDevelopmentLevel(forestTutorialSceneName));
+                oceanLevelButton.onClick.AddListener(() => LoadDevelopmentLevel(oceanSceneName));
+                villageLevelButton.onClick.AddListener(() => LoadDevelopmentLevel(villageEndingSceneName));
+            }
+
+            RectTransform puzzleModeGroup = CreateSelectorGroup(
+                selector, "PUZZLE MODE", puzzleModeGroupOffset, groupWidth, groupHeight, font);
             colorSearchButton = CreateModeButton(puzzleModeGroup, ColorSearchButtonLabel, selectorGroupPadding, font);
             valueSearchButton = CreateModeButton(
                 puzzleModeGroup,
@@ -1032,6 +1065,30 @@ namespace ColorPuzzle
             Cursor.visible = developerPanelOpen;
         }
 
+        public void PrepareForPause()
+        {
+            SetDeveloperPanelOpen(false);
+            SetActive(false);
+        }
+
+        private void LoadDevelopmentLevel(string sceneName)
+        {
+            if (string.IsNullOrWhiteSpace(sceneName)) return;
+            if (SceneManager.GetActiveScene().name == sceneName)
+            {
+                SetDeveloperPanelOpen(false);
+                return;
+            }
+
+            if (!Application.CanStreamedLevelBeLoaded(sceneName))
+            {
+                Debug.LogWarning($"Development level '{sceneName}' is not in the build settings.", this);
+                return;
+            }
+
+            SceneManager.LoadScene(sceneName);
+        }
+
         private RectTransform CreateSelectorGroup(RectTransform parent, string label, float offsetY, float width, float height, Font font)
         {
             GameObject groupObject = new GameObject(label, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
@@ -1135,6 +1192,16 @@ namespace ColorPuzzle
                 centerTextButton.targetGraphic.color = playerInteraction.CurrentInteractionCueMode == PlayerInteraction.InteractionCueMode.CenterText
                     ? selectedModeColor
                     : unselectedModeColor;
+            string activeSceneName = SceneManager.GetActiveScene().name;
+            if (forestLevelButton != null)
+                forestLevelButton.targetGraphic.color = activeSceneName == forestTutorialSceneName
+                    ? selectedModeColor : unselectedModeColor;
+            if (oceanLevelButton != null)
+                oceanLevelButton.targetGraphic.color = activeSceneName == oceanSceneName
+                    ? selectedModeColor : unselectedModeColor;
+            if (villageLevelButton != null)
+                villageLevelButton.targetGraphic.color = activeSceneName == villageEndingSceneName
+                    ? selectedModeColor : unselectedModeColor;
             foreach (KeyValuePair<DisplayFont, Button> fontButton in displayFontButtons)
                 fontButton.Value.targetGraphic.color = fontButton.Key == currentDisplayFont
                     ? selectedModeColor

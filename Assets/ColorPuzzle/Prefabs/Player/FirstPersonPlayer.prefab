@@ -183,7 +183,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
   m_RenderShadows: 1
   m_RequiresDepthTextureOption: 2
@@ -390,6 +390,7 @@ GameObject:
   - component: {fileID: 3460739725101912303}
   - component: {fileID: 9175544705949783069}
   - component: {fileID: 6546902326841184771}
+  - component: {fileID: 6362709185043152091}
   m_Layer: 0
   m_Name: FirstPersonPlayer
   m_TagString: Untagged
@@ -609,6 +610,10 @@ MonoBehaviour:
   enableDeveloperPanel: 1
   developerPanelToggleKey: 2
   unlockCursorWhilePanelOpen: 1
+  showLevelSequenceInDeveloperPanel: 1
+  forestTutorialSceneName: ColorPuzzleForestTutorial
+  oceanSceneName: ColorPuzzleUnderwaterDemo
+  villageEndingSceneName: ColorPuzzleVillageEnding
   modeButtonSize: {x: 140, y: 36}
   modeButtonGap: 8
   selectorGroupPadding: 8
@@ -622,7 +627,7 @@ MonoBehaviour:
   selectorGroupLabelColor: {r: 1, g: 1, b: 1, a: 1}
   selectorGroupBackgroundColor: {r: 0, g: 0, b: 0, a: 0.55}
   defaultDisplayFont: 0
-  showStoryObjective: 1
+  showStoryObjective: 0
   storyCardSize: {x: 500, y: 96}
   storyCardMargin: {x: 20, y: 20}
   storyCardPadding: {x: 22, y: 14}
@@ -967,7 +972,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &3276155364356581078
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1078,3 +1083,34 @@ MonoBehaviour:
   - LeftNiche_Wall
   - RightNiche_Wall
   - RearRight_PocketWall
+--- !u!114 &6362709185043152091
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4024485789046865348}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d123ae9765d84f819207144c0b230af4, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.PauseMenuController
+  pauseKey: 60
+  menuSceneName: ColorPuzzleStartMenu
+  pauseTitle: PAUSED
+  controlsText: "WASD  Move\nSPACE  Jump\nRMB  Magnifier\nLMB  Pick up\nQ  Drop / place\nR  Reset level\nENTER  Developer panel\nESC  Pause"
+  resumeLabel: RESUME
+  quitLabel: QUIT TO MENU
+  volumeLabel: VOLUME
+  panelSize: {x: 600, y: 700}
+  buttonSize: {x: 330, y: 58}
+  titleFontSize: 48
+  bodyFontSize: 23
+  overlayColor: {r: 0, g: 0.035, b: 0.06, a: 0.72}
+  panelColor: {r: 0.04, g: 0.15, b: 0.22, a: 0.98}
+  textColor: {r: 1, g: 1, b: 1, a: 1}
+  buttonColor: {r: 0.94, g: 0.94, b: 0.88, a: 1}
+  buttonTextColor: {r: 0.04, g: 0.12, b: 0.18, a: 1}
+  sliderTrackColor: {r: 0.15, g: 0.28, b: 0.34, a: 1}
+  sliderFillColor: {r: 0.4, g: 0.82, b: 0.9, a: 1}
+  defaultMasterVolume: 0.75

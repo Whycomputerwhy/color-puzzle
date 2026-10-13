@@ -4,6 +4,8 @@
 
 Color Puzzle is a casual first-person 3D exploration platformer about restoring color. The underwater prototype now supports two session-persistent puzzle variations in the hidden Enter panel. **Color Search** is the existing Move Lens loop: holding right click while grounded freezes the player/camera and moves a circular color viewport. **Value Search** removes the magnifier entirely and renders the full scene in greyscale; the player identifies the correct object by comparing the intrinsic lightness of a deliberately reduced six-color palette. Pickup stores the object in a neutral bottom inventory HUD, and only a correct placement completes the goal. Full Color remains a Color Search-only developer comparison.
 
+Alpha production uses a three-scene sequence: **Forest Tutorial** (Level 1), **Ocean** (Level 2, the current authored level), and **Village Ending** (Level 3). Forest and Village are intentionally content-empty placeholders containing only the shared player/dev panel. The build starts in Forest; Enter exposes direct Forest/Ocean/Village navigation for development.
+
 The active underwater shell and pillar visuals use normalized Unity mesh assets generated from the supplied OBJ source exports. Their Y-forward/Z-up export space is converted to Unity's Y-up convention during normalization, while the resulting mesh bounds match the previous visuals so authored scene placement does not move.
 
 ### Prototype controls
@@ -16,6 +18,7 @@ The active underwater shell and pillar visuals use normalized Unity mesh assets 
 - **Q** — place the carried object on a matching goal, or drop it in front of the player
 - **R** — reset the current scene
 - **Enter** — open/close the developer panel; opening releases the cursor and closing recaptures it
+- **Forest / Ocean / Village (developer panel)** — load any level in the alpha sequence
 - **Color Search / Value Search (developer panel)** — switch between magnifier-based hue discovery and full-screen greyscale value comparison
 - **Greyscale / Full Color (developer panel)** — compare the intended monochrome presentation with an always-on color view
 - **Back Glow / Center Text (developer panel)** — compare the two 0.75-second interaction-cue variations
@@ -23,9 +26,7 @@ The active underwater shell and pillar visuals use normalized Unity mesh assets 
 
 ### Play paths
 
-Open `Assets/ColorPuzzle/Scenes/ColorPuzzleVerticalSlice.unity` and press Play. The scene starts in Greyscale with Move Lens. Find the gray ball and hold right click while grounded: the ball appears red only inside the circular lens and returns to gray when the lens closes. Left-click the ball to store it in the bottom inventory HUD. An ordinary drop remains gray in the main view and can be inspected again through the magnifier. Approach the goal with the red top mark, aim at it, and press Q. Placement permanently turns the ball and goal red and reveals the completion door beside the right wall. Press R at any time to restart. Press Enter only when a developer needs to compare Greyscale with Full Color.
-
-Open `Assets/ColorPuzzle/Scenes/ColorPuzzleUnderwaterDemo.unity` for the active demo level. It starts in Color Search. Press Enter and choose Value Search to replace the lens loop with a full-screen greyscale comparison puzzle. The controls line immediately removes the magnifier instruction, and the top-left square objective box explains the new story/mechanic. The underwater goal is a pillar with one flat, collider-free target image: a red center inside a white perimeter ring. Gravity is reduced only in this scene, from `-22` to `-8 m/s²`, for a floatier platforming feel.
+`ColorPuzzleStartMenu.unity` is the build entry. Play begins at `ColorPuzzleForestTutorial.unity`, the Level 1 placeholder. `ColorPuzzleUnderwaterDemo.unity` is Level 2 and remains the active authored demo. `ColorPuzzleVillageEnding.unity` is the Level 3 placeholder. Press Enter in any level and use the Level Sequence group to move directly between them. Escape opens the shared pause menu. The production HUD no longer creates the top-left objective card or displays the bottom control legend; interaction cues and the carried-shell inventory remain available.
 
 ## Visual system recipe
 
@@ -43,7 +44,7 @@ Color Search uses a sparse monochrome base plus a movable circle of saturated co
 | Value palette | Six readable brightness families | Original reveal material name, six Inspector colors | Temporarily clones and retints reveal-layer materials; restores originals on mode exit | Controlled hue/value scene | Greyscale value pass |
 | Value greyscale pass | Full-screen value-comparison puzzle | Complete color RenderTexture | Converts RGB to Rec. 709 luminance in a screen-space UI shader | Monochrome frame with intrinsic hue values | HUD composite |
 | Moving circle mask | Magnifying-glass shape | Mouse delta, target coordinate, easing response, RenderTexture, alpha sprite | Accumulates a clamped target, eases the visible mask toward it, and counter-moves the full-screen RawImage from the same eased coordinate | Smooth aligned round viewport | Final composite |
-| Developer panel | Hidden mechanics/presentation comparison | Enter, puzzle-mode buttons, view buttons, cue buttons | Three grouped selectors choose puzzle mode, developer view, and interaction-cue variation; Full Color is disabled during Value Search | Session-persistent developer comparisons | Final composite |
+| Developer panel | Hidden level/mechanics/presentation comparison | Enter, level buttons, puzzle-mode buttons, view buttons, cue buttons | Directly loads Forest/Ocean/Village and selects the current puzzle, view, cue, and font options | Session-persistent developer comparisons | Final composite and scene loading |
 | Cue dwell | Intentional focus threshold | Exact object aim or assisted goal aim, unscaled time, 0.75-second threshold | Resets when the aimed target/action changes and reveals only after uninterrupted focus | Active contextual cue | Glow or text variation |
 | Back-glow cue | Soft, shape-matched collectible emphasis | Collectible renderer, full-resolution mask, stencil, width, softness, fade time | Draws an always-visible silhouette mask, performs horizontal and vertical screen-space expansion/softening, then composites only where stencil differs; after dwell, applies a smoothstep opacity envelope over 0.25 seconds | Black/white soft outline that follows the object, survives occluders, and cannot cover its center | Final composite |
 | Center-text cue | Minimal interaction instruction | Current carried state and aimed target | Shows `LC PICKUP`, or `Q PLACE` only when a carried object is aimed at its valid goal; ordinary drops have no cue | Tiny contextual label | HUD composite |
@@ -139,7 +140,7 @@ The reveal camera uses the main camera's world position, rotation, field of view
 7. When placing, the camera ray must pass through the forgiving radius around the marked top-surface center; pedestal-body hits outside that region remain ordinary drops.
 8. The unlit flat marker renders over the pedestal top without casting/receiving shadows or contributing collision.
 9. After the uninterrupted dwell threshold, the selected cue renders: the URP RenderGraph feature draws an exact object mask, expands and softens it at full camera resolution, and composites only outside the stencil while easing to authored opacity over 0.25 seconds. The main camera uses black; the color camera uses white. The alternative contextual center text appears beneath the crosshair.
-10. Crosshair, mode-specific controls, square objective box, and bottom inventory HUD render on top; the top-right developer panel is added only while Enter has opened it.
+10. Crosshair, contextual interaction cues, and bottom inventory HUD render on top; the production objective card and control legend are disabled. The top-right developer panel is added only while Enter has opened it.
 
 In Full Color, the reveal camera bypasses the RenderTexture and renders directly to the display after matching the main camera pose. Full Color is unavailable in Value Search. Returning to Color Search + Greyscale reconnects the camera to the circular reveal texture and restores every original reveal material.
 
@@ -193,6 +194,15 @@ All game-feel variables are serialized and editable in the Unity Inspector.
 | MagnifierView / Enable Developer Panel | true | toggle | Allows Enter to create and toggle the hidden comparison panel |
 | MagnifierView / Developer Panel Toggle Key | Enter | key | Opens/closes the developer panel |
 | MagnifierView / Unlock Cursor While Panel Open | true | toggle | Releases the cursor on open and recaptures it on close |
+| MagnifierView / Show Level Sequence In Developer Panel | true | toggle | Adds Forest/Ocean/Village scene-loading buttons to the Enter panel |
+| MagnifierView / Forest Tutorial Scene Name | ColorPuzzleForestTutorial | scene name | Level 1 development destination and build entry |
+| MagnifierView / Ocean Scene Name | ColorPuzzleUnderwaterDemo | scene name | Level 2/current authored destination |
+| MagnifierView / Village Ending Scene Name | ColorPuzzleVillageEnding | scene name | Level 3 development destination |
+| PauseMenuController / Pause Key | Escape | key | Opens and closes the in-game pause menu |
+| PauseMenuController / Menu Scene Name | ColorPuzzleStartMenu | scene name | Destination for Quit to Menu |
+| PauseMenuController / Controls Text | fixed read-only legend | text | Control reference shown while paused; remapping is intentionally unavailable |
+| PauseMenuController / Default Master Volume | 0.75 | 0-1 | First-run master volume before the saved player preference takes over |
+| PauseMenuController / Layout + Palette | serialized sizes, font sizes, and colors | visual | Start/pause menu presentation tuning on the player prefab |
 | MagnifierView / Mode Button Size | (140, 36) | canvas pixels | Width and height of each mode button |
 | MagnifierView / Mode Button Gap | 8 | canvas pixels, ≥0 | Horizontal spacing between the two buttons |
 | MagnifierView / Selector Group Padding | 8 | canvas pixels, ≥0 | Interior spacing around the developer group |
@@ -205,7 +215,7 @@ All game-feel variables are serialized and editable in the Unity Inspector.
 | MagnifierView / Mode Button Text Color | white | RGBA | Selector label color |
 | MagnifierView / Selector Group Label Color | white | RGBA | Group-title text color |
 | MagnifierView / Selector Group Background Color | black `(0, 0, 0, 0.55)` | RGBA | Translucent developer-panel backing |
-| MagnifierView / Show Story Objective | true | toggle | Creates the persistent top-left objective box |
+| MagnifierView / Show Story Objective | false | toggle | Production default hides the former top-left objective box |
 | MagnifierView / Story Card Size | (500, 96) | canvas pixels | Square-corner objective-box bounds |
 | MagnifierView / Story Card Margin | (20, 20) | canvas pixels | Offset from the top-left screen corner |
 | MagnifierView / Story Card Padding | (22, 14) | canvas pixels | Text inset inside the box |
@@ -302,7 +312,7 @@ Assets/ColorPuzzle/
 │   ├── Underwater/            # Reusable rocks, coral, kelp, bubbles, decoy sphere, and cylinder goal
 │   └── World/                 # Reusable gray block with color proxy child
 ├── Resources/Shaders/         # Runtime-loaded outline mask/dilation shaders and visual shaders
-├── Scenes/                    # Original vertical slice and underwater demo
+├── Scenes/                    # Forest placeholder, authored Ocean level, Village placeholder, and archived prototype scene
 ├── Scripts/
 │   ├── Editor/                # Validator, renderer-feature installer, and targeted asset migrations
 │   └── Runtime/               # Gameplay plus the URP RenderGraph interaction-outline feature
@@ -360,13 +370,12 @@ The underwater creator at `Assets/ColorPuzzle/Scripts/Editor/UnderwaterDemoLevel
 
 ## Desktop build
 
-Run **Color Puzzle → Validate Demo Build (Read Only)** before producing a player build. This command:
+Run **Color Puzzle → Validate Alpha Build (Read Only)** before producing a player build. This command:
 
-- verifies that `ColorPuzzleUnderwaterDemo.unity` is enabled at startup index 0;
-- verifies that the original `ColorPuzzleVerticalSlice.unity` remains enabled at index 1;
+- verifies Forest, Ocean, and Village at build indices 0, 1, and 2;
 - reports an error if the configuration is wrong;
 - does not save or modify scenes, prefabs, materials, HUD, cameras, Player Settings, or Build Settings.
 
 Then open **File → Build Profiles**, choose the desired desktop platform, and build. Ordinary Unity player builds read authored assets and do not invoke the disabled prototype generator.
 
-`ColorPuzzleUnderwaterDemo.unity` is the player-build startup scene at index 0. The original vertical slice remains included and enabled at index 1.
+`ColorPuzzleStartMenu.unity` is the player-build startup scene at index 0. Forest is index 1, Ocean is index 2, and Village is index 3. The older vertical-slice scene remains in the project for reference but is no longer part of the alpha build sequence.

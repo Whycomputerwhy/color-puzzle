@@ -10,27 +10,37 @@ namespace ColorPuzzle.Editor
     /// </summary>
     public static class VerticalSliceBuilder
     {
-        private const string StartupScenePath = "Assets/ColorPuzzle/Scenes/ColorPuzzleUnderwaterDemo.unity";
-        private const string OriginalScenePath = "Assets/ColorPuzzle/Scenes/ColorPuzzleVerticalSlice.unity";
+        private const string StartMenuScenePath = "Assets/ColorPuzzle/Scenes/ColorPuzzleStartMenu.unity";
+        private const string ForestScenePath = "Assets/ColorPuzzle/Scenes/ColorPuzzleForestTutorial.unity";
+        private const string OceanScenePath = "Assets/ColorPuzzle/Scenes/ColorPuzzleUnderwaterDemo.unity";
+        private const string VillageScenePath = "Assets/ColorPuzzle/Scenes/ColorPuzzleVillageEnding.unity";
 
-        [MenuItem("Color Puzzle/Validate Demo Build (Read Only)")]
+        [MenuItem("Color Puzzle/Validate Alpha Build (Read Only)")]
         public static void PrepareDesktopBuild()
         {
-            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(StartupScenePath) == null)
-                throw new FileNotFoundException("The underwater startup scene is missing. No files were changed.", StartupScenePath);
-            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(OriginalScenePath) == null)
-                throw new FileNotFoundException("The original demo scene is missing. No files were changed.", OriginalScenePath);
+            ValidateSceneExists(StartMenuScenePath, "start menu");
+            ValidateSceneExists(ForestScenePath, "forest tutorial");
+            ValidateSceneExists(OceanScenePath, "ocean level");
+            ValidateSceneExists(VillageScenePath, "village ending");
 
             EditorBuildSettingsScene[] scenes = EditorBuildSettings.scenes;
-            bool valid = scenes.Length > 1 &&
-                         scenes[0].enabled && scenes[0].path == StartupScenePath &&
-                         scenes[1].enabled && scenes[1].path == OriginalScenePath;
+            bool valid = scenes.Length == 4 &&
+                         scenes[0].enabled && scenes[0].path == StartMenuScenePath &&
+                         scenes[1].enabled && scenes[1].path == ForestScenePath &&
+                         scenes[2].enabled && scenes[2].path == OceanScenePath &&
+                         scenes[3].enabled && scenes[3].path == VillageScenePath;
             if (!valid)
                 throw new System.InvalidOperationException(
-                    "Build settings must open the underwater demo at index 0 and retain the original demo at index 1. No files were changed.");
+                    "Build settings must contain Start Menu, Forest, Ocean, and Village at indices 0, 1, 2, and 3. No files were changed.");
 
             UnityEngine.Debug.Log(
-                "COLOR PUZZLE BUILD VALID: underwater demo starts at index 0; original demo remains enabled at index 1. No files were changed.");
+                "COLOR PUZZLE ALPHA BUILD VALID: Start Menu -> Forest -> Ocean -> Village. No files were changed.");
+        }
+
+        private static void ValidateSceneExists(string scenePath, string levelLabel)
+        {
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath) == null)
+                throw new FileNotFoundException($"The {levelLabel} scene is missing. No files were changed.", scenePath);
         }
 
         /// <summary>Compatibility guard for old automation.</summary>

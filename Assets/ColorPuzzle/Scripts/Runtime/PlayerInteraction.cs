@@ -139,6 +139,7 @@ namespace ColorPuzzle
         private void Update()
         {
             if (Mouse.current == null || Keyboard.current == null) return;
+            if (PauseMenuController.IsPaused) return;
             if (Keyboard.current[resetKey].wasPressedThisFrame)
             {
                 SceneManager.LoadScene(SceneManager.GetActiveScene().name);
