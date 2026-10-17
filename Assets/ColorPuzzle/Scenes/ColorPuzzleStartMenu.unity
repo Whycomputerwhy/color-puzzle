@@ -31,7 +31,7 @@ RenderSettings:
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
   m_HaloTexture: {fileID: 0}
-  m_SpotCookie: {fileID: 10001, guid: 0000000000000000f000000000000000, type: 0}
+  m_SpotCookie: {fileID: 10001, guid: 0000000000000000e000000000000000, type: 0}
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
@@ -66,9 +66,6 @@ LightmapSettings:
     m_LightmapParameters: {fileID: 0}
     m_LightmapsBakeMode: 1
     m_TextureCompression: 1
-    m_FinalGather: 0
-    m_FinalGatherFiltering: 1
-    m_FinalGatherRayCount: 256
     m_ReflectionCompression: 2
     m_MixedBakeMode: 2
     m_BakeBackend: 1
@@ -225,7 +222,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
   m_RenderShadows: 0
   m_RequiresDepthTextureOption: 2
@@ -303,7 +300,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26c47a819d28495cb86f71e670be8e35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.StartMenuController
-  firstLevelSceneName: ColorPuzzleForestTutorial
+  firstLevelSceneName: ColorPuzzleUnderwaterDemo
   gameTitle: COLOR PUZZLE
   subtitle: Restore color to a world beneath the waves
   playLabel: PLAY
@@ -318,3 +315,9 @@ MonoBehaviour:
   buttonColor: {r: 0.94, g: 0.94, b: 0.88, a: 1}
   buttonTextColor: {r: 0.04, g: 0.12, b: 0.18, a: 1}
   defaultMasterVolume: 0.75
+--- !u!1660057539 &9223372036854775807
+SceneRoots:
+  m_ObjectHideFlags: 0
+  m_Roots:
+  - {fileID: 90001}
+  - {fileID: 100001}

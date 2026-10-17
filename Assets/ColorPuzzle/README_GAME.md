@@ -42,6 +42,10 @@ Final records are appended automatically when the player enters the portal, leav
 
 ## Visual system recipe
 
+### Forest camouflage component
+
+`ForestCamouflage` is a reusable component for the Forest level's regular-world foliage or props. It blends an object's authored material color near the player into a shared camouflage color at distance using a material property block, so it does not create per-object material instances. Attach it only to the regular-world renderer; leave any `ColorReveal` proxy on its authored color so the existing color-view system remains truthful. The Forest scene is currently a placeholder, so no renderer is assigned by default.
+
 ### Visual intent
 
 Color Search uses a sparse monochrome base plus a movable circle of saturated color. Value Search instead renders the same complete color pass through a Rec. 709 luminance filter and remaps reveal-layer materials to six hue families whose approximate values are `0.05, 0.12, 0.22, 0.44, 0.59, 0.80`. This makes hue disappear while preserving large, intentional brightness steps. The red solution and red pillar hint occupy the target band near `0.22`; decoys occupy the other bands. Value Search never activates, draws, or advertises the magnifier. Both modes retain pickup, placement, reset, interaction cues, subtle walking/jump motion, and the same level geometry.

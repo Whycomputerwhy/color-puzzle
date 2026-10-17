@@ -1,6 +1,17 @@
 # Color Puzzle Version History
 This log is intended for people and AI agents continuing the same Unity project. Append new entries; do not rewrite past decisions without explaining the migration.
 
+## 0.5.1 — 2026-10-15 — Forest distance camouflage
+
+### Added
+
+- Added the reusable `ForestCamouflage` runtime component for future Forest props and foliage. It blends an authored `_BaseColor` or `_Color` toward a configurable distant camouflage color without allocating material instances.
+- Added camera/player override support so the component can be used in the current first-person setup or on a future alternate player rig.
+
+### Safety
+
+- The Forest scene remains an empty placeholder; no scene objects, shared prefabs, or Ocean assets were reassigned.
+
 ## 0.5.0 — 2026-10-13 — Playtest telemetry
 
 ### Added
