@@ -13,8 +13,7 @@ namespace ColorPuzzle
         [SerializeField] private string firstLevelSceneName = "ColorPuzzleForestTutorial";
 
         [Header("Copy")]
-        [SerializeField] private string gameTitle = "COLOR PUZZLE";
-        [SerializeField] private string subtitle = "Restore color to a world beneath the waves";
+        [SerializeField, TextArea(2, 2)] private string gameTitle = "COLOR\nTHE GREY";
         [SerializeField] private string playLabel = "PLAY";
         [SerializeField] private string quitLabel = "QUIT";
 
@@ -100,9 +99,7 @@ namespace ColorPuzzle
             panel.sizeDelta = panelSize;
 
             CreateText(panel, "Title", gameTitle, font, titleFontSize, textColor,
-                new Vector2(0f, 135f), new Vector2(panelSize.x - 60f, 100f), TextAnchor.MiddleCenter);
-            CreateText(panel, "Subtitle", subtitle, font, bodyFontSize, textColor,
-                new Vector2(0f, 72f), new Vector2(panelSize.x - 80f, 60f), TextAnchor.MiddleCenter);
+                new Vector2(0f, 125f), new Vector2(panelSize.x - 60f, 155f), TextAnchor.MiddleCenter);
 
             Button playButton = CreateButton(
                 panel, "PlayButton", playLabel, font, new Vector2(0f, -35f), StartGame);

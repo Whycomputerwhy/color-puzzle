@@ -1,128 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &176375812301414074
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1871711405246846978}
-  - component: {fileID: 2399290856071344975}
-  - component: {fileID: 29276921583764019}
-  m_Layer: 0
-  m_Name: PillarOceanObjModel
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1871711405246846978
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 176375812301414074}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: 0}
-  m_LocalScale: {x: 150, y: 120, z: 200}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 7295247017692459665}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &2399290856071344975
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 176375812301414074}
-  m_Mesh: {fileID: 4300000, guid: 814fac0c8547346fabacb4aa7d9b2f69, type: 2}
---- !u!23 &29276921583764019
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 176375812301414074}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: be1d07f90179f471bbc01debcabfaea3, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_MaskInteraction: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &1252871306542881417
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 7295247017692459665}
-  m_Layer: 0
-  m_Name: PillarOceanVisual
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &7295247017692459665
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1252871306542881417}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.12, z: -0.52}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 8647820524661772352}
-  - {fileID: 1871711405246846978}
-  m_Father: {fileID: 3629765572928943736}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2488884955068803183
 GameObject:
   m_ObjectHideFlags: 0
@@ -148,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 2488884955068803183}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.01, y: 0, z: 0.26}
+  m_LocalPosition: {x: 0.03, y: 0.52, z: 0.04}
   m_LocalScale: {x: 0.45454544, y: 1, z: 0.45454544}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -244,6 +121,38 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &4933001715196536829
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6808033483969057473}
+  m_Layer: 0
+  m_Name: PillarOceanVisual
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6808033483969057473
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4933001715196536829}
+  serializedVersion: 2
+  m_LocalRotation: {x: -1, y: 0, z: 0, w: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 297116949419354060}
+  m_Father: {fileID: 3629765572928943736}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5857688916116705176
 GameObject:
   m_ObjectHideFlags: 0
@@ -280,7 +189,7 @@ Transform:
   - {fileID: 3977042817956359006}
   - {fileID: 4917496708394265834}
   - {fileID: 1759858279914431075}
-  - {fileID: 7295247017692459665}
+  - {fileID: 6808033483969057473}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &3213617994226030414
@@ -355,22 +264,16 @@ MonoBehaviour:
   acceptedObjectId: red-ball
   placementSocket: {fileID: 4917496708394265834}
   placedObjectSurfaceClearance: 0.015
-  pedestalRenderer: {fileID: 29276921583764019}
+  pedestalRenderer: {fileID: 1465005331313368227}
   completedMaterial: {fileID: 0}
   colorProxy: {fileID: 0}
-  wrongPlacementClip: {fileID: 0}
-  correctPlacementAndRevealClip: {fileID: 0}
+  wrongPlacementClip: {fileID: 8300000, guid: bc14027ba8a394c99ba46158c49ae8f2, type: 3}
+  correctPlacementAndRevealClip: {fileID: 8300000, guid: f7bd1e49b1c0641a6809e6f6cf857de0, type: 3}
   wrongPlacementVolume: 0.24
   correctPlacementVolume: 0.3
   useVisualBoundsHitbox: 1
   hitboxPadding: 0.08
-  createCompletionDoor: 1
-  completionDoorWorldPosition: {x: 10.7, y: 4.7, z: 7.3}
-  completionDoorWorldEulerAngles: {x: 0, y: 0, z: 0}
-  completionDoorWorldScale: {x: 0.35, y: 3, z: 2}
-  completionDoorBaseColor: {r: 0.35, g: 0.35, b: 0.35, a: 1}
-  completionDoorRevealColor: {r: 0.12, g: 0.72, b: 0.38, a: 1}
-  completionDoorName: RestoredColorDoor
+  completionPortal: {fileID: 0}
 --- !u!64 &2965049516387902849
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -420,7 +323,7 @@ Transform:
   m_GameObject: {fileID: 7568311154432674635}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0.76, z: 0.234}
+  m_LocalPosition: {x: 0.019996643, y: 0.502, z: 0.014000684}
   m_LocalScale: {x: 0.36, y: 0.36, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -483,45 +386,45 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1001 &9190021167169238955
+--- !u!1001 &258160072832450599
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 7295247017692459665}
+    m_TransformParent: {fileID: 6808033483969057473}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 98c02f3d8c7fa4685903911a775b2d1b, type: 3}
       propertyPath: m_LocalScale.x
-      value: 150
+      value: 158.06364
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 98c02f3d8c7fa4685903911a775b2d1b, type: 3}
       propertyPath: m_LocalScale.y
-      value: 150
+      value: 158.06364
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 98c02f3d8c7fa4685903911a775b2d1b, type: 3}
       propertyPath: m_LocalScale.z
-      value: 150
+      value: 158.06364
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 98c02f3d8c7fa4685903911a775b2d1b, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.01
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 98c02f3d8c7fa4685903911a775b2d1b, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 0.6917773
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 98c02f3d8c7fa4685903911a775b2d1b, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.81
+      value: 0.00000007360412
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 98c02f3d8c7fa4685903911a775b2d1b, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 98c02f3d8c7fa4685903911a775b2d1b, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: 0.7071068
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 98c02f3d8c7fa4685903911a775b2d1b, type: 3}
       propertyPath: m_LocalRotation.y
@@ -551,17 +454,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: PillarOceanModel
       objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 98c02f3d8c7fa4685903911a775b2d1b, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 98c02f3d8c7fa4685903911a775b2d1b, type: 3}
---- !u!4 &8647820524661772352 stripped
+--- !u!4 &297116949419354060 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 98c02f3d8c7fa4685903911a775b2d1b, type: 3}
-  m_PrefabInstance: {fileID: 9190021167169238955}
+  m_PrefabInstance: {fileID: 258160072832450599}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &1465005331313368227 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7511558181221131132, guid: 98c02f3d8c7fa4685903911a775b2d1b, type: 3}
+  m_PrefabInstance: {fileID: 258160072832450599}
   m_PrefabAsset: {fileID: 0}

@@ -415,8 +415,6 @@ namespace ColorPuzzle
 
         private void ConfigureBackgroundMusic()
         {
-            if (backgroundMusicClip == null)
-                backgroundMusicClip = Resources.Load<AudioClip>("Audio/UnderwaterBackgroundMusic");
             if (backgroundMusicClip == null) return;
 
             GameObject musicObject = new GameObject("BackgroundMusic", typeof(AudioSource));

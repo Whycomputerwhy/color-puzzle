@@ -1,6 +1,14 @@
 # Color Puzzle Version History
 This log is intended for people and AI agents continuing the same Unity project. Append new entries; do not rewrite past decisions without explaining the migration.
 
+## 0.5.2 — 2026-10-19 — Authored completion portal
+
+### Changed
+
+- Replaced the runtime-generated completion door with `RestoredColorPortal.prefab`.
+- Added one inactive portal instance to `UnderwaterLevel.prefab` at the existing portal position; the goal now reveals that authored instance after correct placement.
+- Kept the trigger-only telemetry behavior and the regular/color-view portal renderers on the prefab.
+
 ## 0.5.1 — 2026-10-15 — Forest distance camouflage
 
 ### Added

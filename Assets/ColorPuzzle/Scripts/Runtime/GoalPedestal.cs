@@ -27,20 +27,11 @@ namespace ColorPuzzle
         [SerializeField] private bool useVisualBoundsHitbox = true;
         [SerializeField, Min(0f)] private float hitboxPadding = 0.08f;
 
-        [Header("Completion Door")]
-        [SerializeField] private bool createCompletionDoor = true;
-        [SerializeField] private Vector3 completionDoorWorldPosition = new Vector3(10.4f, 1.5f, 5.5f);
-        [SerializeField] private Vector3 completionDoorWorldEulerAngles = Vector3.zero;
-        [SerializeField] private Vector3 completionDoorWorldScale = new Vector3(0.35f, 3f, 2f);
-        [SerializeField] private Color completionDoorBaseColor = new Color(0.35f, 0.35f, 0.35f, 1f);
-        [SerializeField] private Color completionDoorRevealColor = new Color(0.12f, 0.72f, 0.38f, 1f);
-        [SerializeField] private string completionDoorName = "RestoredColorDoor";
+        [Header("Completion Portal")]
+        [SerializeField] private GameObject completionPortal;
 
         private bool complete;
         private DiscoverableObject temporarilyPlacedItem;
-        private GameObject completionDoor;
-        private Material completionDoorBaseMaterial;
-        private Material completionDoorRevealMaterial;
         private MagnifierView magnifierView;
         private BoxCollider runtimeInteractionHitbox;
         private GameObject placementTargetColorProxy;
@@ -68,13 +59,7 @@ namespace ColorPuzzle
             EnsurePlacementTargetColorProxy();
             ConfigureInteractionHitbox();
             ConfigurePlacementAudio();
-            if (createCompletionDoor) CreateCompletionDoor();
-        }
-
-        private void OnDestroy()
-        {
-            if (completionDoorBaseMaterial != null) Destroy(completionDoorBaseMaterial);
-            if (completionDoorRevealMaterial != null) Destroy(completionDoorRevealMaterial);
+            if (completionPortal != null) completionPortal.SetActive(false);
         }
 
         public bool CanAccept(DiscoverableObject item)
@@ -107,7 +92,7 @@ namespace ColorPuzzle
             if (pedestalRenderer != null && completedMaterial != null)
                 pedestalRenderer.sharedMaterial = completedMaterial;
             if (colorProxy != null) colorProxy.SetActive(true);
-            if (completionDoor != null) completionDoor.SetActive(true);
+            if (completionPortal != null) completionPortal.SetActive(true);
             TelemetryManager.RecordPortalUnlocked();
             PlayPlacementAudio(correctPlacementAndRevealClip, correctPlacementVolume);
             magnifierView?.FadeOutBackgroundMusic();
@@ -132,11 +117,6 @@ namespace ColorPuzzle
 
         private void ConfigurePlacementAudio()
         {
-            if (wrongPlacementClip == null)
-                wrongPlacementClip = Resources.Load<AudioClip>("Audio/WrongShellPlacement");
-            if (correctPlacementAndRevealClip == null)
-                correctPlacementAndRevealClip = Resources.Load<AudioClip>("Audio/CorrectShellPlacementAndReveal");
-
             placementAudioSource = GetComponent<AudioSource>();
             if (placementAudioSource == null)
                 placementAudioSource = gameObject.AddComponent<AudioSource>();
@@ -158,42 +138,6 @@ namespace ColorPuzzle
                 (temporarilyPlacedItem.PhysicsCollider == null ||
                  !temporarilyPlacedItem.PhysicsCollider.enabled))
                 temporarilyPlacedItem = null;
-        }
-
-        private void CreateCompletionDoor()
-        {
-            // Match the authored environment in either camera. The fallback preserves the
-            // completion door if this project is ever opened without the cel shader asset.
-            Shader shader = Shader.Find("ColorPuzzle/Flexible Cel URP/Outline");
-            if (shader == null) shader = Shader.Find("Universal Render Pipeline/Lit");
-            if (shader == null) shader = Shader.Find("Standard");
-            if (shader == null) return;
-
-            completionDoor = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            completionDoor.name = completionDoorName;
-            completionDoor.transform.SetPositionAndRotation(
-                completionDoorWorldPosition,
-                Quaternion.Euler(completionDoorWorldEulerAngles));
-            completionDoor.transform.localScale = completionDoorWorldScale;
-            BoxCollider portalCollider = completionDoor.GetComponent<BoxCollider>();
-            if (portalCollider != null) portalCollider.isTrigger = true;
-            completionDoor.AddComponent<TelemetryPortalTrigger>();
-            completionDoorBaseMaterial = CreateDoorMaterial(shader, completionDoorBaseColor, 2000);
-            completionDoor.GetComponent<Renderer>().material = completionDoorBaseMaterial;
-
-            GameObject revealSurface = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            revealSurface.name = "ColorProxy";
-            revealSurface.transform.SetParent(completionDoor.transform, false);
-            revealSurface.transform.localPosition = Vector3.zero;
-            revealSurface.transform.localRotation = Quaternion.identity;
-            revealSurface.transform.localScale = Vector3.one * 1.002f;
-            Collider revealCollider = revealSurface.GetComponent<Collider>();
-            if (revealCollider != null) Destroy(revealCollider);
-            int revealLayer = LayerMask.NameToLayer("ColorReveal");
-            if (revealLayer >= 0) revealSurface.layer = revealLayer;
-            completionDoorRevealMaterial = CreateDoorMaterial(shader, completionDoorRevealColor, 2001);
-            revealSurface.GetComponent<Renderer>().material = completionDoorRevealMaterial;
-            completionDoor.SetActive(false);
         }
 
         private void EnsureColorProxy()
@@ -258,17 +202,5 @@ namespace ColorPuzzle
                 Destroy(collider);
         }
 
-        private static Material CreateDoorMaterial(Shader shader, Color color, int renderQueue)
-        {
-            Material material = new Material(shader)
-            {
-                name = "RuntimeDoorMaterial",
-                color = color,
-                renderQueue = renderQueue
-            };
-            if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", color);
-            if (material.HasProperty("_Color")) material.SetColor("_Color", color);
-            return material;
-        }
     }
 }

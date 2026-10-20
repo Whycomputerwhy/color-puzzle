@@ -301,8 +301,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.StartMenuController
   firstLevelSceneName: ColorPuzzleUnderwaterDemo
-  gameTitle: COLOR PUZZLE
-  subtitle: Restore color to a world beneath the waves
+  gameTitle: 'COLOR
+
+    THE GREY'
   playLabel: PLAY
   quitLabel: QUIT
   panelSize: {x: 620, y: 470}

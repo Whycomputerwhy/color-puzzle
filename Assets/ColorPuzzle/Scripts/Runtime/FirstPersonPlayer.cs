@@ -65,7 +65,6 @@ namespace ColorPuzzle
             controller = GetComponent<CharacterController>();
             if (cameraPivot == null && Camera.main != null) cameraPivot = Camera.main.transform;
             if (cameraPivot != null) cameraPivotRestLocalPosition = cameraPivot.localPosition;
-            LoadFootsteps();
             footstepAudioSource = GetComponent<AudioSource>();
             if (footstepAudioSource == null)
                 footstepAudioSource = gameObject.AddComponent<AudioSource>();
@@ -195,18 +194,6 @@ namespace ColorPuzzle
             else verticalVelocity += gravity * Time.deltaTime;
             controller.Move(Vector3.up * verticalVelocity * Time.deltaTime);
             distanceSinceFootstep = 0f;
-        }
-
-        private void LoadFootsteps()
-        {
-            if (footstepClips != null && footstepClips.Length > 0) return;
-            footstepClips = new[]
-            {
-                Resources.Load<AudioClip>("Audio/FootstepConcrete01"),
-                Resources.Load<AudioClip>("Audio/FootstepConcrete02"),
-                Resources.Load<AudioClip>("Audio/FootstepConcrete03"),
-                Resources.Load<AudioClip>("Audio/FootstepConcrete04")
-            };
         }
 
         private void UpdateFootsteps(Vector3 planarVelocity, bool wasGrounded)

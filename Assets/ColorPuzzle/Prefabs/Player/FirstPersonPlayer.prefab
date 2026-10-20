@@ -55,10 +55,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Text
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.9}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.9}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -183,7 +183,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
   m_RenderShadows: 1
   m_RequiresDepthTextureOption: 2
@@ -196,8 +196,8 @@ MonoBehaviour:
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
-  m_Antialiasing: 0
+  m_RenderPostProcessing: 1
+  m_Antialiasing: 1
   m_AntialiasingQuality: 2
   m_StopNaN: 0
   m_Dithering: 0
@@ -258,7 +258,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1559684481559516218}
   - component: {fileID: 4958961330578032067}
-  - component: {fileID: 3055949789913560396}
+  - component: {fileID: 3942511828490009756}
   m_Layer: 0
   m_Name: ColorRevealCamera
   m_TagString: Untagged
@@ -332,7 +332,7 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!114 &3055949789913560396
+--- !u!114 &3942511828490009756
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -355,8 +355,8 @@ MonoBehaviour:
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
-  m_Antialiasing: 0
+  m_RenderPostProcessing: 1
+  m_Antialiasing: 1
   m_AntialiasingQuality: 2
   m_StopNaN: 0
   m_Dithering: 0
@@ -455,11 +455,17 @@ MonoBehaviour:
   moveSpeed: 5
   airControl: 0.55
   jumpHeight: 1.35
-  gravity: -22
+  gravity: -8
   groundedForce: -2
-  footstepClips: []
+  footstepClips:
+  - {fileID: 8300000, guid: 943439e7c1b3f46daaeed5e4b134caa5, type: 3}
+  - {fileID: 8300000, guid: 8d37c84647dba460eb916b839c235d29, type: 3}
+  - {fileID: 8300000, guid: b18a17b468ea44246a61ef03e58e9147, type: 3}
+  - {fileID: 8300000, guid: fcce08823607a45d8bf9bd280f865c93, type: 3}
   footstepDistance: 2.1
   footstepVolume: 0.12
+  useFootstepForJump: 1
+  jumpFootstepVolume: 0.1
   cameraPivot: {fileID: 8214052168426382451}
   mouseSensitivity: 0.125
   verticalLookLimit: 85
@@ -566,11 +572,11 @@ MonoBehaviour:
   sourceCamera: {fileID: 4634387354463310727}
   colorCamera: {fileID: 4958961330578032067}
   circularViewport: {fileID: 6020526683483137167}
-  viewportScreenFraction: 0.25
+  viewportScreenFraction: 0.5
   renderTextureHeight: 720
-  regularViewSkyColor: {r: 1, g: 1, b: 1, a: 1}
-  revealViewSkyColor: {r: 0.08, g: 0.34, b: 0.9, a: 1}
-  backgroundMusicClip: {fileID: 0}
+  regularViewSkyColor: {r: 0.1, g: 0.1, b: 0.1, a: 1}
+  revealViewSkyColor: {r: 0.025, g: 0.12, b: 0.22, a: 1}
+  backgroundMusicClip: {fileID: 8300000, guid: 4a3ac4e7de3254598aee652ebf70190c, type: 3}
   backgroundMusicVolume: 0.12
   backgroundMusicLoopDuration: 37
   backgroundMusicLoopCrossfadeDuration: 1
@@ -603,8 +609,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  lensMoveSensitivity: 1
-  lensMoveEasing: 18
+  lensMoveSensitivity: 8
+  lensMoveEasing: 16
   screenEdgePadding: 8
   resetLensToCenterOnOpen: 1
   enableDeveloperPanel: 1
@@ -644,6 +650,85 @@ MonoBehaviour:
   storyCardShadowOffset: {x: 3, y: -4}
   viewportRoot: {fileID: 7665687221992452946}
   player: {fileID: 8013254460384962499}
+--- !u!114 &6546902326841184771
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4024485789046865348}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 467a2764c6904908b5df5cb943be7312, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.UnderwaterOceanBackdrop
+  greyscaleCamera: {fileID: 4634387354463310727}
+  colorCamera: {fileID: 4958961330578032067}
+  greyscaleCameraName: MainCamera
+  colorCameraName: ColorRevealCamera
+  backdropDistance: 90
+  backdropOverscan: 1.2
+  verticalBlendPower: 1.15
+  greyscaleUpperWater: {r: 0.3, g: 0.3, b: 0.3, a: 1}
+  greyscaleLowerWater: {r: 0.06, g: 0.06, b: 0.06, a: 1}
+  colorUpperWater: {r: 0.1, g: 0.42, b: 0.56, a: 1}
+  colorLowerWater: {r: 0.025, g: 0.12, b: 0.22, a: 1}
+  hideBoundaryRenderers: 1
+  boundaryRendererNames:
+  - SideWallRight
+  - SideWallLeft
+  - BackWall
+  - FrontWall
+  - LeftNiche_Wall
+  - RightNiche_Wall
+  - RearRight_PocketWall
+  createColorProxyShadowCasters: 1
+  colorShadowCasterRefreshInterval: 0.5
+--- !u!114 &6362709185043152091
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4024485789046865348}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d123ae9765d84f819207144c0b230af4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.PauseMenuController
+  pauseKey: 60
+  menuSceneName: ColorPuzzleStartMenu
+  pauseTitle: PAUSED
+  controlsText: 'WASD  Move
+
+    SPACE  Jump
+
+    RMB  Magnifier
+
+    LMB  Pick up
+
+    Q  Drop / place
+
+    R  Reset level
+
+    ENTER  Developer panel
+
+    ESC  Pause'
+  resumeLabel: RESUME
+  quitLabel: QUIT TO MENU
+  volumeLabel: VOLUME
+  panelSize: {x: 600, y: 700}
+  buttonSize: {x: 330, y: 58}
+  titleFontSize: 48
+  bodyFontSize: 23
+  overlayColor: {r: 0, g: 0.035, b: 0.06, a: 0.72}
+  panelColor: {r: 0.04, g: 0.15, b: 0.22, a: 0.98}
+  textColor: {r: 1, g: 1, b: 1, a: 1}
+  buttonColor: {r: 0.94, g: 0.94, b: 0.88, a: 1}
+  buttonTextColor: {r: 0.04, g: 0.12, b: 0.18, a: 1}
+  sliderTrackColor: {r: 0.15, g: 0.28, b: 0.34, a: 1}
+  sliderFillColor: {r: 0.4, g: 0.82, b: 0.9, a: 1}
+  defaultMasterVolume: 0.75
 --- !u!1 &4097323097767197030
 GameObject:
   m_ObjectHideFlags: 0
@@ -1019,7 +1104,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Text
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1031,7 +1116,7 @@ MonoBehaviour:
     m_FontSize: 28
     m_FontStyle: 0
     m_BestFit: 0
-    m_MinSize: 10
+    m_MinSize: 2
     m_MaxSize: 40
     m_Alignment: 4
     m_AlignByGeometry: 0
@@ -1055,68 +1140,3 @@ MonoBehaviour:
   m_EffectColor: {r: 1, g: 1, b: 1, a: 0.5}
   m_EffectDistance: {x: 1.5, y: -1.5}
   m_UseGraphicAlpha: 1
---- !u!114 &6546902326841184771
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4024485789046865348}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 467a2764c6904908b5df5cb943be7312, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.UnderwaterOceanBackdrop
-  greyscaleCamera: {fileID: 4634387354463310727}
-  colorCamera: {fileID: 4958961330578032067}
-  greyscaleCameraName: MainCamera
-  colorCameraName: ColorRevealCamera
-  backdropDistance: 90
-  backdropOverscan: 1.2
-  verticalBlendPower: 1.15
-  greyscaleUpperWater: {r: 0.3, g: 0.3, b: 0.3, a: 1}
-  greyscaleLowerWater: {r: 0.06, g: 0.06, b: 0.06, a: 1}
-  colorUpperWater: {r: 0.1, g: 0.42, b: 0.56, a: 1}
-  colorLowerWater: {r: 0.025, g: 0.12, b: 0.22, a: 1}
-  hideBoundaryRenderers: 1
-  createColorProxyShadowCasters: 1
-  colorShadowCasterRefreshInterval: 0.5
-  boundaryRendererNames:
-  - SideWallRight
-  - SideWallLeft
-  - BackWall
-  - FrontWall
-  - LeftNiche_Wall
-  - RightNiche_Wall
-  - RearRight_PocketWall
---- !u!114 &6362709185043152091
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4024485789046865348}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d123ae9765d84f819207144c0b230af4, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.PauseMenuController
-  pauseKey: 60
-  menuSceneName: ColorPuzzleStartMenu
-  pauseTitle: PAUSED
-  controlsText: "WASD  Move\nSPACE  Jump\nRMB  Magnifier\nLMB  Pick up\nQ  Drop / place\nR  Reset level\nENTER  Developer panel\nESC  Pause"
-  resumeLabel: RESUME
-  quitLabel: QUIT TO MENU
-  volumeLabel: VOLUME
-  panelSize: {x: 600, y: 700}
-  buttonSize: {x: 330, y: 58}
-  titleFontSize: 48
-  bodyFontSize: 23
-  overlayColor: {r: 0, g: 0.035, b: 0.06, a: 0.72}
-  panelColor: {r: 0.04, g: 0.15, b: 0.22, a: 0.98}
-  textColor: {r: 1, g: 1, b: 1, a: 1}
-  buttonColor: {r: 0.94, g: 0.94, b: 0.88, a: 1}
-  buttonTextColor: {r: 0.04, g: 0.12, b: 0.18, a: 1}
-  sliderTrackColor: {r: 0.15, g: 0.28, b: 0.34, a: 1}
-  sliderFillColor: {r: 0.4, g: 0.82, b: 0.9, a: 1}
-  defaultMasterVolume: 0.75

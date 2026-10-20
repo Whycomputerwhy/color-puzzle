@@ -40,7 +40,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1151670536954332773}
-  m_Mesh: {fileID: 4300000, guid: d0ee5efb8ee69400297c82e842c2f349, type: 2}
+  m_Mesh: {fileID: 4300000, guid: 2bff67b6e38264842a488d616862112f, type: 2}
 --- !u!23 &5960852283677652627
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -134,7 +134,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6322814282470138389}
-  m_Mesh: {fileID: 4300000, guid: d0ee5efb8ee69400297c82e842c2f349, type: 2}
+  m_Mesh: {fileID: 4300000, guid: 2bff67b6e38264842a488d616862112f, type: 2}
 --- !u!135 &7171074471074554670
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -251,3 +251,7 @@ MonoBehaviour:
   discoveredMaterial: {fileID: 2100000, guid: 3783a9f8a8917487d827716d8248c0eb, type: 2}
   colorProxy: {fileID: 1151670536954332773}
   playerExitClearance: 0.03
+  dropClip: {fileID: 8300000, guid: 526ad62ba1ec2441cae013ad8454490e, type: 3}
+  dropVolume: 0.18
+  pickupClip: {fileID: 8300000, guid: 2ea4f328e092346ecbaa9fd4f1aab5ba, type: 3}
+  pickupVolume: 0.16

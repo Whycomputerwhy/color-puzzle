@@ -61,10 +61,6 @@ namespace ColorPuzzle
             if (grayscaleRenderer != null) grayscaleMaterial = grayscaleRenderer.sharedMaterial;
             if (colorProxy != null)
                 colorProxyRenderer = colorProxy.GetComponentInChildren<Renderer>(true);
-            if (dropClip == null)
-                dropClip = Resources.Load<AudioClip>("Audio/ItemDropBookClose");
-            if (pickupClip == null)
-                pickupClip = Resources.Load<AudioClip>("Audio/ItemPickupCardDraw");
             dropAudioSource = GetComponent<AudioSource>();
             if (dropAudioSource == null)
                 dropAudioSource = gameObject.AddComponent<AudioSource>();
