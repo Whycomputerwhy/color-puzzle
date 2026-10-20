@@ -187,6 +187,7 @@ namespace ColorPuzzle
         private Button oceanLevelButton;
         private Button villageLevelButton;
         private readonly Button[] campaignStageButtons = new Button[5];
+        private Button resetCampaignProgressButton;
         private GameObject developerPanelRoot;
         private bool developerPanelOpen;
         private PlayerInteraction playerInteraction;
@@ -796,19 +797,21 @@ namespace ColorPuzzle
                         selectorGroupPadding + column * (modeButtonSize.x + modeButtonGap),
                         font,
                         row);
+                    campaignStageButtons[stageIndex].targetGraphic.color = unselectedModeColor;
                     campaignStageButtons[stageIndex].onClick.AddListener(() =>
                     {
                         OceanCampaignManager.Active?.TeleportToStage(stageNumber);
                         SetDeveloperPanelOpen(false);
                     });
                 }
-                Button resetProgressButton = CreateModeButton(
+                resetCampaignProgressButton = CreateModeButton(
                     stageJumpGroup,
                     "RESET PROGRESS",
                     selectorGroupPadding + modeButtonSize.x + modeButtonGap,
                     font,
                     2);
-                resetProgressButton.onClick.AddListener(() => OceanCampaignManager.Active?.ResetProgress());
+                resetCampaignProgressButton.targetGraphic.color = unselectedModeColor;
+                resetCampaignProgressButton.onClick.AddListener(() => OceanCampaignManager.Active?.ResetProgress());
             }
 
             RectTransform puzzleModeGroup = CreateSelectorGroup(
@@ -1283,14 +1286,15 @@ namespace ColorPuzzle
             if (villageLevelButton != null)
                 villageLevelButton.targetGraphic.color = activeSceneName == villageEndingSceneName
                     ? selectedModeColor : unselectedModeColor;
-            if (OceanCampaignManager.Active != null)
-            {
-                int activeStageIndex = OceanCampaignManager.Active.CurrentStageNumber - 1;
-                for (int index = 0; index < campaignStageButtons.Length; index++)
-                    if (campaignStageButtons[index] != null)
-                        campaignStageButtons[index].targetGraphic.color = index == activeStageIndex
-                            ? selectedModeColor : unselectedModeColor;
-            }
+            int activeStageIndex = OceanCampaignManager.Active != null
+                ? OceanCampaignManager.Active.CurrentStageNumber - 1
+                : -1;
+            for (int index = 0; index < campaignStageButtons.Length; index++)
+                if (campaignStageButtons[index] != null)
+                    campaignStageButtons[index].targetGraphic.color = index == activeStageIndex
+                        ? selectedModeColor : unselectedModeColor;
+            if (resetCampaignProgressButton != null)
+                resetCampaignProgressButton.targetGraphic.color = unselectedModeColor;
             foreach (KeyValuePair<DisplayFont, Button> fontButton in displayFontButtons)
                 fontButton.Value.targetGraphic.color = fontButton.Key == currentDisplayFont
                     ? selectedModeColor
