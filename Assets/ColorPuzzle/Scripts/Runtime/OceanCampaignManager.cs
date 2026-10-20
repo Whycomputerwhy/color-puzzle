@@ -52,6 +52,7 @@ namespace ColorPuzzle
         {
             yield return null;
             MovePlayerToCheckpoint(currentStageIndex);
+            TelemetryManager.BeginCampaignStage(currentStageIndex + 1);
             RestoreColorForFinalStageIfNeeded();
         }
 
@@ -142,17 +143,17 @@ namespace ColorPuzzle
             if (door != null && !door.IsOpen)
             {
                 door.Open();
-                TelemetryManager.RecordPortalUnlocked();
             }
         }
 
         public void ReachNextStage(int doorStageIndex)
         {
             if (doorStageIndex != currentStageIndex) return;
+            TelemetryManager.CompleteCampaignStage(doorStageIndex + 1);
             currentStageIndex = Mathf.Min(doorStageIndex + 1, stageCount - 1);
             PlayerPrefs.SetInt(CheckpointKey, currentStageIndex);
             PlayerPrefs.Save();
-            TelemetryManager.RecordPortalEntered();
+            TelemetryManager.BeginCampaignStage(currentStageIndex + 1);
             RestoreColorForFinalStageIfNeeded();
         }
 
@@ -161,6 +162,7 @@ namespace ColorPuzzle
         {
             currentStageIndex = Mathf.Clamp(stageNumber - 1, 0, stageCount - 1);
             MovePlayerToCheckpoint(currentStageIndex);
+            TelemetryManager.BeginCampaignStage(currentStageIndex + 1);
             RestoreColorForFinalStageIfNeeded();
         }
 
@@ -169,6 +171,7 @@ namespace ColorPuzzle
             if (!enabled) return;
             currentStageIndex = Mathf.Clamp(PlayerPrefs.GetInt(CheckpointKey, currentStageIndex), 0, stageCount - 1);
             MovePlayerToCheckpoint(currentStageIndex);
+            TelemetryManager.BeginCampaignStage(currentStageIndex + 1);
             RestoreColorForFinalStageIfNeeded();
         }
 

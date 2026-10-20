@@ -17,6 +17,7 @@ namespace ColorPuzzle
         // CENTRALIZED TELEMETRY PARAMETERS
         [Header("Collection")]
         [SerializeField] private string menuSceneName = "ColorPuzzleStartMenu";
+        [SerializeField] private string campaignSceneName = "ColorPuzzleOceanCampaign";
         [SerializeField] private Key manualSnapshotKey = Key.F9;
         [SerializeField] private bool writeIncompleteSessions = true;
 
@@ -33,6 +34,7 @@ namespace ColorPuzzle
         private double levelStartTime;
         private double portalUnlockTime;
         private int magnifierUseCount;
+        private int failedAttemptCount;
         private int objectPickupCount;
         private bool sessionActive;
         private bool portalUnlocked;
@@ -98,6 +100,30 @@ namespace ColorPuzzle
                 instance.objectPickupCount++;
         }
 
+        /// <summary>
+        /// Placeholder hook for level-specific puzzle logic. Call this once whenever the
+        /// player makes an attempt that the current stage considers unsuccessful.
+        /// </summary>
+        public static void RecordFailedAttempt()
+        {
+            if (instance != null && instance.sessionActive)
+                instance.failedAttemptCount++;
+        }
+
+        public static void BeginCampaignStage(int stageNumber)
+        {
+            if (instance == null) return;
+            if (instance.sessionActive)
+                instance.WriteSession("stage changed before completion", true);
+            instance.BeginSession($"Ocean Stage {stageNumber}");
+        }
+
+        public static void CompleteCampaignStage(int stageNumber)
+        {
+            if (instance != null && instance.sessionActive)
+                instance.WriteSession($"stage {stageNumber} door entered", true);
+        }
+
         public static void RecordPortalUnlocked()
         {
             if (instance == null || !instance.sessionActive || instance.portalUnlocked) return;
@@ -114,12 +140,14 @@ namespace ColorPuzzle
         private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             if (!scene.IsValid() || scene.name == menuSceneName) return;
+            // OceanCampaignManager begins one record per physical room instead.
+            if (scene.name == campaignSceneName) return;
             BeginSession(scene.name);
         }
 
         private void HandleSceneUnloaded(Scene scene)
         {
-            if (!sessionActive || scene.name != levelName) return;
+            if (!sessionActive || (scene.name != levelName && scene.name != campaignSceneName)) return;
             if (writeIncompleteSessions)
                 WriteSession("level exited before portal entry", true);
             else
@@ -136,6 +164,7 @@ namespace ColorPuzzle
             levelStartTime = Time.realtimeSinceStartupAsDouble;
             portalUnlockTime = 0d;
             magnifierUseCount = 0;
+            failedAttemptCount = 0;
             objectPickupCount = 0;
             portalUnlocked = false;
             sessionActive = true;
@@ -146,9 +175,6 @@ namespace ColorPuzzle
             if (!sessionActive) return;
 
             double now = Time.realtimeSinceStartupAsDouble;
-            double elapsedToUnlock = portalUnlocked ? portalUnlockTime - levelStartTime : -1d;
-            double elapsedAfterUnlock = portalUnlocked ? now - portalUnlockTime : -1d;
-
             StringBuilder text = new StringBuilder(512);
             text.AppendLine("============================================================");
             text.AppendLine($"Record UTC: {DateTime.UtcNow:O}");
@@ -156,12 +182,11 @@ namespace ColorPuzzle
             text.AppendLine($"Level: {levelName}");
             text.AppendLine($"Level start UTC: {levelStartUtc:O}");
             text.AppendLine($"Write reason: {reason}");
-            text.AppendLine($"Portal unlocked: {(portalUnlocked ? "yes" : "no")}");
-            text.AppendLine($"Time from level start to portal unlock (seconds): {FormatSeconds(elapsedToUnlock)}");
+            text.AppendLine($"Stage completed: {(reason.Contains("door entered") ? "yes" : "no")}");
+            text.AppendLine($"Time to complete stage / observed stage time (seconds): {FormatSeconds(now - levelStartTime)}");
             text.AppendLine($"Magnifier uses: {magnifierUseCount}");
+            text.AppendLine($"Failed attempts: {failedAttemptCount}");
             text.AppendLine($"Objects picked up: {objectPickupCount}");
-            text.AppendLine($"Time from portal unlock to portal entry/write (seconds): {FormatSeconds(elapsedAfterUnlock)}");
-            text.AppendLine($"Total observed level time (seconds): {FormatSeconds(now - levelStartTime)}");
             text.AppendLine();
 
             string path = GetOutputFilePath();
