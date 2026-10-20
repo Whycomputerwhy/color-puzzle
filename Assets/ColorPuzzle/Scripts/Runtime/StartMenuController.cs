@@ -10,7 +10,7 @@ namespace ColorPuzzle
     {
         // CENTRALIZED MENU PARAMETERS (all presentation and navigation tuning is Inspector-visible)
         [Header("Navigation")]
-        [SerializeField] private string firstLevelSceneName = "ColorPuzzleForestTutorial";
+        [SerializeField] private string firstLevelSceneName = "ColorPuzzleOceanCampaign";
 
         [Header("Copy")]
         [SerializeField, TextArea(2, 2)] private string gameTitle = "COLOR\nTHE GREY";

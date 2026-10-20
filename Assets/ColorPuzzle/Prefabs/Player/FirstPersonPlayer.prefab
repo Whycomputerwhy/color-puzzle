@@ -616,7 +616,7 @@ MonoBehaviour:
   enableDeveloperPanel: 1
   developerPanelToggleKey: 2
   unlockCursorWhilePanelOpen: 1
-  showLevelSequenceInDeveloperPanel: 1
+  showLevelSequenceInDeveloperPanel: 0
   forestTutorialSceneName: ColorPuzzleForestTutorial
   oceanSceneName: ColorPuzzleUnderwaterDemo
   villageEndingSceneName: ColorPuzzleVillageEnding

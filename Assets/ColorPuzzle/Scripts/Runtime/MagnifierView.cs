@@ -118,6 +118,7 @@ namespace ColorPuzzle
         [SerializeField] private bool enableDeveloperPanel = true;
         [SerializeField] private Key developerPanelToggleKey = Key.Enter;
         [SerializeField] private bool unlockCursorWhilePanelOpen = true;
+        [SerializeField] private bool showCampaignStageJumpInDeveloperPanel = true;
         [SerializeField] private bool showLevelSequenceInDeveloperPanel = true;
         [SerializeField] private string forestTutorialSceneName = "ColorPuzzleForestTutorial";
         [SerializeField] private string oceanSceneName = "ColorPuzzleUnderwaterDemo";
@@ -185,6 +186,7 @@ namespace ColorPuzzle
         private Button forestLevelButton;
         private Button oceanLevelButton;
         private Button villageLevelButton;
+        private readonly Button[] campaignStageButtons = new Button[5];
         private GameObject developerPanelRoot;
         private bool developerPanelOpen;
         private PlayerInteraction playerInteraction;
@@ -741,13 +743,17 @@ namespace ColorPuzzle
             float groupHeight = selectorGroupPadding * 3f + selectorGroupLabelHeight + modeButtonSize.y;
             float levelSequenceGroupHeight = selectorGroupPadding * 3f + selectorGroupLabelHeight +
                                              modeButtonSize.y * 2f + modeButtonGap;
+            float campaignStageGroupHeight = selectorGroupPadding * 3f + selectorGroupLabelHeight +
+                                             modeButtonSize.y * 3f + modeButtonGap * 2f;
             float fontGroupHeight = selectorGroupPadding * 3f + selectorGroupLabelHeight +
                                     modeButtonSize.y * 2f + modeButtonGap;
             float telemetryGroupHeight = selectorGroupPadding * 3f + selectorGroupLabelHeight +
                                          telemetryGuideContentHeight;
-            float puzzleModeGroupOffset = showLevelSequenceInDeveloperPanel
+            float campaignStageGroupOffset = showLevelSequenceInDeveloperPanel
                 ? levelSequenceGroupHeight + modeButtonGap
                 : 0f;
+            float puzzleModeGroupOffset = campaignStageGroupOffset +
+                (showCampaignStageJumpInDeveloperPanel ? campaignStageGroupHeight + modeButtonGap : 0f);
             float devViewGroupOffset = puzzleModeGroupOffset + groupHeight + modeButtonGap;
             float interactionGroupOffset = devViewGroupOffset + groupHeight + modeButtonGap;
             float fontGroupOffset = (playerInteraction != null ? interactionGroupOffset + groupHeight : devViewGroupOffset + groupHeight) + modeButtonGap;
@@ -773,6 +779,36 @@ namespace ColorPuzzle
                 forestLevelButton.onClick.AddListener(() => LoadDevelopmentLevel(forestTutorialSceneName));
                 oceanLevelButton.onClick.AddListener(() => LoadDevelopmentLevel(oceanSceneName));
                 villageLevelButton.onClick.AddListener(() => LoadDevelopmentLevel(villageEndingSceneName));
+            }
+
+            if (showCampaignStageJumpInDeveloperPanel)
+            {
+                RectTransform stageJumpGroup = CreateSelectorGroup(
+                    selector, "CAMPAIGN STAGE", campaignStageGroupOffset, groupWidth, campaignStageGroupHeight, font);
+                for (int stageIndex = 0; stageIndex < campaignStageButtons.Length; stageIndex++)
+                {
+                    int stageNumber = stageIndex + 1;
+                    int column = stageIndex % 2;
+                    int row = stageIndex / 2;
+                    campaignStageButtons[stageIndex] = CreateModeButton(
+                        stageJumpGroup,
+                        $"STAGE {stageNumber}",
+                        selectorGroupPadding + column * (modeButtonSize.x + modeButtonGap),
+                        font,
+                        row);
+                    campaignStageButtons[stageIndex].onClick.AddListener(() =>
+                    {
+                        OceanCampaignManager.Active?.TeleportToStage(stageNumber);
+                        SetDeveloperPanelOpen(false);
+                    });
+                }
+                Button resetProgressButton = CreateModeButton(
+                    stageJumpGroup,
+                    "RESET PROGRESS",
+                    selectorGroupPadding + modeButtonSize.x + modeButtonGap,
+                    font,
+                    2);
+                resetProgressButton.onClick.AddListener(() => OceanCampaignManager.Active?.ResetProgress());
             }
 
             RectTransform puzzleModeGroup = CreateSelectorGroup(
@@ -1247,6 +1283,14 @@ namespace ColorPuzzle
             if (villageLevelButton != null)
                 villageLevelButton.targetGraphic.color = activeSceneName == villageEndingSceneName
                     ? selectedModeColor : unselectedModeColor;
+            if (OceanCampaignManager.Active != null)
+            {
+                int activeStageIndex = OceanCampaignManager.Active.CurrentStageNumber - 1;
+                for (int index = 0; index < campaignStageButtons.Length; index++)
+                    if (campaignStageButtons[index] != null)
+                        campaignStageButtons[index].targetGraphic.color = index == activeStageIndex
+                            ? selectedModeColor : unselectedModeColor;
+            }
             foreach (KeyValuePair<DisplayFont, Button> fontButton in displayFontButtons)
                 fontButton.Value.targetGraphic.color = fontButton.Key == currentDisplayFont
                     ? selectedModeColor

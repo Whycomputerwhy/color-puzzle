@@ -300,10 +300,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26c47a819d28495cb86f71e670be8e35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.StartMenuController
-  firstLevelSceneName: ColorPuzzleUnderwaterDemo
-  gameTitle: 'COLOR
-
-    THE GREY'
+  firstLevelSceneName: ColorPuzzleOceanCampaign
+  gameTitle: COLOR THE GREY
   playLabel: PLAY
   quitLabel: QUIT
   panelSize: {x: 620, y: 470}

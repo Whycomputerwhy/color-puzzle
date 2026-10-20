@@ -96,6 +96,8 @@ namespace ColorPuzzle
 
         public void QuitToMenu()
         {
+            if (OceanCampaignManager.Active != null && OceanCampaignManager.Active.IsComplete)
+                OceanCampaignManager.Active.ResetSavedProgress();
             RestoreRuntimeState(false);
             if (!Application.CanStreamedLevelBeLoaded(menuSceneName))
             {

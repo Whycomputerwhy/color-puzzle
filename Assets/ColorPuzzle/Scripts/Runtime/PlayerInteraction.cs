@@ -22,9 +22,9 @@ namespace ColorPuzzle
         }
 
         private const string ColorSearchInstructionText =
-            "WASD  •  SPACE jump  •  RMB magnifier  •  LMB pick up  •  Q drop/place  •  R reset";
+            "WASD  •  SPACE jump  •  RMB magnifier  •  LMB pick up  •  Q drop/place  •  E activate  •  R reset";
         private const string ValueSearchInstructionText =
-            "WASD  •  SPACE jump  •  LMB pick up  •  Q drop/place  •  R reset";
+            "WASD  •  SPACE jump  •  LMB pick up  •  Q drop/place  •  E activate  •  R reset";
 
         [Header("References")]
         [SerializeField] private Camera viewCamera;
@@ -37,6 +37,7 @@ namespace ColorPuzzle
 
         [Header("Controls")]
         [SerializeField] private Key dropOrPlaceKey = Key.Q;
+        [SerializeField] private Key interactKey = Key.E;
         [SerializeField] private Key resetKey = Key.R;
 
         [Header("Interaction Feel")]
@@ -142,6 +143,11 @@ namespace ColorPuzzle
             if (PauseMenuController.IsPaused) return;
             if (Keyboard.current[resetKey].wasPressedThisFrame)
             {
+                if (OceanCampaignManager.Active != null)
+                {
+                    OceanCampaignManager.Active.ReloadCheckpoint();
+                    return;
+                }
                 SceneManager.LoadScene(SceneManager.GetActiveScene().name);
                 return;
             }
@@ -149,9 +155,26 @@ namespace ColorPuzzle
             UpdateInteractionCue();
             if (magnifier != null && magnifier.IsActive) { UpdateStatus(); return; }
 
+            if (Keyboard.current[interactKey].wasPressedThisFrame) TryActivateStageGate();
             if (Mouse.current.leftButton.wasPressedThisFrame && carried == null) TryPickUp();
             if (Keyboard.current[dropOrPlaceKey].wasPressedThisFrame && carried != null) TryDropOrPlace();
             UpdateStatus();
+        }
+
+        private void TryActivateStageGate()
+        {
+            if (viewCamera == null) return;
+            Ray ray = new Ray(viewCamera.transform.position, viewCamera.transform.forward);
+            if (Physics.Raycast(ray, out RaycastHit hit, interactionDistance, interactionLayers,
+                    QueryTriggerInteraction.Collide))
+            {
+                StageGateBeacon aimedGate = hit.collider.GetComponentInParent<StageGateBeacon>();
+                if (aimedGate != null && aimedGate.TryActivate(transform, interactionDistance)) return;
+            }
+
+            StageGateBeacon[] gates = FindObjectsByType<StageGateBeacon>(FindObjectsSortMode.None);
+            foreach (StageGateBeacon gate in gates)
+                if (gate.TryActivate(transform, interactionDistance)) return;
         }
 
         private void TryPickUp()
