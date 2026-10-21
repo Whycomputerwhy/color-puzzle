@@ -4,11 +4,7 @@ using UnityEngine.Rendering;
 
 namespace ColorPuzzle
 {
-    /// <summary>
-    /// Builds the low-cost visual volume behind the level with a camera-facing vertical
-    /// gradient. Physical wall colliders remain active while their renderers are hidden,
-    /// so the ocean reads as open space without adding extra floor geometry.
-    /// </summary>
+    /// <summary>Positions the authored ocean-gradient cards; their prefab owns the visible geometry and materials.</summary>
     [DisallowMultipleComponent]
     public sealed class UnderwaterOceanBackdrop : MonoBehaviour
     {
@@ -22,7 +18,6 @@ namespace ColorPuzzle
         [Header("Gradient Geometry")]
         [SerializeField, Min(10f)] private float backdropDistance = 90f;
         [SerializeField, Min(1f)] private float backdropOverscan = 1.2f;
-        [SerializeField, Range(0.25f, 4f)] private float verticalBlendPower = 1.15f;
 
         [Header("Greyscale Water")]
         [SerializeField] private Color greyscaleUpperWater = new Color(0.30f, 0.30f, 0.30f, 1f);
@@ -47,10 +42,7 @@ namespace ColorPuzzle
 
         private const int GreyscaleLayer = 0;
         private const int ColorRevealLayer = 8;
-        private const string GradientShaderName = "ColorPuzzle/Underwater Gradient Backdrop";
-
         private readonly List<Renderer> hiddenBoundaryRenderers = new();
-        private readonly List<Material> runtimeMaterials = new();
         private readonly Dictionary<Renderer, ShadowCastingMode> colorShadowCasters = new();
         private readonly Dictionary<Renderer, GameObject> colorShadowOnlyCopies = new();
         private GameObject greyscaleBackdrop;
@@ -62,7 +54,8 @@ namespace ColorPuzzle
         private void Awake()
         {
             ResolveCameras();
-            BuildOceanVolume();
+            ResolveBackdrops();
+            if (hideBoundaryRenderers) HideBoundaryRenderers();
         }
 
         private void Start()
@@ -73,6 +66,7 @@ namespace ColorPuzzle
         private void LateUpdate()
         {
             ResolveCameras();
+            ResolveBackdrops();
             UpdateBackdrop(greyscaleBackdrop, greyscaleCamera);
             UpdateBackdrop(colorBackdrop, colorCamera);
 
@@ -93,10 +87,6 @@ namespace ColorPuzzle
                 if (renderer != null) renderer.enabled = true;
             }
 
-            DestroyRuntimeObject(greyscaleBackdrop);
-            DestroyRuntimeObject(colorBackdrop);
-            foreach (Material runtimeMaterial in runtimeMaterials)
-                DestroyRuntimeObject(runtimeMaterial);
         }
 
         private void ResolveCameras()
@@ -107,56 +97,10 @@ namespace ColorPuzzle
                 colorCamera = FindCamera(colorCameraName);
         }
 
-        private void BuildOceanVolume()
+        private void ResolveBackdrops()
         {
-            Shader gradientShader = Shader.Find(GradientShaderName);
-            if (gradientShader == null)
-            {
-                Debug.LogWarning($"Missing underwater backdrop shader '{GradientShaderName}'.", this);
-                return;
-            }
-
-            greyscaleBackdropMaterial = CreateGradientMaterial(
-                gradientShader,
-                "Runtime Greyscale Ocean Gradient",
-                greyscaleUpperWater,
-                greyscaleLowerWater);
-            colorBackdropMaterial = CreateGradientMaterial(
-                gradientShader,
-                "Runtime Color Ocean Gradient",
-                colorUpperWater,
-                colorLowerWater);
-
-            greyscaleBackdrop = CreateBackdrop("Ocean Gradient - Greyscale", GreyscaleLayer, greyscaleBackdropMaterial);
-            colorBackdrop = CreateBackdrop("Ocean Gradient - Color", ColorRevealLayer, colorBackdropMaterial);
-
-            if (hideBoundaryRenderers) HideBoundaryRenderers();
-        }
-
-        private Material CreateGradientMaterial(Shader shader, string materialName, Color upperColor, Color lowerColor)
-        {
-            Material material = new Material(shader) { name = materialName };
-            runtimeMaterials.Add(material);
-            material.SetColor("_UpperColor", upperColor);
-            material.SetColor("_LowerColor", lowerColor);
-            material.SetFloat("_VerticalBlendPower", verticalBlendPower);
-            return material;
-        }
-
-        private GameObject CreateBackdrop(string objectName, int layer, Material material)
-        {
-            GameObject backdrop = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            backdrop.name = objectName;
-            backdrop.layer = layer;
-            Destroy(backdrop.GetComponent<Collider>());
-            Renderer backdropRenderer = backdrop.GetComponent<Renderer>();
-            backdropRenderer.sharedMaterial = material;
-            // These are camera-facing atmosphere cards, not physical world geometry.
-            // Letting one enter the directional-light shadow map creates a moving,
-            // scene-wide shadow sheet as the player looks around.
-            backdropRenderer.shadowCastingMode = ShadowCastingMode.Off;
-            backdropRenderer.receiveShadows = false;
-            return backdrop;
+            if (greyscaleBackdrop == null) greyscaleBackdrop = GameObject.Find("Ocean Gradient - Greyscale");
+            if (colorBackdrop == null) colorBackdrop = GameObject.Find("Ocean Gradient - Color");
         }
 
         private void UpdateBackdrop(GameObject backdrop, Camera camera)

@@ -186,7 +186,7 @@ namespace ColorPuzzle
         private Button forestLevelButton;
         private Button oceanLevelButton;
         private Button villageLevelButton;
-        private readonly Button[] campaignStageButtons = new Button[5];
+        private readonly Button[] campaignStageButtons = new Button[4];
         private Button resetCampaignProgressButton;
         private GameObject developerPanelRoot;
         private bool developerPanelOpen;
