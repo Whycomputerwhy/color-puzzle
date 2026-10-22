@@ -1,5 +1,20 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &7200000000000000101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3520744227934432247}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9fd59e6338104cf6b467fa2990ef4f4b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewRoot
+  scanIntervalSeconds: 1
+  includeInactiveChildren: 1
+  logMissingColorMaterials: 1
 --- !u!1 &715124482226697588
 GameObject:
   m_ObjectHideFlags: 0
@@ -12,6 +27,7 @@ GameObject:
   - component: {fileID: 71256050196600702}
   - component: {fileID: 2655190488009839183}
   - component: {fileID: 3602452482570838292}
+  - component: {fileID: 7100000000000000003}
   m_Layer: 0
   m_Name: Ocean Floor
   m_TagString: Untagged
@@ -175,6 +191,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8887383556451468601}
+  - component: {fileID: 7200000000000000101}
   m_Layer: 0
   m_Name: OceanSharedRoom
   m_TagString: Untagged
@@ -398,6 +415,21 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &7100000000000000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 715124482226697588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fa90e9b0b6f48aeab877f073df59e62, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
+  greyscaleMaterials: []
+  colorMaterials: []
+  legacyColorProxy: {fileID: 5972444976727905257}
 --- !u!1 &8605978924542448705
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,6 +1,21 @@
 # Color Puzzle Version History
 This log is intended for people and AI agents continuing the same Unity project. Append new entries; do not rewrite past decisions without explaining the migration.
 
+## Campaign-wide dual-material views — 2026-10-22
+
+- Converted every currently visible mesh in the four-stage ocean campaign to one renderer with inspectable greyscale and color material slots. The shared gradient retains its old color card as a disabled material source; no authored transforms changed.
+- Added `DualViewRoot` to the shared room, backdrop, intro, and all four stage prefabs. Future child MeshRenderers automatically remain visible in both cameras, using their current material until a color is authored.
+- Added **Color Puzzle → Set Up Selected Objects for Dual View** for persistent per-object authoring and expanded **Validate Campaign Dual Views** to cover every campaign prefab.
+- Prevented inactive legacy color proxies from producing ghost shadow-only copies.
+- Updated `DUAL_VIEW_EXPERIMENT.md` with the exact Inspector workflow and parameters.
+
+## Dual-material view trial — 2026-10-22
+
+- Preserved the complete prior project on local branch `backup/pre-dual-appearance-2026-10-22` at `6437bae`.
+- Added an opt-in one-mesh/two-material camera rendering path to the shared ocean floor and interactive shell prefabs. Existing color-proxy children remain as inactive material sources and fallback assets.
+- Added the `DualView` layer to both gameplay camera passes; the magnifier's circular full-frame crop and world-reveal animation remain unchanged.
+- See `DUAL_VIEW_EXPERIMENT.md` for the visual recipe, tuning fields, and current migration limits.
+
 ## 0.5.2 — 2026-10-19 — Authored completion portal
 
 ### Changed

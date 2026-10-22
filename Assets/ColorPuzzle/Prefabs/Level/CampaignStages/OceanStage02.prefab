@@ -1,5 +1,37 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &7300000000000000105
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 279282272475959958}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fa90e9b0b6f48aeab877f073df59e62, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
+  greyscaleMaterials:
+  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400027, type: 2}
+  colorMaterials:
+  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400011, type: 2}
+  legacyColorProxy: {fileID: 0}
+--- !u!114 &7200000000000000105
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4184990109356879467}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9fd59e6338104cf6b467fa2990ef4f4b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewRoot
+  scanIntervalSeconds: 1
+  includeInactiveChildren: 1
+  logMissingColorMaterials: 1
 --- !u!1 &279282272475959958
 GameObject:
   m_ObjectHideFlags: 0
@@ -13,6 +45,7 @@ GameObject:
   - component: {fileID: 582977346953068212}
   - component: {fileID: 8563917056812979628}
   - component: {fileID: 4048581118439371708}
+  - component: {fileID: 7300000000000000105}
   m_Layer: 0
   m_Name: Stage 2 Gate Beacon (E)
   m_TagString: Untagged
@@ -170,6 +203,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8198856000151801845}
   - component: {fileID: 9007471207136859598}
+  - component: {fileID: 7200000000000000105}
   m_Layer: 0
   m_Name: OceanStage02
   m_TagString: Untagged

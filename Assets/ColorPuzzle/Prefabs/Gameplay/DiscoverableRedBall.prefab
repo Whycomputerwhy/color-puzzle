@@ -104,6 +104,7 @@ GameObject:
   - component: {fileID: 4974384738391916137}
   - component: {fileID: 3317428946164034288}
   - component: {fileID: 5636588663058139678}
+  - component: {fileID: 7100000000000000002}
   m_Layer: 0
   m_Name: DiscoverableRedBall
   m_TagString: Untagged
@@ -255,3 +256,18 @@ MonoBehaviour:
   dropVolume: 0.18
   pickupClip: {fileID: 8300000, guid: 2ea4f328e092346ecbaa9fd4f1aab5ba, type: 3}
   pickupVolume: 0.16
+--- !u!114 &7100000000000000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6322814282470138389}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fa90e9b0b6f48aeab877f073df59e62, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
+  greyscaleMaterials: []
+  colorMaterials: []
+  legacyColorProxy: {fileID: 1151670536954332773}

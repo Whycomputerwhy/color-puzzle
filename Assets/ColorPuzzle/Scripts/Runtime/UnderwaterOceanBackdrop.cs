@@ -143,9 +143,10 @@ namespace ColorPuzzle
                 // Boundary visuals are intentionally disabled to make the ocean feel
                 // open. A disabled renderer must not leave an invisible shadow-only
                 // counterpart behind in the colour view.
+                bool visible = renderer.enabled && renderer.gameObject.activeInHierarchy;
                 if (colorShadowOnlyCopies.TryGetValue(renderer, out GameObject existingCopy) && existingCopy != null)
-                    existingCopy.SetActive(renderer.enabled);
-                if (!renderer.enabled) continue;
+                    existingCopy.SetActive(visible);
+                if (!visible) continue;
 
                 CacheShadowCaster(renderer, colorShadowCasters);
                 if (colorShadowCasters[renderer] != ShadowCastingMode.Off &&

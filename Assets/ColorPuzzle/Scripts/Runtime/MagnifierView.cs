@@ -266,6 +266,7 @@ namespace ColorPuzzle
             if (sourceCamera != null)
                 sourceCamera.depthTextureMode |= DepthTextureMode.Depth;
             InteractionOutlineRuntime.SetColorCamera(colorCamera);
+            DualViewMaterial.ConfigureCameras(sourceCamera, colorCamera);
             ApplySolidSkyColors();
             ConfigureBackgroundMusic();
             PrepareCompleteColorView();
@@ -1008,6 +1009,10 @@ namespace ColorPuzzle
             for (int rendererIndex = 0; rendererIndex < renderers.Length; rendererIndex++)
             {
                 Renderer candidate = renderers[rendererIndex];
+                // Dual-view objects already have an authored colour material. The value-search
+                // overlay converts that real colour to luminance rather than guessing from a name.
+                DualViewMaterial dualView = candidate.GetComponent<DualViewMaterial>();
+                if (dualView != null && dualView.IsInitialized) continue;
                 int layerBit = 1 << candidate.gameObject.layer;
                 if ((originalColorCameraCullingMask & layerBit) == 0) continue;
 
@@ -1337,7 +1342,9 @@ namespace ColorPuzzle
             // The authored ColorReveal layer is a complete coloured proxy world. Rendering it
             // alone prevents any grey source meshes from bleeding into the lens, while the
             // proxies retain normal URP/Lit depth testing and therefore occlude one another.
-            colorCamera.cullingMask = originalColorCameraCullingMask;
+            int dualViewLayer = LayerMask.NameToLayer("DualView");
+            colorCamera.cullingMask = originalColorCameraCullingMask |
+                                      (dualViewLayer >= 0 ? 1 << dualViewLayer : 0);
         }
     }
 }

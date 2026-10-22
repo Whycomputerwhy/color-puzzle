@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using ColorPuzzle.Rendering;
 
 namespace ColorPuzzle
 {
@@ -33,6 +34,7 @@ namespace ColorPuzzle
         private Collider hitCollider;
         private Material grayscaleMaterial;
         private Renderer colorProxyRenderer;
+        private DualViewMaterial dualViewMaterial;
         private bool discovered;
         private Vector3 carriedBoundsCenterOffset;
         private Vector3 carriedBoundsExtents;
@@ -47,6 +49,9 @@ namespace ColorPuzzle
         public Collider PhysicsCollider => hitCollider;
         public Renderer InteractionCueRenderer => grayscaleRenderer;
         public Renderer InteractionCueColorRenderer =>
+            dualViewMaterial != null && dualViewMaterial.IsInitialized
+                ? grayscaleRenderer
+                :
             colorProxy != null && colorProxy.activeInHierarchy && colorProxyRenderer != null && colorProxyRenderer.enabled
                 ? colorProxyRenderer
                 : grayscaleRenderer;
@@ -61,6 +66,9 @@ namespace ColorPuzzle
             if (grayscaleRenderer != null) grayscaleMaterial = grayscaleRenderer.sharedMaterial;
             if (colorProxy != null)
                 colorProxyRenderer = colorProxy.GetComponentInChildren<Renderer>(true);
+            dualViewMaterial = GetComponent<DualViewMaterial>();
+            if (dualViewMaterial != null)
+                dualViewMaterial.Initialize(grayscaleRenderer, colorProxy);
             dropAudioSource = GetComponent<AudioSource>();
             if (dropAudioSource == null)
                 dropAudioSource = gameObject.AddComponent<AudioSource>();
@@ -103,7 +111,7 @@ namespace ColorPuzzle
             hitCollider.enabled = false;
             transform.SetParent(null, true);
             if (grayscaleRenderer != null) grayscaleRenderer.enabled = false;
-            if (colorProxy != null) colorProxy.SetActive(false);
+            SetColorProxyActive(false);
             PlayPickupAudio();
         }
 
@@ -164,7 +172,7 @@ namespace ColorPuzzle
             body.detectCollisions = false;
             body.isKinematic = true;
             body.interpolation = RigidbodyInterpolation.None;
-            if (colorProxy != null) colorProxy.SetActive(!discovered);
+            SetColorProxyActive(!discovered);
         }
 
         private IEnumerator AnimateDrop(
@@ -222,11 +230,12 @@ namespace ColorPuzzle
             // a colour-layer renderer rather than disappearing with the greyscale source mesh.
             // Use the completed source renderer directly: it has the final material and avoids
             // any duplicate-proxy depth conflict with the pedestal surface.
-            if (colorProxy != null) colorProxy.SetActive(false);
+            SetColorProxyActive(false);
             Discover();
             PlayDropAudio();
             int colorRevealLayer = LayerMask.NameToLayer("ColorReveal");
-            if (grayscaleRenderer != null && colorRevealLayer >= 0)
+            if ((dualViewMaterial == null || !dualViewMaterial.IsInitialized) &&
+                grayscaleRenderer != null && colorRevealLayer >= 0)
                 grayscaleRenderer.gameObject.layer = colorRevealLayer;
         }
 
@@ -247,7 +256,7 @@ namespace ColorPuzzle
             if (grayscaleRenderer != null) grayscaleRenderer.enabled = true;
             // A wrong shell remains testable on the pillar. Keep its regular completed-looking
             // mesh for the main view and its ColourReveal proxy for the magnifier/full-colour view.
-            if (colorProxy != null) colorProxy.SetActive(true);
+            SetColorProxyActive(true);
             PlayDropAudio();
         }
 
@@ -266,6 +275,11 @@ namespace ColorPuzzle
         private void ApplyWorldAppearance(bool showColor)
         {
             if (grayscaleRenderer == null) return;
+            if (dualViewMaterial != null && dualViewMaterial.IsInitialized)
+            {
+                dualViewMaterial.SetColorInGreyscaleCamera(showColor);
+                return;
+            }
             Material colorMaterial = discoveredMaterial;
             if (colorMaterial == null && colorProxy != null)
             {
@@ -277,6 +291,12 @@ namespace ColorPuzzle
                 grayscaleRenderer.sharedMaterial = colorMaterial;
             else if (grayscaleMaterial != null)
                 grayscaleRenderer.sharedMaterial = grayscaleMaterial;
+        }
+
+        private void SetColorProxyActive(bool value)
+        {
+            if (colorProxy != null)
+                colorProxy.SetActive(value && (dualViewMaterial == null || !dualViewMaterial.IsInitialized));
         }
 
         private IEnumerator RestorePlayerCollisionAfterExit()
