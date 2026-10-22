@@ -67,6 +67,8 @@ namespace ColorPuzzle
         // CENTRALIZED VISUAL / INTERACTION PARAMETERS (all art-directable values are Inspector-visible)
         [Header("Interaction")]
         [SerializeField] private MagnifierMouseButton revealMouseButton = MagnifierMouseButton.Right;
+        [Tooltip("Only enable this in the ocean campaign. Other demo scenes keep their existing magnifier behavior.")]
+        [SerializeField] private bool requiresPickupToUse;
 
         [Header("Puzzle Mode")]
         [SerializeField] private PuzzleMode defaultPuzzleMode = PuzzleMode.ColorSearch;
@@ -171,6 +173,7 @@ namespace ColorPuzzle
         private int textureWidth;
         private int textureHeight;
         private bool active;
+        private bool magnifierUnlocked;
         private bool worldRestored;
         private PuzzleMode currentPuzzleMode;
         private DevViewMode currentDevViewMode;
@@ -212,6 +215,15 @@ namespace ColorPuzzle
         public bool IsFullColorView => worldRestored || currentDevViewMode == DevViewMode.FullColor;
         public bool IsValueSearchMode => !worldRestored && currentPuzzleMode == PuzzleMode.ValueSearch;
         public bool IsDeveloperPanelOpen => developerPanelOpen;
+        public bool HasMagnifier => magnifierUnlocked;
+
+        public void SetMagnifierUnlocked(bool unlocked)
+        {
+            magnifierUnlocked = unlocked || !requiresPickupToUse;
+            if (!magnifierUnlocked && active) SetActive(false);
+        }
+
+        public void UnlockMagnifier() => SetMagnifierUnlocked(true);
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetDeveloperSettingsForNewPlaySession()
@@ -225,6 +237,7 @@ namespace ColorPuzzle
 
         private void Awake()
         {
+            magnifierUnlocked = !requiresPickupToUse;
             revealImage = circularViewport != null ? circularViewport.GetComponentInChildren<RawImage>(true) : null;
             revealImageRect = revealImage != null ? revealImage.rectTransform : null;
             canvas = circularViewport != null ? circularViewport.GetComponentInParent<Canvas>() : null;
@@ -282,6 +295,7 @@ namespace ColorPuzzle
                 SetDeveloperPanelOpen(!developerPanelOpen);
 
             bool held = !developerPanelOpen &&
+                        magnifierUnlocked &&
                         !worldRestored &&
                         currentPuzzleMode == PuzzleMode.ColorSearch &&
                         currentDevViewMode == DevViewMode.PuzzleView &&
@@ -314,6 +328,7 @@ namespace ColorPuzzle
         {
             bool wasActive = active;
             active = value &&
+                     magnifierUnlocked &&
                      !worldRestored &&
                      currentPuzzleMode == PuzzleMode.ColorSearch &&
                      currentDevViewMode == DevViewMode.PuzzleView;

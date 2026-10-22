@@ -1,10 +1,18 @@
 # Color Puzzle — Vertical Slice Guide
 
+## Current ocean campaign layout (October 2026)
+
+`ColorPuzzleOceanCampaign.unity` is the active campaign scene. It contains one continuous room: `--- OCEAN WORLD ---` is an instance of `Prefabs/World/OceanSharedRoom.prefab`, owning the common floor and invisible outer boundary. The existing `--- OCEAN BACKDROP RIG ---` remains scene-wide. There are no stage floors, partition walls, doorways, or teleport portals.
+
+`--- OCEAN CAMPAIGN STAGES ---` holds the `00 Magnifier Intro` prefab followed by four ordered `OceanStage01`–`OceanStage04` puzzle prefabs. The intro sits on the shared floor before stage 1: a fresh player walks roughly six metres to the magnifier pillar, then another six metres to the first puzzle checkpoint. Left-clicking the magnifier model on the pillar unlocks the magnifier ability; it does not enter inventory and cannot be dropped. The first puzzle's temporary completion beacon requires that ability. Each puzzle prefab contains only its interactive structure, a `Checkpoint Spawn`, and an `OceanCampaignStage` reference component. The intro is intentionally not counted among the four puzzle stages. All content stays loaded and editable in the scene; stage streaming remains a future hook, not active behavior.
+
+To edit the room, open `Prefabs/World/OceanSharedRoom.prefab`. To tune the introduction, open `Prefabs/Level/CampaignStages/00 Magnifier Intro.prefab`: `Start Spawn` sets the approach, and `Magnifier Pickup` holds the model, collider, and pickup audio/volume. The player prefab's `MagnifierView / Requires Pickup To Use` is enabled on this campaign scene. To edit a puzzle, open its stage prefab or adjust its scene instance. Stage positions already authored in the campaign scene were preserved. Stage checkpoints and the magnifier unlock are saved separately; the developer panel can jump between stages or reset both. The older Forest/Village and underwater-demo assets remain as backups. Sections below record earlier prototype systems and may describe those backup scenes.
+
 ## Game design
 
-Color Puzzle is a casual first-person 3D exploration platformer about restoring color. The underwater prototype now supports two session-persistent puzzle variations in the hidden Enter panel. **Color Search** is the existing Move Lens loop: holding right click while grounded freezes the player/camera and moves a circular color viewport. **Value Search** removes the magnifier entirely and renders the full scene in greyscale; the player identifies the correct object by comparing the intrinsic lightness of a deliberately reduced six-color palette. Pickup stores the object in a neutral bottom inventory HUD, and only a correct placement completes the goal. Full Color remains a Color Search-only developer comparison.
+Color Puzzle is a casual first-person 3D exploration platformer about restoring color. The current campaign takes place in one continuous ocean room with four authored puzzle-stage containers. Earlier underwater-demo mechanics include **Color Search** (a movable magnifier while grounded) and **Value Search** (full-scene greyscale comparison); the hidden Enter panel retains development controls for those views.
 
-Alpha production uses a three-scene sequence: **Forest Tutorial** (Level 1), **Ocean** (Level 2, the current authored level), and **Village Ending** (Level 3). Forest and Village are intentionally content-empty placeholders containing only the shared player/dev panel. The build starts in Forest; Enter exposes direct Forest/Ocean/Village navigation for development.
+The older Forest Tutorial, Underwater Demo, and Village Ending scenes are retained as backups. They are not the active four-stage campaign.
 
 The active underwater shell and pillar visuals use normalized Unity mesh assets generated from the supplied OBJ source exports. Their Y-forward/Z-up export space is converted to Unity's Y-up convention during normalization, while the resulting mesh bounds match the previous visuals so authored scene placement does not move.
 
@@ -13,13 +21,14 @@ The active underwater shell and pillar visuals use normalized Unity mesh assets 
 - **WASD** — move
 - **Mouse** — look
 - **Space** — jump
-- **Hold right click while grounded (Color Search only)** — freeze the player/camera and move the color-revealing magnifier
+- **Left click on the intro magnifier** — learn the magnifier skill once; it is not a carried object
+- **Hold right click while grounded (Color Search only, after unlock)** — freeze the player/camera and move the color-revealing magnifier
 - **Left click** — pick up the centered mission object, or the mission object directly beneath the player
 - **Q** — place the carried object on a matching goal, or drop it in front of the player
 - **R** — reset the current scene
 - **Enter** — open/close the developer panel; opening releases the cursor and closing recaptures it
 - **F9** — append a manual snapshot of the current level telemetry to the telemetry text file
-- **Forest / Ocean / Village (developer panel)** — load any level in the alpha sequence
+- **Stage 1–4 (developer panel)** — jump to an authored stage checkpoint in the shared ocean room
 - **Color Search / Value Search (developer panel)** — switch between magnifier-based hue discovery and full-screen greyscale value comparison
 - **Greyscale / Full Color (developer panel)** — compare the intended monochrome presentation with an always-on color view
 - **Back Glow / Center Text (developer panel)** — compare the two 0.75-second interaction-cue variations
@@ -27,18 +36,18 @@ The active underwater shell and pillar visuals use normalized Unity mesh assets 
 
 ### Play paths
 
-`ColorPuzzleStartMenu.unity` is the build entry. Play begins at `ColorPuzzleForestTutorial.unity`, the Level 1 placeholder. `ColorPuzzleUnderwaterDemo.unity` is Level 2 and remains the active authored demo. `ColorPuzzleVillageEnding.unity` is the Level 3 placeholder. Press Enter in any level and use the Level Sequence group to move directly between them. Escape opens the shared pause menu. The production HUD no longer creates the top-left objective card or displays the bottom control legend; interaction cues and the carried-shell inventory remain available.
+`ColorPuzzleStartMenu.unity` is the build entry; Start opens `ColorPuzzleOceanCampaign.unity`. All four stage containers stay in that one scene. Press Enter to use developer stage selection, or Escape for the shared pause menu. The production HUD does not create the top-left objective card or bottom control legend; interaction cues and the carried-shell inventory remain available.
 
 ### Playtest telemetry
 
-`TelemetryManager` is created automatically before the first scene loads and persists across the level sequence. It follows the supplied USC TelemetryManager package's persistent-manager/event-recording pattern while using this project's current Input System and an append-only text format. Each tracked level records:
+`TelemetryManager` is created automatically before the first scene loads and uses an append-only text format. In the current campaign it records time to complete each stage, magnifier activations in each stage, and a placeholder failed-attempt count. The following fields describe the older single-level demo flow, not the current four-stage campaign:
 
 - elapsed real time from level load to the correct shell unlocking the portal;
 - number of magnifier activations;
 - number of successful pickup actions, including picking the same shell up again;
 - elapsed real time from portal unlock to the player's first portal crossing.
 
-Final records are appended automatically when the player enters the portal, leaves the level, or quits. Press **F9** for a non-destructive snapshot during a playtest. The exact path is printed in the Unity Console after each write; the file is stored at `Application.persistentDataPath/Telemetry/ColorPuzzle-Telemetry.txt`. Open the Enter developer panel to see the short in-game usage guide. Timing uses unscaled real time, so pauses are included in the observed play session.
+Records are written to `Application.persistentDataPath/Telemetry/ColorPuzzle-Telemetry.txt`; Unity logs the exact path after a write. **F9** appends a manual snapshot during a playtest. Timing uses unscaled real time, so pauses are included in the observed play session.
 
 ## Visual system recipe
 

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace ColorPuzzle
 {
-    /// <summary>Simple temporary interaction object used to unlock the next stage door.</summary>
+    /// <summary>Temporary puzzle-completion interaction; stages have no physical gate.</summary>
     public sealed class StageGateBeacon : MonoBehaviour
     {
         private OceanCampaignManager campaign;
@@ -19,7 +19,7 @@ namespace ColorPuzzle
         {
             if (activated || campaign == null || player == null) return false;
             if (Vector3.Distance(player.position, transform.position) > range) return false;
-            if (!campaign.UnlockDoor(stageIndex)) return false;
+            if (!campaign.CompleteStage(stageIndex)) return false;
             activated = true;
             return true;
         }

@@ -583,7 +583,7 @@ MonoBehaviour:
   backgroundMusicFadeOutDuration: 1.5
   worldRevealDuration: 4.8
   worldRevealStartRadius: 0.18
-  worldRevealEndRadius: 42
+  worldRevealEndRadius: 120
   worldRevealEdgeFeather: 0.8
   worldRevealEasing:
     serializedVersion: 2

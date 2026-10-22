@@ -5,44 +5,51 @@ using UnityEngine.SceneManagement;
 
 namespace ColorPuzzle
 {
-    /// <summary>Runs the authored, four-stage ocean campaign placed directly in the scene.</summary>
+    /// <summary>Tracks puzzle progress in one continuous, authored ocean room.</summary>
     public sealed class OceanCampaignManager : MonoBehaviour
     {
         private const string CheckpointKey = "ColorPuzzle.OceanCampaign.Checkpoint";
+        private const string MagnifierSkillKey = "ColorPuzzle.OceanCampaign.MagnifierSkill";
 
         [Header("Campaign Structure")]
         [SerializeField] private FirstPersonPlayer player;
-        [Tooltip("Scene parent containing Ocean Stage 01 through 04, in play order.")]
+        [Tooltip("Scene parent containing the puzzle stage prefabs in play order. Non-stage children, such as the intro, are ignored.")]
         [SerializeField] private Transform stageContainer;
+        [SerializeField] private Transform introSpawn;
+        [SerializeField] private MagnifierPickup magnifierPickup;
         [SerializeField] private Vector3 checkpointSpawnOffset = new Vector3(0f, 2f, 2f);
 
         [Header("Future Stage Streaming")]
         [Tooltip("Reserved for later additive loading. It intentionally does nothing for now; all four editable stages stay loaded.")]
         [SerializeField] private bool loadUpcomingStageWhenPreviousIsCompleted;
 
-        [Header("Door Behaviour")]
-        [SerializeField, Min(0.1f)] private float doorOpenDuration = 0.65f;
+        [Header("Checkpoint Behaviour")]
         [SerializeField] private bool resumeFromSavedCheckpoint = true;
 
-        private readonly List<GameObject> stages = new List<GameObject>();
+        private readonly List<OceanCampaignStage> stages = new List<OceanCampaignStage>();
         private int currentStageIndex;
         private bool campaignComplete;
+        private bool magnifierSkillUnlocked;
         public static OceanCampaignManager Active { get; private set; }
         public int CurrentStageNumber => currentStageIndex + 1;
         public bool IsComplete => campaignComplete;
+        public bool HasMagnifierSkill => magnifierSkillUnlocked;
 
         private void Awake() => Active = this;
 
         private void Start()
         {
             if (player == null) player = FindAnyObjectByType<FirstPersonPlayer>();
-            if (!CollectAuthoredStages() || !ValidateStageBoundaries())
+            if (!CollectAuthoredStages() || !ValidateStages())
             {
                 enabled = false;
                 return;
             }
 
             currentStageIndex = Mathf.Clamp(resumeFromSavedCheckpoint ? PlayerPrefs.GetInt(CheckpointKey, 0) : 0, 0, stages.Count - 1);
+            magnifierSkillUnlocked = PlayerPrefs.GetInt(MagnifierSkillKey, 0) != 0 || currentStageIndex > 0;
+            player?.GetComponent<MagnifierView>()?.SetMagnifierUnlocked(magnifierSkillUnlocked);
+            magnifierPickup?.SetAvailable(!magnifierSkillUnlocked);
             ConfigureAuthoredProgression();
             StartCoroutine(PlacePlayerAfterSetup());
         }
@@ -50,7 +57,10 @@ namespace ColorPuzzle
         private IEnumerator PlacePlayerAfterSetup()
         {
             yield return null;
-            MovePlayerToCheckpoint(currentStageIndex);
+            if (currentStageIndex == 0 && !magnifierSkillUnlocked && introSpawn != null)
+                MovePlayerToIntro();
+            else
+                MovePlayerToCheckpoint(currentStageIndex);
             TelemetryManager.BeginCampaignStage(currentStageIndex + 1);
             RestoreColorForFinalStageIfNeeded();
         }
@@ -63,25 +73,22 @@ namespace ColorPuzzle
                 Debug.LogError("Assign the scene's OCEAN CAMPAIGN STAGES parent to Stage Container.", this);
                 return false;
             }
-            foreach (Transform stage in stageContainer)
-                if (stage.gameObject.activeInHierarchy) stages.Add(stage.gameObject);
+            foreach (Transform child in stageContainer)
+                if (child.gameObject.activeInHierarchy && child.TryGetComponent(out OceanCampaignStage stage))
+                    stages.Add(stage);
             if (stages.Count == 4) return true;
-            Debug.LogError($"Ocean campaign expected 4 active stage instances under {stageContainer.name}, found {stages.Count}.", this);
+            Debug.LogError($"Ocean campaign expected 4 active puzzle stages under {stageContainer.name}, found {stages.Count}.", this);
             return false;
         }
 
-        private bool ValidateStageBoundaries()
+        private bool ValidateStages()
         {
-            for (int index = 0; index < stages.Count - 1; index++)
+            for (int index = 0; index < stages.Count; index++)
             {
-                GameObject exit = FindNamedTransform(stages[index].transform, "BackWall")?.gameObject;
-                GameObject entrance = FindNamedTransform(stages[index + 1].transform, "FrontWall")?.gameObject;
-                if (exit == null || entrance == null || exit.activeInHierarchy || entrance.activeInHierarchy ||
-                    stages[index].GetComponentInChildren<StageDoor>(true) == null ||
-                    stages[index].GetComponentInChildren<StageGateBeacon>(true) == null ||
-                    stages[index].GetComponentInChildren<StageDoorwayTrigger>(true) == null)
+                if (stages[index].CheckpointSpawn == null ||
+                    (index < stages.Count - 1 && stages[index].CompletionBeacon == null))
                 {
-                    Debug.LogError($"Stage {index + 1} doorway is incomplete or blocked. Check both boundary walls and its door, beacon, and crossing trigger in the stage prefabs.", this);
+                    Debug.LogError($"Puzzle stage {index + 1} needs a checkpoint and, except for the final stage, a completion interaction.", stages[index]);
                     return false;
                 }
             }
@@ -92,22 +99,25 @@ namespace ColorPuzzle
         {
             for (int index = 0; index < stages.Count; index++)
             {
-                StageDoor door = stages[index].GetComponentInChildren<StageDoor>(true);
-                if (door == null) continue; // Final stage intentionally has no exit door.
-                door.Configure(this, index, doorOpenDuration);
-                StageGateBeacon beacon = stages[index].GetComponentInChildren<StageGateBeacon>(true);
-                beacon?.Configure(this, index);
-                foreach (StageDoorwayTrigger trigger in stages[index].GetComponentsInChildren<StageDoorwayTrigger>(true))
-                    trigger.Configure(door);
+                stages[index].CompletionBeacon?.Configure(this, index);
             }
         }
 
-        public bool UnlockDoor(int stageIndex)
+        public bool CompleteStage(int stageIndex)
         {
-            if (stageIndex != currentStageIndex || stageIndex >= stages.Count - 1) return false;
-            StageDoor door = stages[stageIndex].GetComponentInChildren<StageDoor>(true);
-            if (door == null) return false;
-            if (!door.IsOpen) door.Open();
+            if (!magnifierSkillUnlocked || stageIndex != currentStageIndex || stageIndex >= stages.Count - 1) return false;
+            ReachNextStage(stageIndex);
+            return true;
+        }
+
+        public bool AcquireMagnifier()
+        {
+            if (magnifierSkillUnlocked || player == null) return false;
+            magnifierSkillUnlocked = true;
+            PlayerPrefs.SetInt(MagnifierSkillKey, 1);
+            PlayerPrefs.Save();
+            player.GetComponent<MagnifierView>()?.UnlockMagnifier();
+            magnifierPickup?.SetAvailable(false);
             return true;
         }
 
@@ -127,6 +137,9 @@ namespace ColorPuzzle
         public void TeleportToStage(int stageNumber)
         {
             currentStageIndex = Mathf.Clamp(stageNumber - 1, 0, stages.Count - 1);
+            player?.GetComponent<MagnifierView>()?.UnlockMagnifier();
+            magnifierSkillUnlocked = true;
+            magnifierPickup?.SetAvailable(false);
             MovePlayerToCheckpoint(currentStageIndex);
             TelemetryManager.BeginCampaignStage(currentStageIndex + 1);
             RestoreColorForFinalStageIfNeeded();
@@ -136,7 +149,18 @@ namespace ColorPuzzle
         {
             if (!enabled) return;
             currentStageIndex = Mathf.Clamp(PlayerPrefs.GetInt(CheckpointKey, currentStageIndex), 0, stages.Count - 1);
-            MovePlayerToCheckpoint(currentStageIndex);
+            magnifierSkillUnlocked = PlayerPrefs.GetInt(MagnifierSkillKey, 0) != 0 || currentStageIndex > 0;
+            player?.GetComponent<MagnifierView>()?.SetMagnifierUnlocked(magnifierSkillUnlocked);
+            if (magnifierSkillUnlocked)
+            {
+                magnifierPickup?.SetAvailable(false);
+                MovePlayerToCheckpoint(currentStageIndex);
+            }
+            else
+            {
+                magnifierPickup?.SetAvailable(true);
+                MovePlayerToIntro();
+            }
             TelemetryManager.BeginCampaignStage(currentStageIndex + 1);
             RestoreColorForFinalStageIfNeeded();
         }
@@ -144,6 +168,7 @@ namespace ColorPuzzle
         public void ResetSavedProgress()
         {
             PlayerPrefs.DeleteKey(CheckpointKey);
+            PlayerPrefs.DeleteKey(MagnifierSkillKey);
             PlayerPrefs.Save();
         }
 
@@ -164,12 +189,22 @@ namespace ColorPuzzle
         private void MovePlayerToCheckpoint(int stageIndex)
         {
             if (player == null || stageIndex < 0 || stageIndex >= stages.Count) return;
-            Renderer floor = FindNamedTransform(stages[stageIndex].transform, "Floor")?.GetComponent<Renderer>();
-            if (floor == null) return;
+            Transform checkpoint = stages[stageIndex].CheckpointSpawn;
+            if (checkpoint == null) return;
             CharacterController controller = player.GetComponent<CharacterController>();
             if (controller != null) controller.enabled = false;
-            Bounds bounds = floor.bounds;
-            player.transform.SetPositionAndRotation(new Vector3(bounds.center.x, bounds.max.y, bounds.min.z) + checkpointSpawnOffset, Quaternion.identity);
+            player.transform.SetPositionAndRotation(checkpoint.position + checkpointSpawnOffset, checkpoint.rotation);
+            if (controller != null) controller.enabled = true;
+        }
+
+        private void MovePlayerToIntro()
+        {
+            if (player == null || introSpawn == null) return;
+            CharacterController controller = player.GetComponent<CharacterController>();
+            if (controller != null) controller.enabled = false;
+            player.transform.SetPositionAndRotation(
+                introSpawn.position + Vector3.up * checkpointSpawnOffset.y,
+                introSpawn.rotation);
             if (controller != null) controller.enabled = true;
         }
 
@@ -179,13 +214,6 @@ namespace ColorPuzzle
             // lets us add additive loading later without changing the progression/checkpoint flow.
             if (!loadUpcomingStageWhenPreviousIsCompleted) return;
             Debug.Log($"Stage streaming is reserved for a future pass (requested stage {stageIndex + 1}).", this);
-        }
-
-        private static Transform FindNamedTransform(Transform root, string objectName)
-        {
-            foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
-                if (child.name == objectName) return child;
-            return null;
         }
 
         private void OnDestroy()

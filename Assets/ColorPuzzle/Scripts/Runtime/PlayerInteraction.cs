@@ -179,6 +179,16 @@ namespace ColorPuzzle
 
         private void TryPickUp()
         {
+            if (TryFindNearestPickupHit(0f, out RaycastHit specialHit))
+            {
+                MagnifierPickup magnifierPickup = specialHit.collider.GetComponentInParent<MagnifierPickup>();
+                if (magnifierPickup != null && magnifierPickup.TryAcquire(transform, interactionDistance))
+                {
+                    ResetInteractionCue();
+                    return;
+                }
+            }
+
             DiscoverableObject item = FindPickupObjectInAim();
             if (item == null)
                 item = FindPickupObjectBelowPlayer();
@@ -769,7 +779,7 @@ namespace ColorPuzzle
             interactionCueDwellElapsed += Time.unscaledDeltaTime;
             if (interactionCueDwellElapsed < interactionCueDwellDuration) return;
 
-            if (interactionCueMode == InteractionCueMode.CenterText)
+            if (cueTarget is MagnifierPickup || interactionCueMode == InteractionCueMode.CenterText)
                 ShowInteractionCueText(cueLabel);
             else if (supportsGlow)
             {
@@ -812,6 +822,13 @@ namespace ColorPuzzle
             if (carried != null) return false;
 
             if (!TryFindNearestPickupHit(0f, out RaycastHit centerHit)) return false;
+            MagnifierPickup ability = centerHit.collider.GetComponentInParent<MagnifierPickup>();
+            if (ability != null && ability.IsAvailable)
+            {
+                cueTarget = ability;
+                cueLabel = "LMB TAKE MAGNIFIER";
+                return true;
+            }
             DiscoverableObject item = centerHit.collider.GetComponentInParent<DiscoverableObject>();
             if (item == null) return false;
             cueTarget = item;
