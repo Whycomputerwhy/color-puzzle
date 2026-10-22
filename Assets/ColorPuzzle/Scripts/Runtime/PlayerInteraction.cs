@@ -100,10 +100,12 @@ namespace ColorPuzzle
         [SerializeField] private Vector2 inventoryOutlineDistance = new Vector2(1f, -1f);
 
         private DiscoverableObject carried;
+        private ShellPuzzlePiece carriedShellKey;
         private MagnifierView magnifier;
         private CharacterController playerController;
         private GameObject inventoryHudRoot;
         private Text inventoryLabel;
+        private Text inventoryIcon;
         private GameObject interactionCueTextRoot;
         private Text interactionCueText;
         private Object currentCueTarget;
@@ -156,8 +158,12 @@ namespace ColorPuzzle
             if (magnifier != null && magnifier.IsActive) { UpdateStatus(); return; }
 
             if (Keyboard.current[interactKey].wasPressedThisFrame) TryActivateStageGate();
-            if (Mouse.current.leftButton.wasPressedThisFrame && carried == null) TryPickUp();
-            if (Keyboard.current[dropOrPlaceKey].wasPressedThisFrame && carried != null) TryDropOrPlace();
+            if (Mouse.current.leftButton.wasPressedThisFrame && carried == null && carriedShellKey == null) TryPickUp();
+            if (Keyboard.current[dropOrPlaceKey].wasPressedThisFrame)
+            {
+                if (carriedShellKey != null) TryDropOrPlaceShellKey();
+                else if (carried != null) TryDropOrPlace();
+            }
             UpdateStatus();
         }
 
@@ -189,6 +195,21 @@ namespace ColorPuzzle
                 }
             }
 
+            if (TryFindNearestPickupHit(0f, out RaycastHit shellHit))
+            {
+                ShellPuzzlePiece shell = shellHit.collider.GetComponentInParent<ShellPuzzlePiece>();
+                if (shell != null && shell.Kind == ShellPuzzlePiece.PieceKind.Keyhole)
+                    shell = shell.PlacedKey;
+                if (shell != null && shell.PickUp())
+                {
+                    carriedShellKey = shell;
+                    TelemetryManager.RecordObjectPickup();
+                    ResetInteractionCue();
+                    RefreshInventoryHud();
+                    return;
+                }
+            }
+
             DiscoverableObject item = FindPickupObjectInAim();
             if (item == null)
                 item = FindPickupObjectBelowPlayer();
@@ -198,6 +219,95 @@ namespace ColorPuzzle
             TelemetryManager.RecordObjectPickup();
             ResetInteractionCue();
             RefreshInventoryHud();
+        }
+
+        private void TryDropOrPlaceShellKey()
+        {
+            if (TryFindShellKeyhole(out ShellPuzzlePiece keyhole))
+            {
+                ShellPuzzleController puzzle = keyhole.GetComponentInParent<ShellPuzzleController>();
+                if (puzzle != null && puzzle.TryPlace(carriedShellKey, keyhole))
+                {
+                    carriedShellKey = null;
+                    ResetInteractionCue();
+                    RefreshInventoryHud();
+                }
+                return; // A wrong key rests on the slot until picked up again.
+            }
+
+            Vector3 candidate = viewCamera.transform.position + viewCamera.transform.forward * dropDistance;
+            RaycastHit[] surfaces = Physics.RaycastAll(
+                candidate + Vector3.up * dropGroundProbeHeight,
+                Vector3.down,
+                dropGroundProbeHeight + dropGroundProbeDistance,
+                interactionLayers,
+                QueryTriggerInteraction.Ignore);
+            float nearestDistance = float.PositiveInfinity;
+            bool found = false;
+            Vector3 floorPoint = default;
+            foreach (RaycastHit surface in surfaces)
+            {
+                if (IsPlayerCollider(surface.collider) || surface.normal.y < 0.6f ||
+                    surface.distance >= nearestDistance) continue;
+                nearestDistance = surface.distance;
+                floorPoint = surface.point;
+                found = true;
+            }
+            if (!found) return;
+            Vector3 visualCenter = viewCamera.transform.position +
+                                   viewCamera.transform.forward * dropDistance;
+            Vector3 animationStart = visualCenter - carriedShellKey.GetVisualCenterOffset();
+            carriedShellKey.DropAnimated(animationStart, floorPoint,
+                dropAnimationDuration, dropAnimationFallExponent, playerController);
+            carriedShellKey = null;
+            ResetInteractionCue();
+            RefreshInventoryHud();
+        }
+
+        private bool TryFindShellKeyhole(out ShellPuzzlePiece selected)
+        {
+            selected = null;
+            if (carriedShellKey == null || viewCamera == null) return false;
+            Vector3 origin = viewCamera.transform.position;
+            Vector3 forward = viewCamera.transform.forward;
+            float bestScore = float.PositiveInfinity;
+            foreach (ShellPuzzlePiece candidate in FindObjectsByType<ShellPuzzlePiece>(FindObjectsSortMode.None))
+            {
+                if (candidate.Kind != ShellPuzzlePiece.PieceKind.Keyhole || candidate.IsOccupied) continue;
+                Vector3 slot = candidate.SlotPosition;
+                Vector3 toSlot = slot - origin;
+                float forwardDistance = Vector3.Dot(toSlot, forward);
+                if (forwardDistance < 0f || forwardDistance > placementDistance) continue;
+                float aimError = Vector3.Distance(slot, origin + forward * forwardDistance);
+                if (aimError > Mathf.Max(placementCastRadius, candidate.FitDiameter * 0.5f + 0.25f) ||
+                    aimError >= bestScore) continue;
+                if (!HasShellPlacementLineOfSight(candidate, origin, toSlot)) continue;
+                selected = candidate;
+                bestScore = aimError;
+            }
+            return selected != null;
+        }
+
+        private bool HasShellPlacementLineOfSight(ShellPuzzlePiece keyhole, Vector3 origin, Vector3 toSlot)
+        {
+            float distance = toSlot.magnitude;
+            if (distance < 0.001f) return true;
+            foreach (RaycastHit hit in Physics.RaycastAll(origin, toSlot / distance, distance, interactionLayers,
+                         QueryTriggerInteraction.Ignore))
+            {
+                if (IsPlayerCollider(hit.collider) ||
+                    hit.collider.GetComponentInParent<ShellPuzzlePiece>() == keyhole ||
+                    IsInsideNamedObject(hit.collider.transform, "Clam Casing")) continue;
+                return false;
+            }
+            return true;
+        }
+
+        private static bool IsInsideNamedObject(Transform child, string name)
+        {
+            for (Transform current = child; current != null; current = current.parent)
+                if (current.name == name) return true;
+            return false;
         }
 
         private DiscoverableObject FindPickupObjectInAim()
@@ -807,6 +917,13 @@ namespace ColorPuzzle
             cueRenderer = null;
             cueColorRenderer = null;
 
+            if (carriedShellKey != null && TryFindShellKeyhole(out ShellPuzzlePiece shellGoal))
+            {
+                cueTarget = shellGoal;
+                cueLabel = "Q PLACE";
+                return true;
+            }
+
             if (carried != null && TryFindPlacementGoal(out GoalPedestal goal))
             {
                 cueTarget = goal;
@@ -819,7 +936,7 @@ namespace ColorPuzzle
 
             // Carrying has only one contextual cue: a valid matching placement.
             // Ordinary drops remain available through Q but are never suggested.
-            if (carried != null) return false;
+            if (carried != null || carriedShellKey != null) return false;
 
             if (!TryFindNearestPickupHit(0f, out RaycastHit centerHit)) return false;
             MagnifierPickup ability = centerHit.collider.GetComponentInParent<MagnifierPickup>();
@@ -827,6 +944,16 @@ namespace ColorPuzzle
             {
                 cueTarget = ability;
                 cueLabel = "LMB TAKE MAGNIFIER";
+                return true;
+            }
+            ShellPuzzlePiece shell = centerHit.collider.GetComponentInParent<ShellPuzzlePiece>();
+            if (shell != null && shell.CanPickUp)
+            {
+                cueTarget = shell;
+                cueLabel = "LC PICKUP";
+                cueRenderer = shell.CueRenderer;
+                cueColorRenderer = cueRenderer;
+                supportsGlow = cueRenderer != null;
                 return true;
             }
             DiscoverableObject item = centerHit.collider.GetComponentInParent<DiscoverableObject>();
@@ -960,13 +1087,13 @@ namespace ColorPuzzle
             ballRect.pivot = new Vector2(0f, 0.5f);
             ballRect.anchoredPosition = Vector2.zero;
             ballRect.sizeDelta = new Vector2(ballSlotWidth, 0f);
-            Text ballText = ballObject.GetComponent<Text>();
-            ballText.font = hudFont;
-            ballText.fontSize = inventoryBallFontSize;
-            ballText.alignment = TextAnchor.MiddleCenter;
-            ballText.color = inventoryFillColor;
-            ballText.text = "●";
-            ballText.raycastTarget = false;
+            inventoryIcon = ballObject.GetComponent<Text>();
+            inventoryIcon.font = hudFont;
+            inventoryIcon.fontSize = inventoryBallFontSize;
+            inventoryIcon.alignment = TextAnchor.MiddleCenter;
+            inventoryIcon.color = inventoryFillColor;
+            inventoryIcon.text = "●";
+            inventoryIcon.raycastTarget = false;
             ConfigureInventoryOutline(ballObject.GetComponent<Outline>());
 
             GameObject labelObject = new GameObject(
@@ -1001,10 +1128,11 @@ namespace ColorPuzzle
         private void RefreshInventoryHud()
         {
             if (inventoryHudRoot == null) return;
-            bool hasObject = carried != null;
+            bool hasObject = carried != null || carriedShellKey != null;
             inventoryHudRoot.SetActive(hasObject);
             if (!hasObject) return;
-            inventoryLabel.text = carried.DisplayName;
+            inventoryLabel.text = carriedShellKey != null ? "Shell Key" : carried.DisplayName;
+            if (inventoryIcon != null) inventoryIcon.text = carriedShellKey != null ? "■" : "●";
         }
 
         private void OnDisable()

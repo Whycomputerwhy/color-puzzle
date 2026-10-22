@@ -54,6 +54,8 @@ namespace ColorPuzzle
 
         private void Awake()
         {
+            // Enter Play Mode can retain native audio pause state when domain reload is disabled.
+            AudioListener.pause = false;
             AudioListener.volume = GameAudioSettings.LoadMasterVolume(defaultMasterVolume);
             BuildInterface();
             menuRoot.SetActive(false);

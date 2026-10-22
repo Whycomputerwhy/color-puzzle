@@ -268,7 +268,6 @@ namespace ColorPuzzle
             InteractionOutlineRuntime.SetColorCamera(colorCamera);
             DualViewMaterial.ConfigureCameras(sourceCamera, colorCamera);
             ApplySolidSkyColors();
-            ConfigureBackgroundMusic();
             PrepareCompleteColorView();
             EnsureRenderTexture();
             CreateValueSearchOverlay();
@@ -278,6 +277,13 @@ namespace ColorPuzzle
             ApplyDisplayFont(currentDisplayFont);
             ApplyPuzzleMode();
             SetActive(false);
+        }
+
+        private void Start()
+        {
+            // Audio settings and pause state are restored by the menu controller in Awake.
+            // Start the soundtrack after those settings are ready on direct scene launches too.
+            ConfigureBackgroundMusic();
         }
 
         private void OnDestroy()
@@ -435,6 +441,7 @@ namespace ColorPuzzle
         private void ConfigureBackgroundMusic()
         {
             if (backgroundMusicClip == null) return;
+            if (backgroundMusicSource != null) return;
 
             GameObject musicObject = new GameObject("BackgroundMusic", typeof(AudioSource));
             musicObject.transform.SetParent(transform, false);
@@ -461,6 +468,16 @@ namespace ColorPuzzle
         {
             if (backgroundMusicSource == null || backgroundMusicAlternateSource == null || backgroundMusicClip == null)
                 yield break;
+
+            if (backgroundMusicClip.loadState == AudioDataLoadState.Unloaded)
+                backgroundMusicClip.LoadAudioData();
+            while (backgroundMusicClip.loadState == AudioDataLoadState.Loading)
+                yield return null;
+            if (backgroundMusicClip.loadState != AudioDataLoadState.Loaded)
+            {
+                Debug.LogWarning("Background music could not be loaded.", this);
+                yield break;
+            }
 
             float segmentDuration = Mathf.Min(backgroundMusicLoopDuration, backgroundMusicClip.length);
             float crossfadeDuration = Mathf.Min(backgroundMusicLoopCrossfadeDuration, segmentDuration * 0.5f);

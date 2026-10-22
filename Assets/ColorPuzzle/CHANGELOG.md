@@ -1,6 +1,39 @@
 # Color Puzzle Version History
 This log is intended for people and AI agents continuing the same Unity project. Append new entries; do not rewrite past decisions without explaining the migration.
 
+## Reliable campaign music startup — 2026-10-22
+
+- Restored reliable playback of the assigned underwater soundtrack by starting it after the gameplay audio state initializes and waiting for the clip to load before playing. The existing first-37-seconds crossfade loop and Inspector volume values are unchanged.
+- A fresh gameplay scene now clears any audio-pause state left by a prior paused Editor play session. The pause menu still pauses and resumes audio normally.
+
+## Shared shell-key proportions — 2026-10-22
+
+- Removed cube and pearl transform overrides from the four key variants. All now inherit the flattened, grounded shape from `Shell Key Base` and differ by uniform root scale only.
+- Preserved variant colors, pair data, relative sizes, and all designer-authored scene instance transforms. Updated the prefab builder so future generated variants follow the same structure.
+
+## Rearrangeable correct shell keys — 2026-10-22
+
+- Correctly matched shell keys remain pickable while the four-key combination is incomplete. Picking one up frees its keyhole and removes that match from the completion check.
+- The fourth correct match completes Stage 1 and locks all four keys in place. No designer-authored scene positions were changed.
+
+## Shell-key dropping and wrong-slot trials — 2026-10-22
+
+- Shell keys now fall briefly from the camera focus when dropped on the floor, using the existing drop animation timing controls. They stay static after landing.
+- Wrong keys can be set on any empty keyhole and picked up again. They play the wrong-placement audio and count as failed attempts, but never count toward stage completion.
+- All designer-authored scene transforms and placements were left unchanged.
+
+## Stage 1 shell-puzzle completion — 2026-10-22
+
+- Stage 1 now uses the designer-placed four shell key/keyhole pairs instead of its removed gate beacon. LMB picks up a key; Q aimed near its matching slot places it. Wrong pairs remain carried and record a failed attempt.
+- The fourth correct placement advances the campaign stage, plays the existing correct-placement audio, and hides the Clam Casing. The sounds and volumes are exposed on `ShellPuzzleController` in the Stage 1 prefab.
+- Existing scene positions and prefab-instance overrides were preserved.
+
+## Shell puzzle blockout prefabs — 2026-10-22
+
+- Created base prefabs and four numbered variants each for shell keyholes and shell keys. Pair number, fit diameter, and pearl color are inspectable on `ShellPuzzlePiece`; the different slot sizes and key sizes are authored on the variants.
+- Created transparent Clam Casing and metallic Reflective Shell prefabs, with separate greyscale/color material slots on all visible meshes.
+- Deliberately left all stage and scene placement unchanged. The pieces remain a visual blockout without pickup, matching, or completion logic. See `Prefabs/Gameplay/ShellPuzzle/README.md`.
+
 ## Campaign-wide dual-material views — 2026-10-22
 
 - Converted every currently visible mesh in the four-stage ocean campaign to one renderer with inspectable greyscale and color material slots. The shared gradient retains its old color card as a disabled material source; no authored transforms changed.

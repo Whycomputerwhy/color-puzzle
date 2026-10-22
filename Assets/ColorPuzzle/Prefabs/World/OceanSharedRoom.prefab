@@ -1,20 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &7200000000000000101
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3520744227934432247}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9fd59e6338104cf6b467fa2990ef4f4b, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewRoot
-  scanIntervalSeconds: 1
-  includeInactiveChildren: 1
-  logMissingColorMaterials: 1
 --- !u!1 &715124482226697588
 GameObject:
   m_ObjectHideFlags: 0
@@ -45,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 85.07297, y: 603.5127, z: 285.47827}
-  m_LocalScale: {x: 49.399994, y: 1, z: 73}
+  m_LocalScale: {x: 41.6, y: 1, z: 47.3}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6631865726535370601}
@@ -129,6 +114,21 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &7100000000000000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 715124482226697588}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fa90e9b0b6f48aeab877f073df59e62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
+  greyscaleMaterials: []
+  colorMaterials: []
+  legacyColorProxy: {fileID: 5972444976727905257}
 --- !u!1 &1738688389278688959
 GameObject:
   m_ObjectHideFlags: 0
@@ -155,7 +155,7 @@ Transform:
   m_GameObject: {fileID: 1738688389278688959}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 85.07297, y: 610.0127, z: 321.97827}
+  m_LocalPosition: {x: 85.07297, y: 610.0127, z: 309.62827}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -180,7 +180,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 49.399994, y: 12, z: 1}
+  m_Size: {x: 42.6, y: 12, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &3520744227934432247
 GameObject:
@@ -219,6 +219,21 @@ Transform:
   - {fileID: 2418703724032558517}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7200000000000000101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3520744227934432247}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9fd59e6338104cf6b467fa2990ef4f4b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewRoot
+  scanIntervalSeconds: 1
+  includeInactiveChildren: 1
+  logMissingColorMaterials: 1
 --- !u!1 &4769469611784959887
 GameObject:
   m_ObjectHideFlags: 0
@@ -245,7 +260,7 @@ Transform:
   m_GameObject: {fileID: 4769469611784959887}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 85.07297, y: 610.0127, z: 248.97827}
+  m_LocalPosition: {x: 85.07297, y: 610.0127, z: 261.32827}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -270,7 +285,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 49.399994, y: 12, z: 1}
+  m_Size: {x: 42.6, y: 12, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &4965894459293760322
 GameObject:
@@ -298,7 +313,7 @@ Transform:
   m_GameObject: {fileID: 4965894459293760322}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 109.772964, y: 610.0127, z: 285.47827}
+  m_LocalPosition: {x: 106.37297, y: 610.0127, z: 285.47827}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -323,7 +338,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 12, z: 73}
+  m_Size: {x: 1, y: 12, z: 48.3}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &5972444976727905257
 GameObject:
@@ -415,21 +430,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &7100000000000000003
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 715124482226697588}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5fa90e9b0b6f48aeab877f073df59e62, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
-  greyscaleMaterials: []
-  colorMaterials: []
-  legacyColorProxy: {fileID: 5972444976727905257}
 --- !u!1 &8605978924542448705
 GameObject:
   m_ObjectHideFlags: 0
@@ -456,7 +456,7 @@ Transform:
   m_GameObject: {fileID: 8605978924542448705}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 60.37297, y: 610.0127, z: 285.47827}
+  m_LocalPosition: {x: 63.77297, y: 610.0127, z: 285.47827}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -481,5 +481,5 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 12, z: 73}
+  m_Size: {x: 1, y: 12, z: 48.3}
   m_Center: {x: 0, y: 0, z: 0}

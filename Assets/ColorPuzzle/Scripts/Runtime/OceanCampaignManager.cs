@@ -86,9 +86,10 @@ namespace ColorPuzzle
             for (int index = 0; index < stages.Count; index++)
             {
                 if (stages[index].CheckpointSpawn == null ||
-                    (index < stages.Count - 1 && stages[index].CompletionBeacon == null))
+                    (index < stages.Count - 1 && !stages[index].HasCompletionInteraction) ||
+                    (stages[index].ShellPuzzle != null && !stages[index].ShellPuzzle.IsReady))
                 {
-                    Debug.LogError($"Puzzle stage {index + 1} needs a checkpoint and, except for the final stage, a completion interaction.", stages[index]);
+                    Debug.LogError($"Puzzle stage {index + 1} needs a checkpoint and a valid completion interaction (except on the final stage).", stages[index]);
                     return false;
                 }
             }
@@ -100,6 +101,7 @@ namespace ColorPuzzle
             for (int index = 0; index < stages.Count; index++)
             {
                 stages[index].CompletionBeacon?.Configure(this, index);
+                stages[index].ShellPuzzle?.Configure(this, index);
             }
         }
 

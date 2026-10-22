@@ -10,5 +10,7 @@ namespace ColorPuzzle
 
         public Transform CheckpointSpawn => checkpointSpawn;
         public StageGateBeacon CompletionBeacon => completionBeacon;
+        public ShellPuzzleController ShellPuzzle => GetComponent<ShellPuzzleController>();
+        public bool HasCompletionInteraction => completionBeacon != null || ShellPuzzle != null;
     }
 }

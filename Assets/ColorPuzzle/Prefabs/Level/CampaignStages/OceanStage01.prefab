@@ -32,6 +32,22 @@ MonoBehaviour:
   scanIntervalSeconds: 1
   includeInactiveChildren: 1
   logMissingColorMaterials: 1
+--- !u!114 &7400000000000000104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5033568357325116748}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52ddd0ca73dfb4376ad3e6d988cdef60, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.ShellPuzzleController
+  correctPlacementMusic: {fileID: 8300000, guid: f7bd1e49b1c0641a6809e6f6cf857de0, type: 3}
+  correctPlacementVolume: 0.3
+  wrongPlacementClip: {fileID: 8300000, guid: bc14027ba8a394c99ba46158c49ae8f2, type: 3}
+  wrongPlacementVolume: 0.24
 --- !u!1 &2061749884818967314
 GameObject:
   m_ObjectHideFlags: 0
@@ -204,6 +220,7 @@ GameObject:
   - component: {fileID: 1185722150021448985}
   - component: {fileID: 5486777884204953711}
   - component: {fileID: 7200000000000000104}
+  - component: {fileID: 7400000000000000104}
   m_Layer: 0
   m_Name: OceanStage01
   m_TagString: Untagged

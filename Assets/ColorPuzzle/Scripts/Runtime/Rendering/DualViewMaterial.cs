@@ -30,6 +30,11 @@ namespace ColorPuzzle.Rendering
         private Material[] originalMaterials;
         private Material[] resolvedGreyscaleMaterials;
         private Material[] resolvedColorMaterials;
+        private Material[] unfadedGreyscaleMaterials;
+        private Material[] unfadedColorMaterials;
+        private readonly List<Material> opacityInstances = new();
+        private readonly List<Color> opacityBaseColors = new();
+        private readonly List<int> opacityColorProperties = new();
         private Camera greyscaleCamera;
         private Camera colorCamera;
         private int originalLayer;
@@ -128,6 +133,46 @@ namespace ColorPuzzle.Rendering
                 targetRenderer.sharedMaterials = resolvedGreyscaleMaterials;
         }
 
+        /// <summary>Fade both authored views without editing shared material assets.</summary>
+        public void SetOpacityMultiplier(float multiplier)
+        {
+            if (!initialized) return;
+            if (opacityInstances.Count == 0)
+            {
+                unfadedGreyscaleMaterials = resolvedGreyscaleMaterials;
+                unfadedColorMaterials = resolvedColorMaterials;
+                resolvedGreyscaleMaterials = MakeOpacityCopies(unfadedGreyscaleMaterials);
+                resolvedColorMaterials = MakeOpacityCopies(unfadedColorMaterials);
+            }
+
+            multiplier = Mathf.Clamp01(multiplier);
+            for (int i = 0; i < opacityInstances.Count; i++)
+            {
+                Color tint = opacityBaseColors[i];
+                tint.a *= multiplier;
+                opacityInstances[i].SetColor(opacityColorProperties[i], tint);
+            }
+        }
+
+        private Material[] MakeOpacityCopies(Material[] source)
+        {
+            Material[] copies = new Material[source.Length];
+            for (int i = 0; i < source.Length; i++)
+            {
+                if (source[i] == null) continue;
+                Material copy = new Material(source[i]);
+                copies[i] = copy;
+                int colorProperty = copy.HasProperty("_BaseColor")
+                    ? Shader.PropertyToID("_BaseColor")
+                    : Shader.PropertyToID("_Color");
+                opacityInstances.Add(copy);
+                opacityColorProperties.Add(colorProperty);
+                opacityBaseColors.Add(copy.HasProperty(colorProperty)
+                    ? copy.GetColor(colorProperty) : Color.white);
+            }
+            return copies;
+        }
+
         private void BeforeCameraRendering(ScriptableRenderContext context, Camera camera)
         {
             if (!initialized || targetRenderer == null) return;
@@ -157,6 +202,17 @@ namespace ColorPuzzle.Rendering
                 targetRenderer.gameObject.layer = originalLayer;
             }
             if (legacyColorProxy != null) legacyColorProxy.SetActive(true);
+            foreach (Material instance in opacityInstances)
+                if (instance != null) Destroy(instance);
+            opacityInstances.Clear();
+            opacityBaseColors.Clear();
+            opacityColorProperties.Clear();
+            if (unfadedGreyscaleMaterials != null)
+                resolvedGreyscaleMaterials = unfadedGreyscaleMaterials;
+            if (unfadedColorMaterials != null)
+                resolvedColorMaterials = unfadedColorMaterials;
+            unfadedGreyscaleMaterials = null;
+            unfadedColorMaterials = null;
             initialized = false;
         }
 
