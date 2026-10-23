@@ -40,14 +40,9 @@ The active underwater shell and pillar visuals use normalized Unity mesh assets 
 
 ### Playtest telemetry
 
-`TelemetryManager` is created automatically before the first scene loads and uses an append-only text format. In the current campaign it records time to complete each stage, magnifier activations in each stage, and a placeholder failed-attempt count. The following fields describe the older single-level demo flow, not the current four-stage campaign:
+`TelemetryManager` is created automatically before the first scene loads and uses an append-only text format. For Stage 1, its dedicated record begins at the magnifier pickup and closes when the four-pearl shell puzzle is completed. It records elapsed real time in that window, magnifier activations, successful object pickups, successful drops or keyhole placements, and failed keyhole combinations. Later campaign stages retain their own stage/session records.
 
-- elapsed real time from level load to the correct shell unlocking the portal;
-- number of magnifier activations;
-- number of successful pickup actions, including picking the same shell up again;
-- elapsed real time from portal unlock to the player's first portal crossing.
-
-Records are written to `Application.persistentDataPath/Telemetry/ColorPuzzle-Telemetry.txt`; Unity logs the exact path after a write. **F9** appends a manual snapshot during a playtest. Timing uses unscaled real time, so pauses are included in the observed play session.
+Each play creates its own timestamped file under `Application.persistentDataPath/Telemetry/`; Unity logs the exact path after a write. **F9** appends a manual snapshot to the current play's file. Timing uses unscaled real time, so pauses are included in the observed play session.
 
 ## Visual system recipe
 

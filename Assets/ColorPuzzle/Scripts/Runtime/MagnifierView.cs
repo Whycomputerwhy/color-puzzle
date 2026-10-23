@@ -141,7 +141,7 @@ namespace ColorPuzzle
         [Header("Telemetry Guide")]
         [SerializeField] private bool showTelemetryGuideInDeveloperPanel = true;
         [SerializeField, TextArea(3, 6)] private string telemetryGuideText =
-            "Each doorway records stage time, magnifier uses, and failed attempts.\nF9 writes a snapshot. Exact file path is printed in Console.";
+            "Stage 1 records magnifier pickup → pearl puzzle completion, plus uses, pickups, drops, and failed combinations.\nEach play creates a new log; F9 writes a snapshot. Exact file path is printed in Console.";
         [SerializeField, Min(8)] private int telemetryGuideFontSize = 14;
         [SerializeField, Min(50f)] private float telemetryGuideContentHeight = 76f;
 

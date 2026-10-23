@@ -120,6 +120,8 @@ namespace ColorPuzzle
             PlayerPrefs.Save();
             player.GetComponent<MagnifierView>()?.UnlockMagnifier();
             magnifierPickup?.SetAvailable(false);
+            if (currentStageIndex == 0)
+                TelemetryManager.BeginStageOnePearlPuzzle();
             return true;
         }
 

@@ -12,7 +12,7 @@ namespace ColorPuzzle
         [SerializeField] private AudioClip correctPlacementMusic;
         [SerializeField, Range(0f, 1f)] private float correctPlacementVolume = 0.3f;
         [SerializeField] private AudioClip wrongPlacementClip;
-        [SerializeField, Range(0f, 1f)] private float wrongPlacementVolume = 0.24f;
+        [SerializeField, Range(0f, 1f)] private float wrongPlacementVolume = 0.42f;
 
         // CENTRALIZED ADJUSTABLE VICTORY EFFECT PARAMETERS
         [Header("Victory effect")]
@@ -74,6 +74,7 @@ namespace ColorPuzzle
             bool correct = key.PairNumber == keyhole.PairNumber &&
                            Mathf.Approximately(key.FitDiameter, keyhole.FitDiameter);
             key.PlaceOn(keyhole, correct);
+            TelemetryManager.RecordObjectDrop();
             if (!correct)
             {
                 TelemetryManager.RecordFailedAttempt();
@@ -84,6 +85,8 @@ namespace ColorPuzzle
             foreach (ShellPuzzlePiece hole in keyholes)
                 if (!hole.IsCorrectlyFilled) return true;
 
+            // Write the Stage 1 record before the campaign switches its active stage.
+            TelemetryManager.CompleteStageOnePearlPuzzle();
             if (!campaign.CompleteStage(stageIndex)) return true;
             complete = true;
             foreach (ShellPuzzlePiece hole in keyholes)

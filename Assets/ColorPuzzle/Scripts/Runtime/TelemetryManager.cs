@@ -29,6 +29,9 @@ namespace ColorPuzzle
         private static TelemetryManager instance;
 
         private string runId;
+        private DateTime runStartUtc;
+        private string sessionOutputFileName;
+        private bool wroteFileHeader;
         private string levelName;
         private DateTime levelStartUtc;
         private double levelStartTime;
@@ -36,8 +39,10 @@ namespace ColorPuzzle
         private int magnifierUseCount;
         private int failedAttemptCount;
         private int objectPickupCount;
+        private int objectDropCount;
         private bool sessionActive;
         private bool portalUnlocked;
+        private bool stageOnePearlPuzzleRun;
 
         public static string OutputFilePath => instance != null
             ? instance.GetOutputFilePath()
@@ -63,6 +68,8 @@ namespace ColorPuzzle
             instance = this;
             DontDestroyOnLoad(gameObject);
             runId = Guid.NewGuid().ToString("N");
+            runStartUtc = DateTime.UtcNow;
+            sessionOutputFileName = BuildSessionFileName();
             SceneManager.sceneLoaded += HandleSceneLoaded;
             SceneManager.sceneUnloaded += HandleSceneUnloaded;
         }
@@ -100,6 +107,12 @@ namespace ColorPuzzle
                 instance.objectPickupCount++;
         }
 
+        public static void RecordObjectDrop()
+        {
+            if (instance != null && instance.sessionActive)
+                instance.objectDropCount++;
+        }
+
         /// <summary>
         /// Placeholder hook for level-specific puzzle logic. Call this once whenever the
         /// player makes an attempt that the current stage considers unsuccessful.
@@ -116,6 +129,23 @@ namespace ColorPuzzle
             if (instance.sessionActive)
                 instance.WriteSession("stage changed before completion", true);
             instance.BeginSession($"Ocean Stage {stageNumber}");
+        }
+
+        /// <summary>
+        /// Stage 1's evaluation window begins only when the player earns the magnifier.
+        /// The earlier stage-one arrival record is intentionally discarded.
+        /// </summary>
+        public static void BeginStageOnePearlPuzzle()
+        {
+            if (instance == null) return;
+            instance.sessionActive = false;
+            instance.BeginSession("Ocean Stage 1 — Pearl Puzzle", true);
+        }
+
+        public static void CompleteStageOnePearlPuzzle()
+        {
+            if (instance == null || !instance.sessionActive || !instance.stageOnePearlPuzzleRun) return;
+            instance.WriteSession("pearl puzzle completed", true);
         }
 
         public static void CompleteCampaignStage(int stageNumber)
@@ -154,7 +184,7 @@ namespace ColorPuzzle
                 sessionActive = false;
         }
 
-        private void BeginSession(string loadedLevelName)
+        private void BeginSession(string loadedLevelName, bool isStageOnePearlPuzzle = false)
         {
             if (sessionActive && writeIncompleteSessions)
                 WriteSession("new level loaded", true);
@@ -166,7 +196,9 @@ namespace ColorPuzzle
             magnifierUseCount = 0;
             failedAttemptCount = 0;
             objectPickupCount = 0;
+            objectDropCount = 0;
             portalUnlocked = false;
+            stageOnePearlPuzzleRun = isStageOnePearlPuzzle;
             sessionActive = true;
         }
 
@@ -175,18 +207,33 @@ namespace ColorPuzzle
             if (!sessionActive) return;
 
             double now = Time.realtimeSinceStartupAsDouble;
-            StringBuilder text = new StringBuilder(512);
-            text.AppendLine("============================================================");
-            text.AppendLine($"Record UTC: {DateTime.UtcNow:O}");
-            text.AppendLine($"Run ID: {runId}");
-            text.AppendLine($"Level: {levelName}");
-            text.AppendLine($"Level start UTC: {levelStartUtc:O}");
-            text.AppendLine($"Write reason: {reason}");
-            text.AppendLine($"Stage completed: {(reason.Contains("door entered") ? "yes" : "no")}");
-            text.AppendLine($"Time to complete stage / observed stage time (seconds): {FormatSeconds(now - levelStartTime)}");
-            text.AppendLine($"Magnifier uses: {magnifierUseCount}");
-            text.AppendLine($"Failed attempts: {failedAttemptCount}");
-            text.AppendLine($"Objects picked up: {objectPickupCount}");
+            StringBuilder text = new StringBuilder(768);
+            if (!wroteFileHeader)
+            {
+                text.AppendLine("================================================================");
+                text.AppendLine("COLOR PUZZLE — PLAYTEST TELEMETRY");
+                text.AppendLine($"Play session: {runId}");
+                text.AppendLine($"Started (UTC): {runStartUtc:O}");
+                text.AppendLine("================================================================");
+                text.AppendLine();
+                wroteFileHeader = true;
+            }
+
+            bool completed = reason.Contains("door entered") || reason.Contains("pearl puzzle completed");
+            text.AppendLine("STAGE RECORD");
+            text.AppendLine($"  Recorded (UTC): {DateTime.UtcNow:O}");
+            text.AppendLine($"  Stage: {levelName}");
+            text.AppendLine($"  Window: {(stageOnePearlPuzzleRun ? "Magnifier pickup → pearl puzzle completion" : "Stage/session")}");
+            text.AppendLine($"  Outcome: {(completed ? "Completed" : "In progress / incomplete")}");
+            text.AppendLine($"  Saved because: {reason}");
+            text.AppendLine();
+            text.AppendLine("  METRICS");
+            text.AppendLine($"    Time in window: {FormatSeconds(now - levelStartTime)} seconds");
+            text.AppendLine($"    Magnifier uses: {magnifierUseCount}");
+            text.AppendLine($"    Object pickups: {objectPickupCount}");
+            text.AppendLine($"    Object drops / placements: {objectDropCount}");
+            text.AppendLine($"    Failed puzzle combinations: {failedAttemptCount}");
+            text.AppendLine("----------------------------------------------------------------");
             text.AppendLine();
 
             string path = GetOutputFilePath();
@@ -201,7 +248,11 @@ namespace ColorPuzzle
                 Debug.LogError($"Telemetry could not write to '{path}': {exception.Message}", this);
             }
 
-            if (endSession) sessionActive = false;
+            if (endSession)
+            {
+                sessionActive = false;
+                stageOnePearlPuzzleRun = false;
+            }
         }
 
         private string GetOutputFilePath()
@@ -209,10 +260,23 @@ namespace ColorPuzzle
             string safeDirectory = string.IsNullOrWhiteSpace(outputDirectoryName)
                 ? "Telemetry"
                 : outputDirectoryName;
-            string safeFileName = string.IsNullOrWhiteSpace(outputFileName)
-                ? "ColorPuzzle-Telemetry.txt"
-                : outputFileName;
+            string safeFileName = string.IsNullOrWhiteSpace(sessionOutputFileName)
+                ? BuildSessionFileName()
+                : sessionOutputFileName;
             return Path.Combine(Application.persistentDataPath, safeDirectory, safeFileName);
+        }
+
+        private string BuildSessionFileName()
+        {
+            string configuredName = string.IsNullOrWhiteSpace(outputFileName)
+                ? "ColorPuzzle-Telemetry.txt"
+                : Path.GetFileName(outputFileName);
+            string baseName = Path.GetFileNameWithoutExtension(configuredName);
+            string extension = Path.GetExtension(configuredName);
+            if (string.IsNullOrWhiteSpace(baseName)) baseName = "ColorPuzzle-Telemetry";
+            if (string.IsNullOrWhiteSpace(extension)) extension = ".txt";
+            string idFragment = string.IsNullOrEmpty(runId) ? "pending" : runId.Substring(0, 8);
+            return $"{baseName}-{runStartUtc:yyyy-MM-dd_HH-mm-ss}-{idFragment}{extension}";
         }
 
         private static string FormatSeconds(double seconds)

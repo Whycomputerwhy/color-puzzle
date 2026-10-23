@@ -259,6 +259,7 @@ namespace ColorPuzzle
             Vector3 animationStart = visualCenter - carriedShellKey.GetVisualCenterOffset();
             carriedShellKey.DropAnimated(animationStart, floorPoint,
                 dropAnimationDuration, dropAnimationFallExponent, playerController);
+            TelemetryManager.RecordObjectDrop();
             carriedShellKey = null;
             ResetInteractionCue();
             RefreshInventoryHud();
@@ -391,6 +392,7 @@ namespace ColorPuzzle
             {
                 if (goal.TryPlace(carried))
                 {
+                    TelemetryManager.RecordObjectDrop();
                     carried = null;
                     ResetInteractionCue();
                     RefreshInventoryHud();
@@ -424,6 +426,7 @@ namespace ColorPuzzle
             {
                 carried.Drop(restingPosition, playerController);
             }
+            TelemetryManager.RecordObjectDrop();
             carried = null;
             ResetInteractionCue();
             RefreshInventoryHud();
