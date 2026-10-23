@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using ColorPuzzle.Rendering;
 
 namespace ColorPuzzle
 {
@@ -12,6 +13,7 @@ namespace ColorPuzzle
         [SerializeField] private PieceKind kind;
         [SerializeField, Range(1, 4)] private int pairNumber = 1;
         [SerializeField, Min(0.1f)] private float fitDiameter = 0.5f;
+        [Tooltip("Shown on the key's Color Pearl or the keyhole's Slot Rim in the colour view.")]
         [SerializeField] private Color pearlColor = Color.white;
 
         [Header("Key audio")]
@@ -59,6 +61,7 @@ namespace ColorPuzzle
             originalParent = transform.parent;
             visualRenderers = GetComponentsInChildren<Renderer>(true);
             colliders = GetComponentsInChildren<Collider>(true);
+            ApplyPearlColorToVisual();
             if (kind == PieceKind.Key)
             {
                 audioSource = GetComponent<AudioSource>();
@@ -66,6 +69,33 @@ namespace ColorPuzzle
                 audioSource.playOnAwake = false;
                 audioSource.spatialBlend = 0f;
             }
+        }
+
+        private void OnValidate() => ApplyPearlColorToVisual();
+
+        private void ApplyPearlColorToVisual()
+        {
+            string visualName = kind == PieceKind.Key ? "Color Pearl" : "Slot Rim";
+            Transform visual = transform.Find(visualName);
+            if (visual == null) return;
+
+            DualViewMaterial dualView = visual.GetComponent<DualViewMaterial>();
+            if (dualView != null)
+            {
+                dualView.SetColorViewTint(pearlColor);
+                return;
+            }
+
+            Renderer renderer = visual.GetComponent<Renderer>();
+            if (renderer == null) return;
+            MaterialPropertyBlock properties = new MaterialPropertyBlock();
+            renderer.GetPropertyBlock(properties);
+            Material material = renderer.sharedMaterial;
+            int property = material != null && material.HasProperty("_Color")
+                ? Shader.PropertyToID("_Color") : Shader.PropertyToID("_BaseColor");
+            if (material == null || !material.HasProperty(property)) return;
+            properties.SetColor(property, pearlColor);
+            renderer.SetPropertyBlock(properties);
         }
 
         public bool PickUp()

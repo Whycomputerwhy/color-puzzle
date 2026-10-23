@@ -26,6 +26,11 @@ namespace ColorPuzzle.Rendering
         [Tooltip("The existing color child is retained in the prefab but hidden during play.")]
         [SerializeField] private GameObject legacyColorProxy;
 
+        [Header("Optional color-view tint")]
+        [Tooltip("Used by authored gameplay pieces such as shell pearls. The greyscale view keeps its own material color.")]
+        [SerializeField] private bool useColorViewTint;
+        [SerializeField] private Color colorViewTint = Color.white;
+
         private Renderer targetRenderer;
         private Material[] originalMaterials;
         private Material[] resolvedGreyscaleMaterials;
@@ -41,6 +46,9 @@ namespace ColorPuzzle.Rendering
         private bool initialized;
         private bool colorInGreyscaleCamera;
         private bool usesFallbackColor;
+
+        private static readonly int GlobalColor = Shader.PropertyToID("_Color");
+        private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
 
         public bool IsInitialized => initialized;
         public Renderer TargetRenderer => targetRenderer;
@@ -133,6 +141,14 @@ namespace ColorPuzzle.Rendering
                 targetRenderer.sharedMaterials = resolvedGreyscaleMaterials;
         }
 
+        /// <summary>Sets an authored tint for only the colour-camera material set.</summary>
+        public void SetColorViewTint(Color tint)
+        {
+            useColorViewTint = true;
+            colorViewTint = tint;
+            ApplyAuthoringPreviewTint();
+        }
+
         /// <summary>Fade both authored views without editing shared material assets.</summary>
         public void SetOpacityMultiplier(float multiplier)
         {
@@ -177,11 +193,45 @@ namespace ColorPuzzle.Rendering
         {
             if (!initialized || targetRenderer == null) return;
             if (camera == colorCamera)
+            {
                 targetRenderer.sharedMaterials = resolvedColorMaterials;
+                ApplyCameraTint(true);
+            }
             else if (camera == greyscaleCamera)
+            {
                 targetRenderer.sharedMaterials = colorInGreyscaleCamera
                     ? resolvedColorMaterials
                     : resolvedGreyscaleMaterials;
+                ApplyCameraTint(colorInGreyscaleCamera);
+            }
+        }
+
+        private void ApplyCameraTint(bool useColor)
+        {
+            if (!useColorViewTint || targetRenderer == null) return;
+            Material activeMaterial = targetRenderer.sharedMaterial;
+            int property = activeMaterial != null && activeMaterial.HasProperty(GlobalColor)
+                ? GlobalColor : BaseColor;
+            if (activeMaterial == null || !activeMaterial.HasProperty(property)) return;
+
+            MaterialPropertyBlock properties = new MaterialPropertyBlock();
+            targetRenderer.GetPropertyBlock(properties);
+            properties.SetColor(property, useColor ? colorViewTint : activeMaterial.GetColor(property));
+            targetRenderer.SetPropertyBlock(properties);
+        }
+
+        private void ApplyAuthoringPreviewTint()
+        {
+            if (Application.isPlaying) return;
+            Renderer renderer = targetRenderer != null ? targetRenderer : GetComponent<Renderer>();
+            Material previewMaterial = renderer != null ? renderer.sharedMaterial : null;
+            int property = previewMaterial != null && previewMaterial.HasProperty(GlobalColor)
+                ? GlobalColor : BaseColor;
+            if (renderer == null || previewMaterial == null || !previewMaterial.HasProperty(property)) return;
+            MaterialPropertyBlock properties = new MaterialPropertyBlock();
+            renderer.GetPropertyBlock(properties);
+            properties.SetColor(property, colorViewTint);
+            renderer.SetPropertyBlock(properties);
         }
 
         private void OnEnable()
