@@ -90,7 +90,10 @@ namespace ColorPuzzle
             if (!campaign.CompleteStage(stageIndex)) return true;
             complete = true;
             foreach (ShellPuzzlePiece hole in keyholes)
+            {
                 hole.LockPlacedKey();
+                hole.RevealKeyholeColor();
+            }
             Play(correctPlacementMusic, correctPlacementVolume);
             StartCoroutine(PlayVictoryEffect());
             return true;

@@ -13,7 +13,7 @@ namespace ColorPuzzle
         [SerializeField] private PieceKind kind;
         [SerializeField, Range(1, 4)] private int pairNumber = 1;
         [SerializeField, Min(0.1f)] private float fitDiameter = 0.5f;
-        [Tooltip("Shown on the key's Color Pearl or the keyhole's Slot Rim in the colour view.")]
+        [Tooltip("Shown on the key's Color Pearl. A keyhole's Slot Rim reveals this color only after the puzzle is solved.")]
         [SerializeField] private Color pearlColor = Color.white;
 
         [Header("Key audio")]
@@ -61,7 +61,10 @@ namespace ColorPuzzle
             originalParent = transform.parent;
             visualRenderers = GetComponentsInChildren<Renderer>(true);
             colliders = GetComponentsInChildren<Collider>(true);
-            ApplyPearlColorToVisual();
+            // Keyhole colours are intentionally withheld as puzzle information.
+            // Their recesses reveal only after the full combination is complete.
+            if (kind == PieceKind.Key)
+                ApplyPearlColorToVisual();
             if (kind == PieceKind.Key)
             {
                 audioSource = GetComponent<AudioSource>();
@@ -71,7 +74,18 @@ namespace ColorPuzzle
             }
         }
 
-        private void OnValidate() => ApplyPearlColorToVisual();
+        private void OnValidate()
+        {
+            if (kind == PieceKind.Key)
+                ApplyPearlColorToVisual();
+        }
+
+        /// <summary>Reveals this keyhole's authored pearl colour after puzzle completion.</summary>
+        public void RevealKeyholeColor()
+        {
+            if (kind == PieceKind.Keyhole)
+                ApplyPearlColorToVisual();
+        }
 
         private void ApplyPearlColorToVisual()
         {
