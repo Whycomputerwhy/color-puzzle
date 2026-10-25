@@ -114,6 +114,9 @@ namespace ColorPuzzle
         [SerializeField, Min(0f)] private float lensMoveSensitivity = 1f;
         [SerializeField, Min(0f)] private float lensMoveEasing = 18f;
         [SerializeField, Min(0f)] private float screenEdgePadding = 8f;
+        [Tooltip("When the lens reaches a screen edge, extra mouse movement rotates the player view while WASD remains locked.")]
+        [SerializeField] private bool turnViewAtLensEdge = true;
+        [SerializeField, Range(0f, 2f)] private float lensEdgeTurnSensitivity = 0.85f;
         [SerializeField] private bool resetLensToCenterOnOpen = true;
 
         [Header("Developer Panel")]
@@ -320,6 +323,10 @@ namespace ColorPuzzle
             if ((!active && !fullColor && !valueSearch && !worldRevealAnimating) || sourceCamera == null) return;
 
             if (!fullColor || valueSearch || worldRevealAnimating) EnsureRenderTexture();
+            // Resolve edge-turning before syncing the colour camera, so both views
+            // render from the exact same updated player orientation this frame.
+            if (!fullColor && !valueSearch && !worldRevealAnimating)
+                UpdateLensPosition();
             if (colorCamera != null)
             {
                 colorCamera.transform.SetPositionAndRotation(sourceCamera.transform.position, sourceCamera.transform.rotation);
@@ -327,7 +334,6 @@ namespace ColorPuzzle
             }
 
             if (fullColor || valueSearch || worldRevealAnimating) return;
-            UpdateLensPosition();
             UpdateViewportLayout();
         }
 
@@ -352,15 +358,28 @@ namespace ColorPuzzle
 
         private void UpdateLensPosition()
         {
-            if (Mouse.current != null)
-                lensTargetScreenPosition += Mouse.current.delta.ReadValue() * lensMoveSensitivity;
-
             float radius = Mathf.Min(Screen.width, Screen.height) * viewportScreenFraction * 0.5f;
             float margin = radius + screenEdgePadding;
             float maximumX = Mathf.Max(margin, Screen.width - margin);
             float maximumY = Mathf.Max(margin, Screen.height - margin);
-            lensTargetScreenPosition.x = Mathf.Clamp(lensTargetScreenPosition.x, margin, maximumX);
-            lensTargetScreenPosition.y = Mathf.Clamp(lensTargetScreenPosition.y, margin, maximumY);
+
+            if (Mouse.current != null)
+            {
+                Vector2 desiredPosition = lensTargetScreenPosition +
+                    Mouse.current.delta.ReadValue() * lensMoveSensitivity;
+                Vector2 clampedPosition = new Vector2(
+                    Mathf.Clamp(desiredPosition.x, margin, maximumX),
+                    Mathf.Clamp(desiredPosition.y, margin, maximumY));
+
+                // Once the circular lens cannot travel any farther, transfer only the
+                // leftover mouse motion to the player view. The lens stays pinned at
+                // its edge and the camera moves under it, like looking through a glass.
+                Vector2 edgeOverflow = desiredPosition - clampedPosition;
+                if (turnViewAtLensEdge && player != null && edgeOverflow.sqrMagnitude > 0.0001f)
+                    player.RotateView(edgeOverflow * lensEdgeTurnSensitivity);
+
+                lensTargetScreenPosition = clampedPosition;
+            }
 
             // Exponential response gives the same feel at different frame rates. Zero is
             // intentionally an immediate response for easy A/B tuning in the Inspector.

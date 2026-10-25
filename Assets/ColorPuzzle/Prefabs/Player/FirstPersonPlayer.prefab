@@ -475,9 +475,9 @@ MonoBehaviour:
   walkBobFrequency: 1.8
   walkBobMinimumSpeed: 0.15
   walkBobSmoothing: 8
-  jumpSquatDepth: 0.1
-  jumpSquatDuration: 0.15
-  jumpSquatRecoveryDuration: 0.12
+  jumpSquatDepth: 0.05
+  jumpSquatDuration: 0.08
+  jumpSquatRecoveryDuration: 0.06
 --- !u!114 &3460739725101912303
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -496,6 +496,7 @@ MonoBehaviour:
   statusTextOutlineColor: {r: 1, g: 1, b: 1, a: 0.92}
   statusTextOutlineDistance: {x: 1.5, y: -1.5}
   dropOrPlaceKey: 31
+  interactKey: 19
   resetKey: 32
   interactionDistance: 5
   pickupAimRadius: 0.12
@@ -560,6 +561,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.MagnifierView
   revealMouseButton: 0
+  requiresPickupToUse: 0
   defaultPuzzleMode: 0
   colorSearchObjectiveText: The ocean's colors have vanished! Reveal them with your magnifier, then find the object that belongs on the stone pillar.
   valueSearchObjectiveText: The ocean shows just light and shadow! Compare each object's shade, then return the one of matching color to the stone pillar.
@@ -612,10 +614,13 @@ MonoBehaviour:
   lensMoveSensitivity: 8
   lensMoveEasing: 16
   screenEdgePadding: 8
+  turnViewAtLensEdge: 1
+  lensEdgeTurnSensitivity: 0.6
   resetLensToCenterOnOpen: 1
   enableDeveloperPanel: 1
   developerPanelToggleKey: 2
   unlockCursorWhilePanelOpen: 1
+  showCampaignStageJumpInDeveloperPanel: 1
   showLevelSequenceInDeveloperPanel: 0
   forestTutorialSceneName: ColorPuzzleForestTutorial
   oceanSceneName: ColorPuzzleUnderwaterDemo
@@ -670,7 +675,6 @@ MonoBehaviour:
   colorCameraName: ColorRevealCamera
   backdropDistance: 90
   backdropOverscan: 1.2
-  verticalBlendPower: 1.15
   greyscaleUpperWater: {r: 0.3, g: 0.3, b: 0.3, a: 1}
   greyscaleLowerWater: {r: 0.06, g: 0.06, b: 0.06, a: 1}
   colorUpperWater: {r: 0.1, g: 0.42, b: 0.56, a: 1}

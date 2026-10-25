@@ -128,7 +128,16 @@ namespace ColorPuzzle
 
         private void UpdateLook()
         {
-            Vector2 delta = Mouse.current.delta.ReadValue() * mouseSensitivity;
+            RotateView(Mouse.current.delta.ReadValue());
+        }
+
+        /// <summary>
+        /// Applies raw mouse-pixel input through the normal sensitivity and pitch limits.
+        /// Used by the magnifier when its movable lens reaches a screen boundary.
+        /// </summary>
+        public void RotateView(Vector2 rawMouseDelta)
+        {
+            Vector2 delta = rawMouseDelta * mouseSensitivity;
             transform.Rotate(Vector3.up, delta.x, Space.World);
             pitch = Mathf.Clamp(pitch - delta.y, -verticalLookLimit, verticalLookLimit);
             cameraPivot.localRotation = Quaternion.Euler(pitch, 0f, 0f);
