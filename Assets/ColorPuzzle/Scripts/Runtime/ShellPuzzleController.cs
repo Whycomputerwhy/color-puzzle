@@ -64,7 +64,7 @@ namespace ColorPuzzle
         {
             if (!IsReady || complete || campaign == null || key == null || keyhole == null ||
                 !Owns(key) || !Owns(keyhole) || keyhole.IsOccupied ||
-                campaign.CurrentStageNumber != stageIndex + 1 || !campaign.HasMagnifierSkill)
+                campaign.CurrentStageNumber != stageIndex + 1)
                 return false;
 
             if (key.Kind != ShellPuzzlePiece.PieceKind.Key ||
@@ -145,7 +145,11 @@ namespace ColorPuzzle
                 pearls[i].SetPropertyBlock(originalBlocks[i]);
             }
 
-            if (casing == null) yield break;
+            if (casing == null)
+            {
+                campaign?.RevealMagnifierReward();
+                yield break;
+            }
             DualViewMaterial[] casingViews = casing.GetComponentsInChildren<DualViewMaterial>(true);
             elapsed = 0f;
             do
@@ -159,6 +163,7 @@ namespace ColorPuzzle
                 elapsed += Time.deltaTime;
             } while (elapsed < casingFadeDuration);
             casing.SetActive(false);
+            campaign?.RevealMagnifierReward();
         }
 
         private bool ValidatePairs()

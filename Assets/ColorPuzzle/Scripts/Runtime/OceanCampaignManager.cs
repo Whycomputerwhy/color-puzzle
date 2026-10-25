@@ -13,9 +13,9 @@ namespace ColorPuzzle
 
         [Header("Campaign Structure")]
         [SerializeField] private FirstPersonPlayer player;
-        [Tooltip("Scene parent containing the puzzle stage prefabs in play order. Non-stage children, such as the intro, are ignored.")]
+        [Tooltip("Scene parent containing the puzzle stage prefabs in play order.")]
         [SerializeField] private Transform stageContainer;
-        [SerializeField] private Transform introSpawn;
+        [Tooltip("The magnifier is the reward revealed by Puzzle 1, not a prerequisite for interaction.")]
         [SerializeField] private MagnifierPickup magnifierPickup;
         [SerializeField] private Vector3 checkpointSpawnOffset = new Vector3(0f, 2f, 2f);
 
@@ -49,7 +49,8 @@ namespace ColorPuzzle
             currentStageIndex = Mathf.Clamp(resumeFromSavedCheckpoint ? PlayerPrefs.GetInt(CheckpointKey, 0) : 0, 0, stages.Count - 1);
             magnifierSkillUnlocked = PlayerPrefs.GetInt(MagnifierSkillKey, 0) != 0 || currentStageIndex > 0;
             player?.GetComponent<MagnifierView>()?.SetMagnifierUnlocked(magnifierSkillUnlocked);
-            magnifierPickup?.SetAvailable(!magnifierSkillUnlocked);
+            // Stage 1 reveals this reward only after the shell combination succeeds.
+            magnifierPickup?.SetAvailable(false);
             ConfigureAuthoredProgression();
             StartCoroutine(PlacePlayerAfterSetup());
         }
@@ -57,10 +58,7 @@ namespace ColorPuzzle
         private IEnumerator PlacePlayerAfterSetup()
         {
             yield return null;
-            if (currentStageIndex == 0 && !magnifierSkillUnlocked && introSpawn != null)
-                MovePlayerToIntro();
-            else
-                MovePlayerToCheckpoint(currentStageIndex);
+            MovePlayerToCheckpoint(currentStageIndex);
             TelemetryManager.BeginCampaignStage(currentStageIndex + 1);
             RestoreColorForFinalStageIfNeeded();
         }
@@ -107,9 +105,16 @@ namespace ColorPuzzle
 
         public bool CompleteStage(int stageIndex)
         {
-            if (!magnifierSkillUnlocked || stageIndex != currentStageIndex || stageIndex >= stages.Count - 1) return false;
+            if (stageIndex != currentStageIndex || stageIndex >= stages.Count - 1) return false;
             ReachNextStage(stageIndex);
             return true;
+        }
+
+        /// <summary>Called by Puzzle 1 after its casing has opened.</summary>
+        public void RevealMagnifierReward()
+        {
+            if (!magnifierSkillUnlocked)
+                magnifierPickup?.SetAvailable(true);
         }
 
         public bool AcquireMagnifier()
@@ -162,8 +167,8 @@ namespace ColorPuzzle
             }
             else
             {
-                magnifierPickup?.SetAvailable(true);
-                MovePlayerToIntro();
+                magnifierPickup?.SetAvailable(false);
+                MovePlayerToCheckpoint(currentStageIndex);
             }
             TelemetryManager.BeginCampaignStage(currentStageIndex + 1);
             RestoreColorForFinalStageIfNeeded();
@@ -198,17 +203,6 @@ namespace ColorPuzzle
             CharacterController controller = player.GetComponent<CharacterController>();
             if (controller != null) controller.enabled = false;
             player.transform.SetPositionAndRotation(checkpoint.position + checkpointSpawnOffset, checkpoint.rotation);
-            if (controller != null) controller.enabled = true;
-        }
-
-        private void MovePlayerToIntro()
-        {
-            if (player == null || introSpawn == null) return;
-            CharacterController controller = player.GetComponent<CharacterController>();
-            if (controller != null) controller.enabled = false;
-            player.transform.SetPositionAndRotation(
-                introSpawn.position + Vector3.up * checkpointSpawnOffset.y,
-                introSpawn.rotation);
             if (controller != null) controller.enabled = true;
         }
 
