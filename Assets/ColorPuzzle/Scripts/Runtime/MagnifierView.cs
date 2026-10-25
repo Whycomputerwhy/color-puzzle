@@ -185,10 +185,6 @@ namespace ColorPuzzle
         private int originalColorCameraCullingMask;
         private Button puzzleViewButton;
         private Button fullColorButton;
-        private Button colorSearchButton;
-        private Button valueSearchButton;
-        private Button backGlowButton;
-        private Button centerTextButton;
         private Button forestLevelButton;
         private Button oceanLevelButton;
         private Button villageLevelButton;
@@ -210,7 +206,6 @@ namespace ColorPuzzle
         private AudioSource backgroundMusicAlternateSource;
         private Coroutine backgroundMusicFadeCoroutine;
         private Coroutine backgroundMusicLoopCoroutine;
-        private readonly Dictionary<DisplayFont, Button> displayFontButtons = new();
         private readonly Dictionary<Renderer, Material[]> valueOriginalMaterials = new();
         private readonly List<Material> valueRuntimeMaterials = new();
 
@@ -798,22 +793,17 @@ namespace ColorPuzzle
                                              modeButtonSize.y * 2f + modeButtonGap;
             float campaignStageGroupHeight = selectorGroupPadding * 3f + selectorGroupLabelHeight +
                                              modeButtonSize.y * 3f + modeButtonGap * 2f;
-            float fontGroupHeight = selectorGroupPadding * 3f + selectorGroupLabelHeight +
-                                    modeButtonSize.y * 2f + modeButtonGap;
             float telemetryGroupHeight = selectorGroupPadding * 3f + selectorGroupLabelHeight +
                                          telemetryGuideContentHeight;
             float campaignStageGroupOffset = showLevelSequenceInDeveloperPanel
                 ? levelSequenceGroupHeight + modeButtonGap
                 : 0f;
-            float puzzleModeGroupOffset = campaignStageGroupOffset +
+            float devViewGroupOffset = campaignStageGroupOffset +
                 (showCampaignStageJumpInDeveloperPanel ? campaignStageGroupHeight + modeButtonGap : 0f);
-            float devViewGroupOffset = puzzleModeGroupOffset + groupHeight + modeButtonGap;
-            float interactionGroupOffset = devViewGroupOffset + groupHeight + modeButtonGap;
-            float fontGroupOffset = (playerInteraction != null ? interactionGroupOffset + groupHeight : devViewGroupOffset + groupHeight) + modeButtonGap;
-            float telemetryGroupOffset = fontGroupOffset + fontGroupHeight + modeButtonGap;
+            float telemetryGroupOffset = devViewGroupOffset + groupHeight + modeButtonGap;
             float panelHeight = showTelemetryGuideInDeveloperPanel
                 ? telemetryGroupOffset + telemetryGroupHeight
-                : fontGroupOffset + fontGroupHeight;
+                : devViewGroupOffset + groupHeight;
             selector.sizeDelta = new Vector2(groupWidth, panelHeight);
             selector.SetAsLastSibling();
 
@@ -866,17 +856,6 @@ namespace ColorPuzzle
                 resetCampaignProgressButton.onClick.AddListener(() => OceanCampaignManager.Active?.ResetProgress());
             }
 
-            RectTransform puzzleModeGroup = CreateSelectorGroup(
-                selector, "PUZZLE MODE", puzzleModeGroupOffset, groupWidth, groupHeight, font);
-            colorSearchButton = CreateModeButton(puzzleModeGroup, ColorSearchButtonLabel, selectorGroupPadding, font);
-            valueSearchButton = CreateModeButton(
-                puzzleModeGroup,
-                ValueSearchButtonLabel,
-                selectorGroupPadding + modeButtonSize.x + modeButtonGap,
-                font);
-            colorSearchButton.onClick.AddListener(() => SetPuzzleMode(PuzzleMode.ColorSearch));
-            valueSearchButton.onClick.AddListener(() => SetPuzzleMode(PuzzleMode.ValueSearch));
-
             RectTransform devViewGroup = CreateSelectorGroup(
                 selector,
                 "DEVELOPER VIEW",
@@ -889,42 +868,6 @@ namespace ColorPuzzle
             puzzleViewButton.onClick.AddListener(() => SetDevViewMode(DevViewMode.PuzzleView));
             fullColorButton.onClick.AddListener(() => SetDevViewMode(DevViewMode.FullColor));
 
-            if (playerInteraction != null)
-            {
-                RectTransform interactionCueGroup = CreateSelectorGroup(
-                    selector,
-                    "INTERACTION CUE",
-                    interactionGroupOffset,
-                    groupWidth,
-                    groupHeight,
-                    font);
-                backGlowButton = CreateModeButton(
-                    interactionCueGroup,
-                    BackGlowButtonLabel,
-                    selectorGroupPadding,
-                    font);
-                centerTextButton = CreateModeButton(
-                    interactionCueGroup,
-                    CenterTextButtonLabel,
-                    selectorGroupPadding + modeButtonSize.x + modeButtonGap,
-                    font);
-                backGlowButton.onClick.AddListener(() =>
-                    SetInteractionCueMode(PlayerInteraction.InteractionCueMode.BackGlow));
-                centerTextButton.onClick.AddListener(() =>
-                    SetInteractionCueMode(PlayerInteraction.InteractionCueMode.CenterText));
-            }
-
-            RectTransform fontGroup = CreateSelectorGroup(
-                selector,
-                "DISPLAY FONT",
-                fontGroupOffset,
-                groupWidth,
-                fontGroupHeight,
-                font);
-            AddDisplayFontButton(fontGroup, DisplayFont.Chilanka, ChilankaFontLabel, 0, 0, font);
-            AddDisplayFontButton(fontGroup, DisplayFont.ComingSoon, ComingSoonFontLabel, 1, 0, font);
-            AddDisplayFontButton(fontGroup, DisplayFont.Margarine, MargarineFontLabel, 0, 1, font);
-            AddDisplayFontButton(fontGroup, DisplayFont.NerkoOne, NerkoOneFontLabel, 1, 1, font);
             if (showTelemetryGuideInDeveloperPanel)
             {
                 RectTransform telemetryGroup = CreateSelectorGroup(
@@ -1117,22 +1060,6 @@ namespace ColorPuzzle
             else if (material.HasProperty("_Color")) material.SetColor("_Color", color);
         }
 
-        private void SetInteractionCueMode(PlayerInteraction.InteractionCueMode mode)
-        {
-            if (playerInteraction == null) return;
-            playerInteraction.SetInteractionCueMode(mode);
-            PersistDeveloperSettings();
-            RefreshModeSelector();
-        }
-
-        private void SetDisplayFont(DisplayFont displayFont)
-        {
-            currentDisplayFont = displayFont;
-            ApplyDisplayFont(displayFont);
-            PersistDeveloperSettings();
-            RefreshModeSelector();
-        }
-
         private void ApplyDisplayFont(DisplayFont displayFont)
         {
             Font font = LoadDisplayFont(displayFont);
@@ -1293,30 +1220,8 @@ namespace ColorPuzzle
             text.raycastTarget = false;
         }
 
-        private void AddDisplayFontButton(
-            RectTransform parent,
-            DisplayFont displayFont,
-            string label,
-            int column,
-            int row,
-            Font font)
-        {
-            float offsetX = selectorGroupPadding + column * (modeButtonSize.x + modeButtonGap);
-            Button button = CreateModeButton(parent, label, offsetX, font, row);
-            button.onClick.AddListener(() => SetDisplayFont(displayFont));
-            displayFontButtons.Add(displayFont, button);
-        }
-
         private void RefreshModeSelector()
         {
-            if (colorSearchButton != null)
-                colorSearchButton.targetGraphic.color = currentPuzzleMode == PuzzleMode.ColorSearch
-                    ? selectedModeColor
-                    : unselectedModeColor;
-            if (valueSearchButton != null)
-                valueSearchButton.targetGraphic.color = currentPuzzleMode == PuzzleMode.ValueSearch
-                    ? selectedModeColor
-                    : unselectedModeColor;
             if (puzzleViewButton != null)
                 puzzleViewButton.targetGraphic.color = currentDevViewMode == DevViewMode.PuzzleView ? selectedModeColor : unselectedModeColor;
             if (fullColorButton != null)
@@ -1324,14 +1229,6 @@ namespace ColorPuzzle
                 fullColorButton.interactable = currentPuzzleMode == PuzzleMode.ColorSearch;
                 fullColorButton.targetGraphic.color = currentDevViewMode == DevViewMode.FullColor ? selectedModeColor : unselectedModeColor;
             }
-            if (backGlowButton != null && playerInteraction != null)
-                backGlowButton.targetGraphic.color = playerInteraction.CurrentInteractionCueMode == PlayerInteraction.InteractionCueMode.BackGlow
-                    ? selectedModeColor
-                    : unselectedModeColor;
-            if (centerTextButton != null && playerInteraction != null)
-                centerTextButton.targetGraphic.color = playerInteraction.CurrentInteractionCueMode == PlayerInteraction.InteractionCueMode.CenterText
-                    ? selectedModeColor
-                    : unselectedModeColor;
             string activeSceneName = SceneManager.GetActiveScene().name;
             if (forestLevelButton != null)
                 forestLevelButton.targetGraphic.color = activeSceneName == forestTutorialSceneName
@@ -1351,10 +1248,6 @@ namespace ColorPuzzle
                         ? selectedModeColor : unselectedModeColor;
             if (resetCampaignProgressButton != null)
                 resetCampaignProgressButton.targetGraphic.color = unselectedModeColor;
-            foreach (KeyValuePair<DisplayFont, Button> fontButton in displayFontButtons)
-                fontButton.Value.targetGraphic.color = fontButton.Key == currentDisplayFont
-                    ? selectedModeColor
-                    : unselectedModeColor;
         }
 
         private static void EnsureEventSystem()

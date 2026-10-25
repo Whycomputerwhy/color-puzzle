@@ -492,7 +492,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.PlayerInteraction
   viewCamera: {fileID: 4634387354463310727}
   statusText: {fileID: 1249724961138011793}
-  applyStatusTextOutline: 1
+  applyStatusTextOutline: 0
   statusTextOutlineColor: {r: 1, g: 1, b: 1, a: 0.92}
   statusTextOutlineDistance: {x: 1.5, y: -1.5}
   dropOrPlaceKey: 31
@@ -528,7 +528,7 @@ MonoBehaviour:
   interactionCueMode: 0
   interactionCueDwellDuration: 0.25
   interactionCueGlowFadeInDuration: 0.25
-  interactionCueFontSize: 14
+  interactionCueFontSize: 24
   interactionCueTextSize: {x: 220, y: 28}
   interactionCueTextOffset: {x: 0, y: -26}
   interactionCueGreyscaleTextColor: {r: 0, g: 0, b: 0, a: 1}
@@ -544,7 +544,7 @@ MonoBehaviour:
   inventoryHudOffset: {x: 0, y: 92}
   inventoryHudGap: 8
   inventoryBallFontSize: 28
-  inventoryFontSize: 18
+  inventoryFontSize: 28
   inventoryFillColor: {r: 0.12, g: 0.12, b: 0.12, a: 1}
   inventoryOutlineColor: {r: 1, g: 1, b: 1, a: 1}
   inventoryOutlineDistance: {x: 1, y: -1}
