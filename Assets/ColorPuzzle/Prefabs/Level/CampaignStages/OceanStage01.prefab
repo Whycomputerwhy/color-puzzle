@@ -1,53 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &7300000000000000104
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4875033865749073631}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5fa90e9b0b6f48aeab877f073df59e62, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
-  greyscaleMaterials:
-  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400027, type: 2}
-  colorMaterials:
-  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400017, type: 2}
-  legacyColorProxy: {fileID: 0}
---- !u!114 &7200000000000000104
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5033568357325116748}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9fd59e6338104cf6b467fa2990ef4f4b, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewRoot
-  scanIntervalSeconds: 1
-  includeInactiveChildren: 1
-  logMissingColorMaterials: 1
---- !u!114 &7400000000000000104
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5033568357325116748}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 52ddd0ca73dfb4376ad3e6d988cdef60, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.ShellPuzzleController
-  correctPlacementMusic: {fileID: 8300000, guid: f7bd1e49b1c0641a6809e6f6cf857de0, type: 3}
-  correctPlacementVolume: 0.3
-  wrongPlacementClip: {fileID: 8300000, guid: bc14027ba8a394c99ba46158c49ae8f2, type: 3}
-  wrongPlacementVolume: 0.42
 --- !u!1 &2061749884818967314
 GameObject:
   m_ObjectHideFlags: 0
@@ -209,6 +161,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d628152dd131d432ebb57af4f37dd401, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.StageGateBeacon
+--- !u!114 &7300000000000000104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4875033865749073631}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fa90e9b0b6f48aeab877f073df59e62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
+  greyscaleMaterials:
+  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400027, type: 2}
+  colorMaterials:
+  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400017, type: 2}
+  legacyColorProxy: {fileID: 0}
+  useColorViewTint: 0
+  colorViewTint: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &5033568357325116748
 GameObject:
   m_ObjectHideFlags: 0
@@ -258,6 +229,41 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.OceanCampaignStage
   checkpointSpawn: {fileID: 2339476275172959023}
   completionBeacon: {fileID: 1062904766106189363}
+--- !u!114 &7200000000000000104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5033568357325116748}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9fd59e6338104cf6b467fa2990ef4f4b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewRoot
+  scanIntervalSeconds: 1
+  includeInactiveChildren: 1
+  logMissingColorMaterials: 1
+--- !u!114 &7400000000000000104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5033568357325116748}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52ddd0ca73dfb4376ad3e6d988cdef60, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.ShellPuzzleController
+  correctPlacementMusic: {fileID: 8300000, guid: f7bd1e49b1c0641a6809e6f6cf857de0, type: 3}
+  correctPlacementVolume: 0.3
+  wrongPlacementClip: {fileID: 8300000, guid: bc14027ba8a394c99ba46158c49ae8f2, type: 3}
+  wrongPlacementVolume: 0.42
+  pearlGlowDuration: 0.8
+  pearlGlowBrightness: 1.1
+  pearlGlowScale: 0.12
+  casingFadeDuration: 0.9
 --- !u!1 &9001272628490762491
 GameObject:
   m_ObjectHideFlags: 0

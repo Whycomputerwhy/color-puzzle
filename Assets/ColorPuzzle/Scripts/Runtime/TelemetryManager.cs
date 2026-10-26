@@ -154,6 +154,13 @@ namespace ColorPuzzle
                 instance.WriteSession($"stage {stageNumber} door entered", true);
         }
 
+        /// <summary>Ends a campaign-stage record at a puzzle's actual solve event.</summary>
+        public static void CompleteCampaignPuzzle(int stageNumber)
+        {
+            if (instance != null && instance.sessionActive)
+                instance.WriteSession($"stage {stageNumber} puzzle completed", true);
+        }
+
         public static void RecordPortalUnlocked()
         {
             if (instance == null || !instance.sessionActive || instance.portalUnlocked) return;
@@ -219,7 +226,7 @@ namespace ColorPuzzle
                 wroteFileHeader = true;
             }
 
-            bool completed = reason.Contains("door entered") || reason.Contains("pearl puzzle completed");
+            bool completed = reason.Contains("door entered") || reason.Contains("puzzle completed");
             text.AppendLine("STAGE RECORD");
             text.AppendLine($"  Recorded (UTC): {DateTime.UtcNow:O}");
             text.AppendLine($"  Stage: {levelName}");

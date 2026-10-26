@@ -41,9 +41,10 @@ namespace ColorPuzzle
 
             Transform casingTransform = FindChildNamed(transform, "Clam Casing");
             casing = casingTransform != null ? casingTransform.gameObject : null;
+            SetPuzzleColorVisible(false);
             IsReady = ValidatePairs();
             if (!IsReady)
-                Debug.LogError("Shell puzzle needs exactly four unique key/keyhole pairs and a Clam Casing under Stage 1.", this);
+                Debug.LogError("Shell puzzle needs exactly four unique key/keyhole pairs.", this);
 
             audioSource = GetComponent<AudioSource>();
             if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
@@ -85,8 +86,13 @@ namespace ColorPuzzle
             foreach (ShellPuzzlePiece hole in keyholes)
                 if (!hole.IsCorrectlyFilled) return true;
 
-            // Write the Stage 1 record before the campaign switches its active stage.
-            TelemetryManager.CompleteStageOnePearlPuzzle();
+            // The shell puzzle can be reused by later stages; only Puzzle 1 owns this telemetry milestone.
+            if (stageIndex == 0)
+                TelemetryManager.CompleteStageOnePearlPuzzle();
+            else if (stageIndex == 1)
+                // Stage 2's record ends on the final correct pattern/keyhole match,
+                // not on a later door interaction.
+                TelemetryManager.CompleteCampaignPuzzle(stageIndex + 1);
             if (!campaign.CompleteStage(stageIndex)) return true;
             complete = true;
             foreach (ShellPuzzlePiece hole in keyholes)
@@ -94,6 +100,7 @@ namespace ColorPuzzle
                 hole.LockPlacedKey();
                 hole.RevealKeyholeColor();
             }
+            SetPuzzleColorVisible(true);
             Play(correctPlacementMusic, correctPlacementVolume);
             StartCoroutine(PlayVictoryEffect());
             return true;
@@ -147,7 +154,7 @@ namespace ColorPuzzle
 
             if (casing == null)
             {
-                campaign?.RevealMagnifierReward();
+                if (stageIndex == 0) campaign?.RevealMagnifierReward();
                 yield break;
             }
             DualViewMaterial[] casingViews = casing.GetComponentsInChildren<DualViewMaterial>(true);
@@ -163,12 +170,12 @@ namespace ColorPuzzle
                 elapsed += Time.deltaTime;
             } while (elapsed < casingFadeDuration);
             casing.SetActive(false);
-            campaign?.RevealMagnifierReward();
+            if (stageIndex == 0) campaign?.RevealMagnifierReward();
         }
 
         private bool ValidatePairs()
         {
-            if (keyholes.Count != 4 || casing == null) return false;
+            if (keyholes.Count != 4) return false;
             HashSet<int> holeIds = new HashSet<int>();
             HashSet<int> keyIds = new HashSet<int>();
             Dictionary<int, float> sizes = new Dictionary<int, float>();
@@ -186,6 +193,25 @@ namespace ColorPuzzle
                 if (piece.Kind == ShellPuzzlePiece.PieceKind.Key &&
                     !Mathf.Approximately(piece.FitDiameter, sizes[piece.PairNumber])) return false;
             return true;
+        }
+
+        private void SetPuzzleColorVisible(bool visible)
+        {
+            // Only puzzle pieces and the optional casing participate in this reveal.
+            // Other decorative children of a stage, such as Puzzle 2's fish school, stay colorful.
+            foreach (ShellPuzzlePiece piece in GetComponentsInChildren<ShellPuzzlePiece>(true))
+                foreach (DualViewMaterial visual in piece.GetComponentsInChildren<DualViewMaterial>(true))
+                {
+                    visual.SetColorViewEnabled(visible);
+                    visual.SetColorInGreyscaleCamera(visible);
+                }
+
+            if (casing != null)
+                foreach (DualViewMaterial visual in casing.GetComponentsInChildren<DualViewMaterial>(true))
+                {
+                    visual.SetColorViewEnabled(visible);
+                    visual.SetColorInGreyscaleCamera(visible);
+                }
         }
 
         private void Play(AudioClip clip, float volume)

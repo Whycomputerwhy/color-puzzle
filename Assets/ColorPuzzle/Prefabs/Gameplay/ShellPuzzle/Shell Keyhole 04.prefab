@@ -30,32 +30,20 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 874307543244584046, guid: 5e97f77661cdc4c6f87e937cdfd3d60c, type: 3}
       propertyPath: pearlColor.b
-      value: 0.21333212
+      value: 0.36
       objectReference: {fileID: 0}
     - target: {fileID: 874307543244584046, guid: 5e97f77661cdc4c6f87e937cdfd3d60c, type: 3}
       propertyPath: pearlColor.g
-      value: 0.8867924
+      value: 0.78
       objectReference: {fileID: 0}
     - target: {fileID: 874307543244584046, guid: 5e97f77661cdc4c6f87e937cdfd3d60c, type: 3}
       propertyPath: pearlColor.r
-      value: 0.39820352
+      value: 0.22
       objectReference: {fileID: 0}
     - target: {fileID: 4739653929547587571, guid: 5e97f77661cdc4c6f87e937cdfd3d60c, type: 3}
       propertyPath: 'colorMaterials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 771f533a4b6164d8590118d75dbcf29b, type: 2}
-    - target: {fileID: 5669046054176151420, guid: 5e97f77661cdc4c6f87e937cdfd3d60c, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5669046054176151420, guid: 5e97f77661cdc4c6f87e937cdfd3d60c, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5669046054176151420, guid: 5e97f77661cdc4c6f87e937cdfd3d60c, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 5669046054176151420, guid: 5e97f77661cdc4c6f87e937cdfd3d60c, type: 3}
       propertyPath: m_LocalRotation.w
       value: 1

@@ -9,13 +9,25 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 2263481553885104988, guid: e8ed4bc975e554901af77ba35707ec35, type: 3}
+      propertyPath: colorViewTint.b
+      value: 0.28
+      objectReference: {fileID: 0}
+    - target: {fileID: 2263481553885104988, guid: e8ed4bc975e554901af77ba35707ec35, type: 3}
+      propertyPath: colorViewTint.g
+      value: 0.28
+      objectReference: {fileID: 0}
+    - target: {fileID: 2263481553885104988, guid: e8ed4bc975e554901af77ba35707ec35, type: 3}
+      propertyPath: colorViewTint.r
+      value: 0.94
+      objectReference: {fileID: 0}
+    - target: {fileID: 2263481553885104988, guid: e8ed4bc975e554901af77ba35707ec35, type: 3}
+      propertyPath: useColorViewTint
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2263481553885104988, guid: e8ed4bc975e554901af77ba35707ec35, type: 3}
       propertyPath: 'colorMaterials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 26bcb9b7aa9f443e6afbcf719b3f182b, type: 2}
-    - target: {fileID: 2877233185493071647, guid: e8ed4bc975e554901af77ba35707ec35, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 2877233185493071647, guid: e8ed4bc975e554901af77ba35707ec35, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.8235294
@@ -27,6 +39,10 @@ PrefabInstance:
     - target: {fileID: 2877233185493071647, guid: e8ed4bc975e554901af77ba35707ec35, type: 3}
       propertyPath: m_LocalScale.z
       value: 1.8235294
+      objectReference: {fileID: 0}
+    - target: {fileID: 2877233185493071647, guid: e8ed4bc975e554901af77ba35707ec35, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2877233185493071647, guid: e8ed4bc975e554901af77ba35707ec35, type: 3}
       propertyPath: m_LocalPosition.y
@@ -78,15 +94,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5830573886942412446, guid: e8ed4bc975e554901af77ba35707ec35, type: 3}
       propertyPath: pearlColor.b
-      value: 0.2784314
+      value: 0.28
       objectReference: {fileID: 0}
     - target: {fileID: 5830573886942412446, guid: e8ed4bc975e554901af77ba35707ec35, type: 3}
       propertyPath: pearlColor.g
-      value: 0.2784314
+      value: 0.28
       objectReference: {fileID: 0}
     - target: {fileID: 5830573886942412446, guid: e8ed4bc975e554901af77ba35707ec35, type: 3}
       propertyPath: pearlColor.r
-      value: 0.9411765
+      value: 0.94
       objectReference: {fileID: 0}
     - target: {fileID: 6908894815489788854, guid: e8ed4bc975e554901af77ba35707ec35, type: 3}
       propertyPath: m_Name

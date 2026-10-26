@@ -45,6 +45,7 @@ namespace ColorPuzzle.Rendering
         private int originalLayer;
         private bool initialized;
         private bool colorInGreyscaleCamera;
+        private bool colorViewEnabled = true;
         private bool usesFallbackColor;
 
         private static readonly int GlobalColor = Shader.PropertyToID("_Color");
@@ -141,6 +142,14 @@ namespace ColorPuzzle.Rendering
                 targetRenderer.sharedMaterials = resolvedGreyscaleMaterials;
         }
 
+        /// <summary>Temporarily keeps this mesh monochrome in every gameplay view.</summary>
+        public void SetColorViewEnabled(bool enabled)
+        {
+            colorViewEnabled = enabled;
+            if (initialized && targetRenderer != null && !enabled)
+                targetRenderer.sharedMaterials = resolvedGreyscaleMaterials;
+        }
+
         /// <summary>Sets an authored tint for only the colour-camera material set.</summary>
         public void SetColorViewTint(Color tint)
         {
@@ -194,15 +203,18 @@ namespace ColorPuzzle.Rendering
             if (!initialized || targetRenderer == null) return;
             if (camera == colorCamera)
             {
-                targetRenderer.sharedMaterials = resolvedColorMaterials;
-                ApplyCameraTint(true);
+                targetRenderer.sharedMaterials = colorViewEnabled
+                    ? resolvedColorMaterials
+                    : resolvedGreyscaleMaterials;
+                ApplyCameraTint(colorViewEnabled);
             }
             else if (camera == greyscaleCamera)
             {
-                targetRenderer.sharedMaterials = colorInGreyscaleCamera
+                bool useColor = colorViewEnabled && colorInGreyscaleCamera;
+                targetRenderer.sharedMaterials = useColor
                     ? resolvedColorMaterials
                     : resolvedGreyscaleMaterials;
-                ApplyCameraTint(colorInGreyscaleCamera);
+                ApplyCameraTint(useColor);
             }
         }
 

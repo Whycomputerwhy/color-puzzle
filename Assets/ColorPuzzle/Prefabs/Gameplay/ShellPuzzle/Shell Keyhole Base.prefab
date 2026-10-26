@@ -26,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 713522226291690333}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -0.8, y: -0.73, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -51,6 +51,10 @@ MonoBehaviour:
   pairNumber: 1
   fitDiameter: 0.5
   pearlColor: {r: 1, g: 1, b: 1, a: 1}
+  pickupClip: {fileID: 0}
+  pickupVolume: 0.16
+  dropClip: {fileID: 0}
+  dropVolume: 0.18
 --- !u!1 &2806398913655513956
 GameObject:
   m_ObjectHideFlags: 0
@@ -183,6 +187,8 @@ MonoBehaviour:
   colorMaterials:
   - {fileID: 2100000, guid: 166f5591e60814258a4037a5015b178c, type: 2}
   legacyColorProxy: {fileID: 0}
+  useColorViewTint: 0
+  colorViewTint: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &3529027859686105243
 GameObject:
   m_ObjectHideFlags: 0
@@ -315,6 +321,8 @@ MonoBehaviour:
   colorMaterials:
   - {fileID: 2100000, guid: d21518e76af0945c6a7619710961dd9d, type: 2}
   legacyColorProxy: {fileID: 0}
+  useColorViewTint: 0
+  colorViewTint: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &4074674472789609564
 GameObject:
   m_ObjectHideFlags: 0
@@ -447,3 +455,5 @@ MonoBehaviour:
   colorMaterials:
   - {fileID: 2100000, guid: 3ab3c25bf3097439fa4283160a14aef4, type: 2}
   legacyColorProxy: {fileID: 0}
+  useColorViewTint: 1
+  colorViewTint: {r: 1, g: 1, b: 1, a: 1}

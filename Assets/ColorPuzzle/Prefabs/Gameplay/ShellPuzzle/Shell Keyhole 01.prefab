@@ -18,27 +18,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 874307543244584046, guid: 5e97f77661cdc4c6f87e937cdfd3d60c, type: 3}
       propertyPath: pearlColor.b
-      value: 0.9607843
+      value: 0.96
       objectReference: {fileID: 0}
     - target: {fileID: 874307543244584046, guid: 5e97f77661cdc4c6f87e937cdfd3d60c, type: 3}
       propertyPath: pearlColor.g
-      value: 0.76862746
+      value: 0.77
       objectReference: {fileID: 0}
     - target: {fileID: 874307543244584046, guid: 5e97f77661cdc4c6f87e937cdfd3d60c, type: 3}
       propertyPath: pearlColor.r
-      value: 0.2509804
-      objectReference: {fileID: 0}
-    - target: {fileID: 5669046054176151420, guid: 5e97f77661cdc4c6f87e937cdfd3d60c, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5669046054176151420, guid: 5e97f77661cdc4c6f87e937cdfd3d60c, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5669046054176151420, guid: 5e97f77661cdc4c6f87e937cdfd3d60c, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: 5669046054176151420, guid: 5e97f77661cdc4c6f87e937cdfd3d60c, type: 3}
       propertyPath: m_LocalRotation.w

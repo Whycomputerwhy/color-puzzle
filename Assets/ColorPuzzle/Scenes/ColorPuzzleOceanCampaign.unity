@@ -3752,6 +3752,30 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 123066880}
     m_Modifications:
+    - target: {fileID: 69216435327167018, guid: 572dc30c3f20d466cbf05c9835532214, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 1024630603965379601, guid: 572dc30c3f20d466cbf05c9835532214, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 1024630603965379601, guid: 572dc30c3f20d466cbf05c9835532214, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1163233179976745611, guid: 572dc30c3f20d466cbf05c9835532214, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.58
+      objectReference: {fileID: 0}
+    - target: {fileID: 3206481066163931378, guid: 572dc30c3f20d466cbf05c9835532214, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 2.88
+      objectReference: {fileID: 0}
+    - target: {fileID: 3891743968507428066, guid: 572dc30c3f20d466cbf05c9835532214, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.64
+      objectReference: {fileID: 0}
     - target: {fileID: 4184990109356879467, guid: 572dc30c3f20d466cbf05c9835532214, type: 3}
       propertyPath: m_Name
       value: 02 Fish Puzzle
@@ -3776,9 +3800,45 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5115690530159530442, guid: 572dc30c3f20d466cbf05c9835532214, type: 3}
+      propertyPath: horizontalRange.x
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5115690530159530442, guid: 572dc30c3f20d466cbf05c9835532214, type: 3}
+      propertyPath: horizontalRange.y
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5396795319897678016, guid: 572dc30c3f20d466cbf05c9835532214, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 2.43
+      objectReference: {fileID: 0}
+    - target: {fileID: 5552358223557591378, guid: 572dc30c3f20d466cbf05c9835532214, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.14
+      objectReference: {fileID: 0}
+    - target: {fileID: 5947777317048690852, guid: 572dc30c3f20d466cbf05c9835532214, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -4.78
+      objectReference: {fileID: 0}
+    - target: {fileID: 5947777317048690852, guid: 572dc30c3f20d466cbf05c9835532214, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -3.46
+      objectReference: {fileID: 0}
+    - target: {fileID: 6428486953151202042, guid: 572dc30c3f20d466cbf05c9835532214, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 2.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 6428486953151202042, guid: 572dc30c3f20d466cbf05c9835532214, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -3.34
+      objectReference: {fileID: 0}
+    - target: {fileID: 7573237347623946704, guid: 572dc30c3f20d466cbf05c9835532214, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.62
+      objectReference: {fileID: 0}
     - target: {fileID: 8198856000151801845, guid: 572dc30c3f20d466cbf05c9835532214, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 117.251915
+      value: 103
       objectReference: {fileID: 0}
     - target: {fileID: 8198856000151801845, guid: 572dc30c3f20d466cbf05c9835532214, type: 3}
       propertyPath: m_LocalPosition.y
@@ -3815,6 +3875,14 @@ PrefabInstance:
     - target: {fileID: 8198856000151801845, guid: 572dc30c3f20d466cbf05c9835532214, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8999742336008651917, guid: 572dc30c3f20d466cbf05c9835532214, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -2.42
+      objectReference: {fileID: 0}
+    - target: {fileID: 8999742336008651917, guid: 572dc30c3f20d466cbf05c9835532214, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
