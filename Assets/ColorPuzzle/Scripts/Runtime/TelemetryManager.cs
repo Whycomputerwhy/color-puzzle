@@ -26,6 +26,11 @@ namespace ColorPuzzle
         [SerializeField] private string outputFileName = "ColorPuzzle-Telemetry.txt";
         [SerializeField] private bool logOutputPath = true;
 
+        [Header("Standalone Build Output")]
+        [Tooltip("Standalone desktop builds save logs here by default. The Editor continues to use Unity's persistent data folder.")]
+        [SerializeField] private bool saveToDesktopInStandaloneBuilds = true;
+        [SerializeField] private string desktopOutputDirectoryName = "ColorPuzzleTelemetry";
+
         private static TelemetryManager instance;
 
         private string runId;
@@ -252,7 +257,29 @@ namespace ColorPuzzle
             }
             catch (Exception exception)
             {
-                Debug.LogError($"Telemetry could not write to '{path}': {exception.Message}", this);
+                string fallbackPath = GetPersistentOutputFilePath();
+                if (string.Equals(path, fallbackPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    Debug.LogError($"Telemetry could not write to '{path}': {exception.Message}", this);
+                }
+                else
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(fallbackPath));
+                        File.AppendAllText(fallbackPath, text.ToString());
+                        Debug.LogWarning(
+                            $"Telemetry could not access the Desktop folder ({exception.Message}). " +
+                            $"Saved to Unity data instead: {fallbackPath}", this);
+                    }
+                    catch (Exception fallbackException)
+                    {
+                        Debug.LogError(
+                            $"Telemetry could not write to '{path}' or fallback '{fallbackPath}': " +
+                            fallbackException.Message,
+                            this);
+                    }
+                }
             }
 
             if (endSession)
@@ -264,13 +291,48 @@ namespace ColorPuzzle
 
         private string GetOutputFilePath()
         {
-            string safeDirectory = string.IsNullOrWhiteSpace(outputDirectoryName)
-                ? "Telemetry"
-                : outputDirectoryName;
+            string directory = GetOutputDirectoryPath();
             string safeFileName = string.IsNullOrWhiteSpace(sessionOutputFileName)
                 ? BuildSessionFileName()
                 : sessionOutputFileName;
-            return Path.Combine(Application.persistentDataPath, safeDirectory, safeFileName);
+            return Path.Combine(directory, safeFileName);
+        }
+
+        private string GetPersistentOutputFilePath()
+        {
+            string safeFileName = string.IsNullOrWhiteSpace(sessionOutputFileName)
+                ? BuildSessionFileName()
+                : sessionOutputFileName;
+            return Path.Combine(GetOutputDirectoryPath(true), safeFileName);
+        }
+
+        private string GetOutputDirectoryPath(bool forcePersistentDataPath = false)
+        {
+            if (!forcePersistentDataPath && saveToDesktopInStandaloneBuilds &&
+                !Application.isEditor && IsDesktopPlatform())
+            {
+                string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+                if (!string.IsNullOrWhiteSpace(desktopPath))
+                {
+                    string safeDesktopDirectory = string.IsNullOrWhiteSpace(desktopOutputDirectoryName)
+                        ? "ColorPuzzleTelemetry"
+                        : Path.GetFileName(desktopOutputDirectoryName);
+                    return Path.Combine(desktopPath, safeDesktopDirectory);
+                }
+            }
+
+            string safeDirectory = string.IsNullOrWhiteSpace(outputDirectoryName)
+                ? "Telemetry"
+                : outputDirectoryName;
+            return Path.Combine(Application.persistentDataPath, safeDirectory);
+        }
+
+        private static bool IsDesktopPlatform()
+        {
+            RuntimePlatform platform = Application.platform;
+            return platform == RuntimePlatform.OSXPlayer ||
+                   platform == RuntimePlatform.WindowsPlayer ||
+                   platform == RuntimePlatform.LinuxPlayer;
         }
 
         private string BuildSessionFileName()

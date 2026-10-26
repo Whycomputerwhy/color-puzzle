@@ -902,6 +902,14 @@ namespace ColorPuzzle
                 return;
             }
 
+            // The magnifier is collected silently; its control tutorial appears after
+            // acquisition instead of showing a separate pickup hint while aiming at it.
+            if (cueTarget is MagnifierPickup)
+            {
+                ResetInteractionCue();
+                return;
+            }
+
             if (!showedPickupTutorial && (cueTarget is ShellPuzzlePiece || cueTarget is DiscoverableObject))
             {
                 showedPickupTutorial = true;
