@@ -19,6 +19,15 @@ namespace ColorPuzzle
         [SerializeField] private MagnifierPickup magnifierPickup;
         [SerializeField] private Vector3 checkpointSpawnOffset = new Vector3(0f, 2f, 2f);
 
+        [Header("Opening Tutorial")]
+        [Tooltip("Moves the first spawn back along the authored checkpoint's facing direction, leaving a short walk into Puzzle 1.")]
+        [SerializeField] private bool useOpeningTutorialSpawn = true;
+        [SerializeField] private Vector3 openingTutorialAdditionalOffset = new Vector3(0f, 0f, -5f);
+
+        [Header("Spawn Grounding")]
+        [SerializeField, Min(0f)] private float spawnGroundProbeStartHeight = 8f;
+        [SerializeField, Min(0.1f)] private float spawnGroundProbeDistance = 20f;
+
         [Header("Future Stage Streaming")]
         [Tooltip("Reserved for later additive loading. It intentionally does nothing for now; all four editable stages stay loaded.")]
         [SerializeField] private bool loadUpcomingStageWhenPreviousIsCompleted;
@@ -212,7 +221,21 @@ namespace ColorPuzzle
             if (checkpoint == null) return;
             CharacterController controller = player.GetComponent<CharacterController>();
             if (controller != null) controller.enabled = false;
-            player.transform.SetPositionAndRotation(checkpoint.position + checkpointSpawnOffset, checkpoint.rotation);
+            Vector3 spawnOffset = checkpointSpawnOffset;
+            if (stageIndex == 0 && useOpeningTutorialSpawn)
+                spawnOffset += checkpoint.TransformDirection(openingTutorialAdditionalOffset);
+            Vector3 spawnPosition = checkpoint.position + spawnOffset;
+            if (Physics.Raycast(
+                    spawnPosition + Vector3.up * spawnGroundProbeStartHeight,
+                    Vector3.down,
+                    out RaycastHit groundHit,
+                    spawnGroundProbeStartHeight + spawnGroundProbeDistance,
+                    ~0,
+                    QueryTriggerInteraction.Ignore))
+            {
+                spawnPosition.y = groundHit.point.y;
+            }
+            player.transform.SetPositionAndRotation(spawnPosition, checkpoint.rotation);
             if (controller != null) controller.enabled = true;
         }
 

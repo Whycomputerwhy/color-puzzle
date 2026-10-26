@@ -545,9 +545,14 @@ MonoBehaviour:
   inventoryHudGap: 8
   inventoryBallFontSize: 32
   inventoryFontSize: 32
-  inventoryFillColor: {r: 0.12, g: 0.12, b: 0.12, a: 1}
+  inventoryFillColor: {r: 1, g: 1, b: 1, a: 1}
   inventoryOutlineColor: {r: 1, g: 1, b: 1, a: 0}
   inventoryOutlineDistance: {x: 0, y: 0}
+  showOpeningTutorial: 1
+  tutorialFadeDuration: 0.25
+  tutorialVisibleDuration: 2
+  tutorialWalkDistance: 1
+  tutorialSettleDuration: 1.25
 --- !u!114 &9175544705949783069
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -709,17 +714,13 @@ MonoBehaviour:
 
     SPACE  Jump
 
-    RMB  Magnifier
-
     LMB  Pick up
+
+    RMB  Magnifier
 
     Q  Drop / place
 
-    R  Reset level
-
-    ENTER  Developer panel
-
-    ESC  Pause'
+    R  Reset level'
   resumeLabel: RESUME
   quitLabel: QUIT TO MENU
   volumeLabel: VOLUME

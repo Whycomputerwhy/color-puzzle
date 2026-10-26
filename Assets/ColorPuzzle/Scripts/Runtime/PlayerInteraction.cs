@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -99,6 +100,11 @@ namespace ColorPuzzle
         [SerializeField] private Color inventoryOutlineColor = Color.white;
         [SerializeField] private Vector2 inventoryOutlineDistance = new Vector2(1f, -1f);
 
+        [Header("Opening Tutorial")]
+        [SerializeField] private bool showOpeningTutorial = true;
+        [SerializeField, Min(0f)] private float tutorialFadeDuration = 0.25f;
+        [SerializeField, Min(0f)] private float tutorialVisibleDuration = 2.8f;
+
         private DiscoverableObject carried;
         private ShellPuzzlePiece carriedShellKey;
         private MagnifierView magnifier;
@@ -106,6 +112,10 @@ namespace ColorPuzzle
         private GameObject inventoryHudRoot;
         private Text inventoryLabel;
         private Text inventoryIcon;
+        private GameObject tutorialHudRoot;
+        private CanvasGroup tutorialCanvasGroup;
+        private Text tutorialText;
+        private Coroutine tutorialRoutine;
         private GameObject interactionCueTextRoot;
         private Text interactionCueText;
         private Object currentCueTarget;
@@ -113,6 +123,9 @@ namespace ColorPuzzle
         private float interactionCueDwellElapsed;
         private float interactionCueGlowFadeElapsed;
         private bool valueSearchMode;
+        private bool openingTutorialActive;
+        private bool showedPickupTutorial;
+        private bool showedMagnifierTutorial;
 
         public InteractionCueMode CurrentInteractionCueMode => interactionCueMode;
 
@@ -122,9 +135,18 @@ namespace ColorPuzzle
             playerController = GetComponent<CharacterController>();
             ConfigureStatusTextOutline();
             CreateInventoryHud();
+            CreateTutorialHud();
             CreateInteractionCueText();
             ClearInteractionCueVisuals();
             RefreshInventoryHud();
+        }
+
+        private void Start()
+        {
+            openingTutorialActive = showOpeningTutorial && OceanCampaignManager.Active != null &&
+                                    OceanCampaignManager.Active.CurrentStageNumber == 1;
+            if (openingTutorialActive)
+                ShowTutorial("WASD move  •  SPACE jump");
         }
 
         private void ConfigureStatusTextOutline()
@@ -190,6 +212,7 @@ namespace ColorPuzzle
                 MagnifierPickup magnifierPickup = specialHit.collider.GetComponentInParent<MagnifierPickup>();
                 if (magnifierPickup != null && magnifierPickup.TryAcquire(transform, interactionDistance))
                 {
+                    ShowMagnifierTutorial();
                     ResetInteractionCue();
                     return;
                 }
@@ -879,6 +902,12 @@ namespace ColorPuzzle
                 return;
             }
 
+            if (!showedPickupTutorial && (cueTarget is ShellPuzzlePiece || cueTarget is DiscoverableObject))
+            {
+                showedPickupTutorial = true;
+                ShowTutorial("LMB pick up  •  Q drop");
+            }
+
             bool sameCue = currentCueTarget == cueTarget && currentCueLabel == cueLabel;
             if (!sameCue)
             {
@@ -1120,6 +1149,83 @@ namespace ColorPuzzle
             ConfigureInventoryOutline(labelObject.GetComponent<Outline>());
         }
 
+        private void CreateTutorialHud()
+        {
+            if (statusText == null) return;
+            Canvas canvas = statusText.GetComponentInParent<Canvas>();
+            if (canvas == null) return;
+
+            tutorialHudRoot = new GameObject("OpeningTutorialHUD", typeof(RectTransform),
+                typeof(CanvasRenderer), typeof(Text), typeof(CanvasGroup));
+            RectTransform rect = tutorialHudRoot.GetComponent<RectTransform>();
+            rect.SetParent(canvas.transform, false);
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = inventoryHudOffset;
+            rect.sizeDelta = inventoryHudSize;
+            rect.SetAsLastSibling();
+
+            tutorialText = tutorialHudRoot.GetComponent<Text>();
+            tutorialText.font = statusText.font != null
+                ? statusText.font
+                : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            tutorialText.fontSize = inventoryFontSize;
+            tutorialText.alignment = TextAnchor.MiddleCenter;
+            tutorialText.color = inventoryFillColor;
+            tutorialText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            tutorialText.verticalOverflow = VerticalWrapMode.Overflow;
+            tutorialText.raycastTarget = false;
+            tutorialCanvasGroup = tutorialHudRoot.GetComponent<CanvasGroup>();
+            tutorialCanvasGroup.alpha = 0f;
+            tutorialHudRoot.SetActive(false);
+        }
+
+        private void ShowMagnifierTutorial()
+        {
+            if (showedMagnifierTutorial) return;
+            showedMagnifierTutorial = true;
+            ShowTutorial("RMB look through magnifier");
+        }
+
+        private void ShowTutorial(string message)
+        {
+            if (!openingTutorialActive || tutorialHudRoot == null || tutorialText == null) return;
+            if (tutorialRoutine != null) StopCoroutine(tutorialRoutine);
+            tutorialRoutine = StartCoroutine(ShowTutorialRoutine(message));
+        }
+
+        private IEnumerator ShowTutorialRoutine(string message)
+        {
+            tutorialText.text = message;
+            tutorialHudRoot.SetActive(true);
+            RefreshInventoryHud();
+            yield return FadeTutorial(0f, 1f);
+            if (tutorialVisibleDuration > 0f)
+                yield return new WaitForSecondsRealtime(tutorialVisibleDuration);
+            yield return FadeTutorial(1f, 0f);
+            tutorialHudRoot.SetActive(false);
+            RefreshInventoryHud();
+            tutorialRoutine = null;
+        }
+
+        private IEnumerator FadeTutorial(float from, float to)
+        {
+            if (tutorialCanvasGroup == null) yield break;
+            if (tutorialFadeDuration <= 0f)
+            {
+                tutorialCanvasGroup.alpha = to;
+                yield break;
+            }
+            float elapsed = 0f;
+            while (elapsed < tutorialFadeDuration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                tutorialCanvasGroup.alpha = Mathf.Lerp(from, to, elapsed / tutorialFadeDuration);
+                yield return null;
+            }
+            tutorialCanvasGroup.alpha = to;
+        }
+
         private void ConfigureInventoryOutline(Outline outline)
         {
             if (outline == null) return;
@@ -1132,7 +1238,8 @@ namespace ColorPuzzle
         {
             if (inventoryHudRoot == null) return;
             bool hasObject = carried != null || carriedShellKey != null;
-            inventoryHudRoot.SetActive(hasObject);
+            bool tutorialIsShowing = tutorialHudRoot != null && tutorialHudRoot.activeSelf;
+            inventoryHudRoot.SetActive(hasObject && !tutorialIsShowing);
             if (!hasObject) return;
             inventoryLabel.text = carriedShellKey != null ? "Shell Key" : carried.DisplayName;
             if (inventoryIcon != null) inventoryIcon.text = carriedShellKey != null ? "■" : "●";
@@ -1146,6 +1253,7 @@ namespace ColorPuzzle
         private void OnDestroy()
         {
             if (interactionCueTextRoot != null) Destroy(interactionCueTextRoot);
+            if (tutorialHudRoot != null) Destroy(tutorialHudRoot);
             InteractionOutlineRuntime.Hide();
         }
     }
