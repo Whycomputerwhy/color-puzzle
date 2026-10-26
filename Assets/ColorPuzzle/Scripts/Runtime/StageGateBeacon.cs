@@ -23,5 +23,8 @@ namespace ColorPuzzle
             activated = true;
             return true;
         }
+
+        /// <summary>Marks a temporary beacon complete when an earlier stage is skipped in development.</summary>
+        public void CompleteForDeveloperSkip() => activated = true;
     }
 }

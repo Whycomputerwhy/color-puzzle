@@ -41,7 +41,7 @@ namespace ColorPuzzle
 
             Transform casingTransform = FindChildNamed(transform, "Clam Casing");
             casing = casingTransform != null ? casingTransform.gameObject : null;
-            SetPuzzleColorVisible(false);
+            SetPuzzleAppearance(false, false);
             IsReady = ValidatePairs();
             if (!IsReady)
                 Debug.LogError("Shell puzzle needs exactly four unique key/keyhole pairs.", this);
@@ -56,10 +56,43 @@ namespace ColorPuzzle
         {
             campaign = owner;
             stageIndex = index;
+            // Puzzle 1 teaches the magnifier: its pieces are colourful through the
+            // lens from the beginning, but remain monochrome in the normal view.
+            SetPuzzleAppearance(stageIndex == 0, false);
         }
 
         public bool Owns(ShellPuzzlePiece piece) =>
             piece != null && piece.transform.IsChildOf(transform);
+
+        /// <summary>Marks this authored puzzle as solved when using the developer stage jump.</summary>
+        public void CompleteForDeveloperSkip()
+        {
+            if (complete || !IsReady) return;
+
+            ShellPuzzlePiece[] pieces = GetComponentsInChildren<ShellPuzzlePiece>(true);
+            foreach (ShellPuzzlePiece keyhole in keyholes)
+            {
+                if (keyhole.IsOccupied) continue;
+                foreach (ShellPuzzlePiece key in pieces)
+                {
+                    if (key.Kind != ShellPuzzlePiece.PieceKind.Key ||
+                        key.PairNumber != keyhole.PairNumber ||
+                        !Mathf.Approximately(key.FitDiameter, keyhole.FitDiameter)) continue;
+                    key.PlaceForDeveloper(keyhole);
+                    break;
+                }
+            }
+
+            complete = true;
+            foreach (ShellPuzzlePiece keyhole in keyholes)
+            {
+                keyhole.LockPlacedKey();
+                keyhole.RevealKeyholeColor();
+            }
+            SetPuzzleAppearance(true, true);
+            RevealPuzzleTwoFishInNormalView();
+            if (casing != null) casing.SetActive(false);
+        }
 
         public bool TryPlace(ShellPuzzlePiece key, ShellPuzzlePiece keyhole)
         {
@@ -100,7 +133,8 @@ namespace ColorPuzzle
                 hole.LockPlacedKey();
                 hole.RevealKeyholeColor();
             }
-            SetPuzzleColorVisible(true);
+            SetPuzzleAppearance(true, true);
+            RevealPuzzleTwoFishInNormalView();
             Play(correctPlacementMusic, correctPlacementVolume);
             StartCoroutine(PlayVictoryEffect());
             return true;
@@ -195,23 +229,30 @@ namespace ColorPuzzle
             return true;
         }
 
-        private void SetPuzzleColorVisible(bool visible)
+        private void SetPuzzleAppearance(bool colorViewVisible, bool normalViewVisible)
         {
             // Only puzzle pieces and the optional casing participate in this reveal.
             // Other decorative children of a stage, such as Puzzle 2's fish school, stay colorful.
             foreach (ShellPuzzlePiece piece in GetComponentsInChildren<ShellPuzzlePiece>(true))
                 foreach (DualViewMaterial visual in piece.GetComponentsInChildren<DualViewMaterial>(true))
                 {
-                    visual.SetColorViewEnabled(visible);
-                    visual.SetColorInGreyscaleCamera(visible);
+                    visual.SetColorViewEnabled(colorViewVisible);
+                    visual.SetColorInGreyscaleCamera(normalViewVisible);
                 }
 
             if (casing != null)
                 foreach (DualViewMaterial visual in casing.GetComponentsInChildren<DualViewMaterial>(true))
                 {
-                    visual.SetColorViewEnabled(visible);
-                    visual.SetColorInGreyscaleCamera(visible);
+                    visual.SetColorViewEnabled(colorViewVisible);
+                    visual.SetColorInGreyscaleCamera(normalViewVisible);
                 }
+        }
+
+        private void RevealPuzzleTwoFishInNormalView()
+        {
+            if (stageIndex != 1) return;
+            foreach (FishSchoolController school in GetComponentsInChildren<FishSchoolController>(true))
+                school.SetColorInNormalView(true);
         }
 
         private void Play(AudioClip clip, float volume)

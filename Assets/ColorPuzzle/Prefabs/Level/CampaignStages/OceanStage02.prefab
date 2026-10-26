@@ -691,8 +691,12 @@ PrefabInstance:
       value: Keyhole 4
       objectReference: {fileID: 0}
     - target: {fileID: 6830493445470737353, guid: b807f90c0534f4df6bf834d61211fc7a, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.73
+      propertyPath: m_LocalPosition.x
+      value: 2.37
+      objectReference: {fileID: 0}
+    - target: {fileID: 6830493445470737353, guid: b807f90c0534f4df6bf834d61211fc7a, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 6830493445470737353, guid: b807f90c0534f4df6bf834d61211fc7a, type: 3}
       propertyPath: m_LocalRotation.w

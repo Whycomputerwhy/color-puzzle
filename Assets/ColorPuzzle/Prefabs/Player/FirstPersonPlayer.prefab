@@ -543,11 +543,11 @@ MonoBehaviour:
   inventoryHudSize: {x: 150, y: 42}
   inventoryHudOffset: {x: 0, y: 92}
   inventoryHudGap: 8
-  inventoryBallFontSize: 28
-  inventoryFontSize: 28
+  inventoryBallFontSize: 32
+  inventoryFontSize: 32
   inventoryFillColor: {r: 0.12, g: 0.12, b: 0.12, a: 1}
-  inventoryOutlineColor: {r: 1, g: 1, b: 1, a: 1}
-  inventoryOutlineDistance: {x: 1, y: -1}
+  inventoryOutlineColor: {r: 1, g: 1, b: 1, a: 0}
+  inventoryOutlineDistance: {x: 0, y: 0}
 --- !u!114 &9175544705949783069
 MonoBehaviour:
   m_ObjectHideFlags: 0

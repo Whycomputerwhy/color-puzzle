@@ -1,4 +1,5 @@
 using System;
+using ColorPuzzle.Rendering;
 using UnityEngine;
 
 namespace ColorPuzzle
@@ -36,6 +37,7 @@ namespace ColorPuzzle
         private readonly System.Collections.Generic.List<GameObject> spawnedFish = new();
         private const string EditorPreviewContainerName = "Fish Preview (Editor Only)";
         private const string RuntimeContainerName = "Spawned Fish";
+        private bool colorInNormalView;
 #if UNITY_EDITOR
         private bool refreshQueued;
 #endif
@@ -105,10 +107,25 @@ namespace ColorPuzzle
                         Range(random, roamRadiusRange.x, roamRadiusRange.y),
                         Range(random, roamHeightRange.x, roamHeightRange.y),
                         Range(random, destinationIntervalRange.x, destinationIntervalRange.y));
+                    ApplyNormalViewColor(fish.gameObject);
                     if (!Application.isPlaying) SetEditorOnly(fish.gameObject);
                     spawnedFish.Add(fish.gameObject);
                 }
             }
+        }
+
+        /// <summary>Reveals the school in the regular camera after its puzzle is solved.</summary>
+        public void SetColorInNormalView(bool enabled)
+        {
+            colorInNormalView = enabled;
+            foreach (DualViewMaterial visual in GetComponentsInChildren<DualViewMaterial>(true))
+                visual.SetColorInGreyscaleCamera(enabled);
+        }
+
+        private void ApplyNormalViewColor(GameObject fish)
+        {
+            foreach (DualViewMaterial visual in fish.GetComponentsInChildren<DualViewMaterial>(true))
+                visual.SetColorInGreyscaleCamera(colorInNormalView);
         }
 
         private bool HasFishToSpawn()

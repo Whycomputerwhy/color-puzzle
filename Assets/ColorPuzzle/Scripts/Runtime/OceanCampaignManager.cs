@@ -146,12 +146,22 @@ namespace ColorPuzzle
         public void TeleportToStage(int stageNumber)
         {
             currentStageIndex = Mathf.Clamp(stageNumber - 1, 0, stages.Count - 1);
+            CompletePreviousStagesForDeveloperJump(currentStageIndex);
             player?.GetComponent<MagnifierView>()?.UnlockMagnifier();
             magnifierSkillUnlocked = true;
             magnifierPickup?.SetAvailable(false);
             MovePlayerToCheckpoint(currentStageIndex);
             TelemetryManager.BeginCampaignStage(currentStageIndex + 1);
             RestoreColorForFinalStageIfNeeded();
+        }
+
+        private void CompletePreviousStagesForDeveloperJump(int destinationStageIndex)
+        {
+            for (int index = 0; index < destinationStageIndex; index++)
+            {
+                stages[index].ShellPuzzle?.CompleteForDeveloperSkip();
+                stages[index].CompletionBeacon?.CompleteForDeveloperSkip();
+            }
         }
 
         public void ReloadCheckpoint()

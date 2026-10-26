@@ -207,6 +207,26 @@ namespace ColorPuzzle
             placedKey.SetCollidersEnabled(false);
         }
 
+        /// <summary>Sets an already-authored matching key in place for developer stage skipping.</summary>
+        public bool PlaceForDeveloper(ShellPuzzlePiece keyhole)
+        {
+            if (kind != PieceKind.Key || keyhole == null || keyhole.kind != PieceKind.Keyhole ||
+                keyhole.placedKey != null) return false;
+
+            RestorePlayerCollision();
+            transform.SetParent(keyhole.transform, true);
+            transform.position = keyhole.SlotPosition + Vector3.up * 0.02f;
+            transform.rotation = keyhole.transform.rotation;
+            carried = false;
+            placed = false;
+            correctlyMatched = true;
+            temporaryKeyhole = keyhole;
+            keyhole.placedKey = this;
+            SetRenderersEnabled(true);
+            SetCollidersEnabled(true);
+            return true;
+        }
+
         public Vector3 GetVisualCenterOffset()
         {
             bool found = false;
