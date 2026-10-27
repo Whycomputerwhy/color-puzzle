@@ -36,6 +36,7 @@ namespace ColorPuzzle
         [SerializeField] private bool resumeFromSavedCheckpoint = true;
 
         private readonly List<OceanCampaignStage> stages = new List<OceanCampaignStage>();
+        private static int pendingDeveloperStageNumber = -1;
         private int currentStageIndex;
         private bool campaignComplete;
         private bool magnifierSkillUnlocked;
@@ -61,6 +62,7 @@ namespace ColorPuzzle
             // Stage 1 reveals this reward only after the shell combination succeeds.
             magnifierPickup?.SetAvailable(false);
             ConfigureAuthoredProgression();
+            ApplyPendingDeveloperStageJump();
             StartCoroutine(PlacePlayerAfterSetup());
         }
 
@@ -151,10 +153,21 @@ namespace ColorPuzzle
             RestoreColorForFinalStageIfNeeded();
         }
 
-        /// <summary>Developer-panel shortcut. It moves within the continuous level; it does not load a scene.</summary>
+        /// <summary>Developer-panel shortcut. Forward jumps stay in place; backward jumps reload the shared room to reset later puzzle state.</summary>
         public void TeleportToStage(int stageNumber)
         {
-            currentStageIndex = Mathf.Clamp(stageNumber - 1, 0, stages.Count - 1);
+            int destinationStageIndex = Mathf.Clamp(stageNumber - 1, 0, stages.Count - 1);
+            if (destinationStageIndex < currentStageIndex)
+            {
+                // All four stages live in one scene. Reloading only for a backward
+                // developer jump restores the selected stage and every later stage to
+                // their authored start state, without changing saved player progress.
+                pendingDeveloperStageNumber = destinationStageIndex + 1;
+                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                return;
+            }
+
+            currentStageIndex = destinationStageIndex;
             CompletePreviousStagesForDeveloperJump(currentStageIndex);
             player?.GetComponent<MagnifierView>()?.UnlockMagnifier();
             magnifierSkillUnlocked = true;
@@ -162,6 +175,18 @@ namespace ColorPuzzle
             MovePlayerToCheckpoint(currentStageIndex);
             TelemetryManager.BeginCampaignStage(currentStageIndex + 1);
             RestoreColorForFinalStageIfNeeded();
+        }
+
+        private void ApplyPendingDeveloperStageJump()
+        {
+            if (pendingDeveloperStageNumber < 1) return;
+
+            currentStageIndex = Mathf.Clamp(pendingDeveloperStageNumber - 1, 0, stages.Count - 1);
+            pendingDeveloperStageNumber = -1;
+            CompletePreviousStagesForDeveloperJump(currentStageIndex);
+            magnifierSkillUnlocked = true;
+            player?.GetComponent<MagnifierView>()?.UnlockMagnifier();
+            magnifierPickup?.SetAvailable(false);
         }
 
         private void CompletePreviousStagesForDeveloperJump(int destinationStageIndex)

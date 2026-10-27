@@ -4,30 +4,31 @@ using UnityEngine.SceneManagement;
 namespace ColorPuzzle
 {
     /// <summary>
-    /// Ocean decorations are visual dressing only. Imported models occasionally
-    /// include oversized colliders, so enforce a collider-free decoration root
-    /// when a gameplay scene loads without affecting puzzle or world geometry.
+    /// Makes the collision authored on the decoration prefabs available at runtime.
+    /// Decoration placement and collider shape are intentionally owned by the prefab.
     /// </summary>
     internal static class OceanDecorationPhysics
     {
         private const string DecorationsRootName = "--- OCEAN DECORATIONS ---";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        private static void RemoveDecorationColliders()
+        private static void EnableAuthoredDecorationColliders()
         {
-            SceneManager.sceneLoaded += RemoveDecorationColliders;
-            RemoveDecorationColliders(SceneManager.GetActiveScene(), LoadSceneMode.Single);
+            SceneManager.sceneLoaded += EnableAuthoredDecorationColliders;
+            EnableAuthoredDecorationColliders(SceneManager.GetActiveScene(), LoadSceneMode.Single);
         }
 
-        private static void RemoveDecorationColliders(Scene scene, LoadSceneMode mode)
+        private static void EnableAuthoredDecorationColliders(Scene scene, LoadSceneMode mode)
         {
             foreach (GameObject root in scene.GetRootGameObjects())
             {
                 Transform decorations = FindChild(root.transform, DecorationsRootName);
                 if (decorations == null) continue;
 
+                // The prefab's collider is the source of truth. Do not create or resize
+                // runtime collision geometry here: that would drift from prefab edits.
                 foreach (Collider collider in decorations.GetComponentsInChildren<Collider>(true))
-                    collider.enabled = false;
+                    collider.enabled = true;
             }
         }
 
