@@ -8,6 +8,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 420561020176303663, guid: e8ed4bc975e554901af77ba35707ec35, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.011
+      objectReference: {fileID: 0}
     - target: {fileID: 2263481553885104988, guid: e8ed4bc975e554901af77ba35707ec35, type: 3}
       propertyPath: colorViewTint.b
       value: 0.96

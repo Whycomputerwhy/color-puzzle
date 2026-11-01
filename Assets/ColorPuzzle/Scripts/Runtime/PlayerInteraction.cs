@@ -196,6 +196,12 @@ namespace ColorPuzzle
             if (Physics.Raycast(ray, out RaycastHit hit, interactionDistance, interactionLayers,
                     QueryTriggerInteraction.Collide))
             {
+                NumberDial dial = hit.collider.GetComponentInParent<NumberDial>();
+                NumberDialLockController dialLock = dial != null
+                    ? dial.GetComponentInParent<NumberDialLockController>()
+                    : null;
+                if (dialLock != null && dialLock.TryRotate(dial)) return;
+
                 StageGateBeacon aimedGate = hit.collider.GetComponentInParent<StageGateBeacon>();
                 if (aimedGate != null && aimedGate.TryActivate(transform, interactionDistance)) return;
             }
@@ -929,7 +935,8 @@ namespace ColorPuzzle
             interactionCueDwellElapsed += Time.unscaledDeltaTime;
             if (interactionCueDwellElapsed < interactionCueDwellDuration) return;
 
-            if (cueTarget is MagnifierPickup || interactionCueMode == InteractionCueMode.CenterText)
+            if (cueTarget is MagnifierPickup || cueTarget is NumberDial ||
+                interactionCueMode == InteractionCueMode.CenterText)
                 ShowInteractionCueText(cueLabel);
             else if (supportsGlow)
             {
@@ -984,6 +991,16 @@ namespace ColorPuzzle
             {
                 cueTarget = ability;
                 cueLabel = "LMB TAKE MAGNIFIER";
+                return true;
+            }
+            NumberDial dial = centerHit.collider.GetComponentInParent<NumberDial>();
+            NumberDialLockController dialLock = dial != null
+                ? dial.GetComponentInParent<NumberDialLockController>()
+                : null;
+            if (dialLock != null && dialLock.CanRotate(dial))
+            {
+                cueTarget = dial;
+                cueLabel = "E ROTATE";
                 return true;
             }
             ShellPuzzlePiece shell = centerHit.collider.GetComponentInParent<ShellPuzzlePiece>();

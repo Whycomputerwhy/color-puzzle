@@ -199,7 +199,6 @@ GameObject:
   m_Component:
   - component: {fileID: 317693918717297143}
   - component: {fileID: 7635619923625363072}
-  - component: {fileID: 4817459386641322396}
   - component: {fileID: 1466452840432375515}
   - component: {fileID: 2556480453122341103}
   m_Layer: 0
@@ -217,13 +216,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3529027859686105243}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.509, z: 0}
-  m_LocalScale: {x: 0.42, y: 0.009, z: 0.42}
-  m_ConstrainProportionsScale: 0
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 1.515, z: -0.026}
+  m_LocalScale: {x: 18.34, y: 18.34, z: 18.34}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 5669046054176151420}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!33 &7635619923625363072
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -231,30 +230,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3529027859686105243}
-  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
---- !u!136 &4817459386641322396
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3529027859686105243}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Mesh: {fileID: 4493585093827132993, guid: d8b0a5a50339f42e69263674758d16e7, type: 3}
 --- !u!23 &1466452840432375515
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -414,7 +390,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: aeac7722157064acaaf8b452ad9aa91f, type: 2}
+  - {fileID: 2100000, guid: a5afc6c1dcc24870af31d50f895488f5, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -451,9 +427,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
   greyscaleMaterials:
-  - {fileID: 2100000, guid: aeac7722157064acaaf8b452ad9aa91f, type: 2}
+  - {fileID: 2100000, guid: a5afc6c1dcc24870af31d50f895488f5, type: 2}
   colorMaterials:
-  - {fileID: 2100000, guid: 3ab3c25bf3097439fa4283160a14aef4, type: 2}
+  - {fileID: 2100000, guid: 431b5e26633a45339f7836347d0abb35, type: 2}
   legacyColorProxy: {fileID: 0}
   useColorViewTint: 1
   colorViewTint: {r: 1, g: 1, b: 1, a: 1}

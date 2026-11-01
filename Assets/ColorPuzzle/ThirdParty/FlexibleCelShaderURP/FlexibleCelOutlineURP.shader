@@ -160,7 +160,14 @@ Shader "ColorPuzzle/Flexible Cel URP/Outline"
                 return output;
             }
 
-            half4 OutlineFragment(Varyings input) : SV_Target { return _OutlineColor; }
+            half4 OutlineFragment(Varyings input) : SV_Target
+            {
+                // At zero width, the inverted-hull pass occupies exactly the same
+                // depth as the lit pass. Without discarding it, it paints the whole
+                // mesh with _OutlineColor rather than disabling the outline.
+                clip(_OutlineSize - 0.0001);
+                return _OutlineColor;
+            }
             ENDHLSL
         }
 

@@ -94,11 +94,9 @@ namespace ColorPuzzle
         {
             for (int index = 0; index < stages.Count; index++)
             {
-                if (stages[index].CheckpointSpawn == null ||
-                    (index < stages.Count - 1 && !stages[index].HasCompletionInteraction) ||
-                    (stages[index].ShellPuzzle != null && !stages[index].ShellPuzzle.IsReady))
+                if (stages[index].CheckpointSpawn == null)
                 {
-                    Debug.LogError($"Puzzle stage {index + 1} needs a checkpoint and a valid completion interaction (except on the final stage).", stages[index]);
+                    Debug.LogError($"Puzzle stage {index + 1} needs a checkpoint spawn.", stages[index]);
                     return false;
                 }
             }
@@ -116,7 +114,14 @@ namespace ColorPuzzle
 
         public bool CompleteStage(int stageIndex)
         {
-            if (stageIndex != currentStageIndex || stageIndex >= stages.Count - 1) return false;
+            if (stageIndex != currentStageIndex) return false;
+            if (stageIndex >= stages.Count - 1)
+            {
+                campaignComplete = true;
+                TelemetryManager.CompleteCampaignStage(stageIndex + 1);
+                RestoreColorForFinalStageIfNeeded();
+                return true;
+            }
             ReachNextStage(stageIndex);
             return true;
         }
@@ -233,8 +238,7 @@ namespace ColorPuzzle
 
         private void RestoreColorForFinalStageIfNeeded()
         {
-            if (currentStageIndex < stages.Count - 1) return;
-            campaignComplete = true;
+            if (currentStageIndex < stages.Count - 1 || !campaignComplete) return;
             MagnifierView magnifier = player != null ? player.GetComponent<MagnifierView>() : FindAnyObjectByType<MagnifierView>();
             magnifier?.RestoreWorldColor(player != null ? player.transform.position : transform.position);
         }

@@ -28,13 +28,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4582873861814355164}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.025, z: 0}
-  m_LocalScale: {x: 0.34, y: 0.05, z: 0.34}
-  m_ConstrainProportionsScale: 0
+  m_LocalRotation: {x: 0.5, y: -0.5, z: 0.5, w: 0.5}
+  m_LocalPosition: {x: 0.024, y: 0.046, z: -0}
+  m_LocalScale: {x: 16.4, y: 16.4, z: 16.4}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 2877233185493071647}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: -90, z: 0}
 --- !u!33 &8578477356568792429
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -42,7 +42,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4582873861814355164}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: -5495902117074765545, guid: 2bbc35f0a8b6d443db2dfe831c5b19e4, type: 3}
 --- !u!65 &3778820678457337021
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -62,7 +62,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
+  m_Size: {x: 0.02, y: 0.02, z: 0.001}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &4663812066691245442
 MeshRenderer:
@@ -130,6 +130,8 @@ MonoBehaviour:
   colorMaterials:
   - {fileID: 2100000, guid: 4865569dfc05d48b3b529040593e6e17, type: 2}
   legacyColorProxy: {fileID: 0}
+  useColorViewTint: 0
+  colorViewTint: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &6908894815489788854
 GameObject:
   m_ObjectHideFlags: 0
@@ -314,3 +316,5 @@ MonoBehaviour:
   colorMaterials:
   - {fileID: 2100000, guid: 3ab3c25bf3097439fa4283160a14aef4, type: 2}
   legacyColorProxy: {fileID: 0}
+  useColorViewTint: 0
+  colorViewTint: {r: 1, g: 1, b: 1, a: 1}

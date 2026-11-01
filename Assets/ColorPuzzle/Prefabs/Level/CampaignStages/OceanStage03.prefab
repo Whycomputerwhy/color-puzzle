@@ -1,37 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &7300000000000000106
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6394768792926501960}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5fa90e9b0b6f48aeab877f073df59e62, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
-  greyscaleMaterials:
-  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400027, type: 2}
-  colorMaterials:
-  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400014, type: 2}
-  legacyColorProxy: {fileID: 0}
---- !u!114 &7200000000000000106
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6711065297191647415}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9fd59e6338104cf6b467fa2990ef4f4b, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewRoot
-  scanIntervalSeconds: 1
-  includeInactiveChildren: 1
-  logMissingColorMaterials: 1
 --- !u!1 &2602882414172515796
 GameObject:
   m_ObjectHideFlags: 0
@@ -189,8 +157,27 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d628152dd131d432ebb57af4f37dd401, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.StageGateBeacon
+--- !u!114 &7300000000000000106
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6394768792926501960}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fa90e9b0b6f48aeab877f073df59e62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
+  greyscaleMaterials:
+  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400027, type: 2}
+  colorMaterials:
+  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400014, type: 2}
+  legacyColorProxy: {fileID: 0}
+  useColorViewTint: 0
+  colorViewTint: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &6711065297191647415
 GameObject:
   m_ObjectHideFlags: 0
@@ -239,6 +226,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.OceanCampaignStage
   checkpointSpawn: {fileID: 7532325062122594078}
   completionBeacon: {fileID: 6085263437571942104}
+--- !u!114 &7200000000000000106
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6711065297191647415}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9fd59e6338104cf6b467fa2990ef4f4b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewRoot
+  scanIntervalSeconds: 1
+  includeInactiveChildren: 1
+  logMissingColorMaterials: 1
 --- !u!1 &8086554851066965355
 GameObject:
   m_ObjectHideFlags: 0
@@ -270,5 +272,68 @@ Transform:
   m_Children:
   - {fileID: 2463997580007634114}
   - {fileID: 7532325062122594078}
+  - {fileID: 5013533750558398187}
   m_Father: {fileID: 794984422491217163}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &8545728966739334179
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 4093732766497816737}
+    m_Modifications:
+    - target: {fileID: 3678070173093626568, guid: 2760dde6a7cc34193b3ad754df75e28b, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 3678070173093626568, guid: 2760dde6a7cc34193b3ad754df75e28b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3678070173093626568, guid: 2760dde6a7cc34193b3ad754df75e28b, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 44
+      objectReference: {fileID: 0}
+    - target: {fileID: 3678070173093626568, guid: 2760dde6a7cc34193b3ad754df75e28b, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3678070173093626568, guid: 2760dde6a7cc34193b3ad754df75e28b, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3678070173093626568, guid: 2760dde6a7cc34193b3ad754df75e28b, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3678070173093626568, guid: 2760dde6a7cc34193b3ad754df75e28b, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3678070173093626568, guid: 2760dde6a7cc34193b3ad754df75e28b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3678070173093626568, guid: 2760dde6a7cc34193b3ad754df75e28b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3678070173093626568, guid: 2760dde6a7cc34193b3ad754df75e28b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6355008395410553250, guid: 2760dde6a7cc34193b3ad754df75e28b, type: 3}
+      propertyPath: m_Name
+      value: Puzzle 3 Turtle Dial Lock
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 2760dde6a7cc34193b3ad754df75e28b, type: 3}
+--- !u!4 &5013533750558398187 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3678070173093626568, guid: 2760dde6a7cc34193b3ad754df75e28b, type: 3}
+  m_PrefabInstance: {fileID: 8545728966739334179}
+  m_PrefabAsset: {fileID: 0}
