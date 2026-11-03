@@ -162,3 +162,5 @@ MonoBehaviour:
   colorMaterials:
   - {fileID: 2100000, guid: 61781351ed44141a08691fbdcc32bde7, type: 2}
   legacyColorProxy: {fileID: 0}
+  useColorViewTint: 0
+  colorViewTint: {r: 1, g: 1, b: 1, a: 1}

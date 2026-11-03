@@ -14,11 +14,14 @@ namespace ColorPuzzle
         [SerializeField] private AudioClip wrongPlacementClip;
         [SerializeField, Range(0f, 1f)] private float wrongPlacementVolume = 0.42f;
 
-        // CENTRALIZED ADJUSTABLE VICTORY EFFECT PARAMETERS
-        [Header("Victory effect")]
+        // CENTRALIZED COMBINATION-FEEDBACK PARAMETERS — shared by Puzzle 1 and Puzzle 2.
+        [Header("Combination feedback")]
         [SerializeField, Min(0f)] private float pearlGlowDuration = 0.8f;
         [SerializeField, Range(0f, 2f)] private float pearlGlowBrightness = 1.1f;
         [SerializeField, Range(0f, 0.5f)] private float pearlGlowScale = 0.12f;
+        [SerializeField, Min(0f)] private float failedCombinationGlowDuration = 0.28f;
+        [SerializeField, Range(0f, 2f)] private float failedCombinationGlowBrightness = 0.55f;
+        [SerializeField, Range(0f, 0.5f)] private float failedCombinationGlowScale = 0.04f;
         [SerializeField, Min(0f)] private float casingFadeDuration = 0.9f;
 
         private static readonly int FresnelBrightness = Shader.PropertyToID("_FresnelBrightness");
@@ -109,15 +112,26 @@ namespace ColorPuzzle
                            Mathf.Approximately(key.FitDiameter, keyhole.FitDiameter);
             key.PlaceOn(keyhole, correct);
             TelemetryManager.RecordObjectDrop();
-            if (!correct)
-            {
-                TelemetryManager.RecordFailedAttempt();
-                Play(wrongPlacementClip, wrongPlacementVolume);
-                return true;
-            }
+
+            // A placement is not an attempt by itself. Let the player construct the
+            // complete four-piece combination first, including deliberately wrong
+            // arrangements, then assess the result once every keyhole is occupied.
+            foreach (ShellPuzzlePiece hole in keyholes)
+                if (!hole.IsOccupied) return true;
 
             foreach (ShellPuzzlePiece hole in keyholes)
-                if (!hole.IsCorrectlyFilled) return true;
+                if (!hole.IsCorrectlyFilled)
+                {
+                    TelemetryManager.RecordFailedAttempt();
+                    Play(wrongPlacementClip, wrongPlacementVolume);
+                    // Begins in the same frame as the audio: a short, restrained
+                    // whole-combination response rather than a penalty per key.
+                    StartCoroutine(PlayPearlGlow(
+                        failedCombinationGlowDuration,
+                        failedCombinationGlowBrightness,
+                        failedCombinationGlowScale));
+                    return true;
+                }
 
             // The shell puzzle can be reused by later stages; only Puzzle 1 owns this telemetry milestone.
             if (stageIndex == 0)
@@ -142,16 +156,53 @@ namespace ColorPuzzle
 
         private IEnumerator PlayVictoryEffect()
         {
+            yield return StartCoroutine(PlayPearlGlow(
+                pearlGlowDuration, pearlGlowBrightness, pearlGlowScale));
+
+            if (casing == null)
+            {
+                if (stageIndex == 0) campaign?.RevealMagnifierReward();
+                yield break;
+            }
+            DualViewMaterial[] casingViews = casing.GetComponentsInChildren<DualViewMaterial>(true);
+            float elapsed = 0f;
+            do
+            {
+                float phase = casingFadeDuration <= 0f ? 1f : Mathf.Clamp01(elapsed / casingFadeDuration);
+                float opacity = 1f - phase * phase * (3f - 2f * phase);
+                foreach (DualViewMaterial view in casingViews)
+                    if (view != null) view.SetOpacityMultiplier(opacity);
+                if (casingFadeDuration <= 0f) break;
+                yield return null;
+                elapsed += Time.deltaTime;
+            } while (elapsed < casingFadeDuration);
+            casing.SetActive(false);
+            if (stageIndex == 0) campaign?.RevealMagnifierReward();
+        }
+
+        /// <summary>
+        /// Pulses every placed key's pearl. Material property blocks preserve the
+        /// authored colour materials and avoid adding a proxy or another render pass.
+        /// </summary>
+        private IEnumerator PlayPearlGlow(float duration, float brightness, float scale)
+        {
             // MaterialPropertyBlocks affect each actual pearl mesh in both camera views;
             // the cel shader's Fresnel term gives a small rim without a covering proxy.
-            Renderer[] pearls = new Renderer[keyholes.Count];
-            Vector3[] originalScales = new Vector3[keyholes.Count];
-            MaterialPropertyBlock[] originalBlocks = new MaterialPropertyBlock[keyholes.Count];
-            MaterialPropertyBlock[] glowBlocks = new MaterialPropertyBlock[keyholes.Count];
-            for (int i = 0; i < keyholes.Count; i++)
+            List<Renderer> feedbackRenderers = new List<Renderer>();
+            foreach (ShellPuzzlePiece keyhole in keyholes)
             {
-                Renderer pearl = keyholes[i].PlacedKey?.PearlRenderer;
-                pearls[i] = pearl;
+                ShellPuzzlePiece placedKey = keyhole.PlacedKey;
+                if (placedKey == null) continue;
+                feedbackRenderers.AddRange(placedKey.FeedbackRenderers);
+            }
+
+            Renderer[] pearls = feedbackRenderers.ToArray();
+            Vector3[] originalScales = new Vector3[pearls.Length];
+            MaterialPropertyBlock[] originalBlocks = new MaterialPropertyBlock[pearls.Length];
+            MaterialPropertyBlock[] glowBlocks = new MaterialPropertyBlock[pearls.Length];
+            for (int i = 0; i < pearls.Length; i++)
+            {
+                Renderer pearl = pearls[i];
                 if (pearl == null) continue;
                 originalScales[i] = pearl.transform.localScale;
                 originalBlocks[i] = new MaterialPropertyBlock();
@@ -165,19 +216,19 @@ namespace ColorPuzzle
             float elapsed = 0f;
             do
             {
-                float phase = pearlGlowDuration <= 0f ? 1f : Mathf.Clamp01(elapsed / pearlGlowDuration);
+                float phase = duration <= 0f ? 1f : Mathf.Clamp01(elapsed / duration);
                 float glow = Mathf.Sin(phase * Mathf.PI);
                 for (int i = 0; i < pearls.Length; i++)
                 {
                     if (pearls[i] == null) continue;
-                    glowBlocks[i].SetFloat(FresnelBrightness, glow * pearlGlowBrightness);
+                    glowBlocks[i].SetFloat(FresnelBrightness, glow * brightness);
                     pearls[i].SetPropertyBlock(glowBlocks[i]);
-                    pearls[i].transform.localScale = originalScales[i] * (1f + glow * pearlGlowScale);
+                    pearls[i].transform.localScale = originalScales[i] * (1f + glow * scale);
                 }
-                if (pearlGlowDuration <= 0f) break;
+                if (duration <= 0f) break;
                 yield return null;
                 elapsed += Time.deltaTime;
-            } while (elapsed < pearlGlowDuration);
+            } while (elapsed < duration);
 
             for (int i = 0; i < pearls.Length; i++)
             {
@@ -186,25 +237,6 @@ namespace ColorPuzzle
                 pearls[i].SetPropertyBlock(originalBlocks[i]);
             }
 
-            if (casing == null)
-            {
-                if (stageIndex == 0) campaign?.RevealMagnifierReward();
-                yield break;
-            }
-            DualViewMaterial[] casingViews = casing.GetComponentsInChildren<DualViewMaterial>(true);
-            elapsed = 0f;
-            do
-            {
-                float phase = casingFadeDuration <= 0f ? 1f : Mathf.Clamp01(elapsed / casingFadeDuration);
-                float opacity = 1f - phase * phase * (3f - 2f * phase);
-                foreach (DualViewMaterial view in casingViews)
-                    if (view != null) view.SetOpacityMultiplier(opacity);
-                if (casingFadeDuration <= 0f) break;
-                yield return null;
-                elapsed += Time.deltaTime;
-            } while (elapsed < casingFadeDuration);
-            casing.SetActive(false);
-            if (stageIndex == 0) campaign?.RevealMagnifierReward();
         }
 
         private bool ValidatePairs()

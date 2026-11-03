@@ -1,4 +1,5 @@
 using UnityEngine;
+using ColorPuzzle.Rendering;
 
 namespace ColorPuzzle
 {
@@ -27,6 +28,7 @@ namespace ColorPuzzle
         private Light pickupGlow;
         private GameObject glowObject;
         private Renderer[] glowRenderers;
+        private DualViewMaterial[] visualDualViews;
         private MaterialPropertyBlock[] originalRendererProperties;
         private static readonly int FresnelColor = Shader.PropertyToID("_FresnelColor");
         private static readonly int FresnelBrightness = Shader.PropertyToID("_FresnelBrightness");
@@ -37,6 +39,10 @@ namespace ColorPuzzle
         private void Awake()
         {
             CacheGlowRenderers();
+            // The magnifier is a special landmark rather than hidden puzzle
+            // information: whenever it is present, it is colourful in the normal
+            // view from the start of a playthrough as well as through the lens.
+            SetVisualColorInNormalView();
             CreatePickupGlow();
         }
 
@@ -95,12 +101,20 @@ namespace ColorPuzzle
         {
             if (visualRoot == null) return;
             glowRenderers = visualRoot.GetComponentsInChildren<Renderer>(true);
+            visualDualViews = visualRoot.GetComponentsInChildren<DualViewMaterial>(true);
             originalRendererProperties = new MaterialPropertyBlock[glowRenderers.Length];
             for (int i = 0; i < glowRenderers.Length; i++)
             {
                 originalRendererProperties[i] = new MaterialPropertyBlock();
                 glowRenderers[i].GetPropertyBlock(originalRendererProperties[i]);
             }
+        }
+
+        private void SetVisualColorInNormalView()
+        {
+            if (visualDualViews == null) return;
+            foreach (DualViewMaterial visual in visualDualViews)
+                if (visual != null) visual.SetColorInGreyscaleCamera(true);
         }
 
         private void ApplyModelGlow(float brightness)

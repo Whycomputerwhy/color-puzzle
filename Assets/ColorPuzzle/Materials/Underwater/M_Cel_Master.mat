@@ -42,9 +42,9 @@ Material:
     - _FresnelShadowDropoff: 0.35
     - _HighIntensity: 1.35
     - _LightScalar: 1.3
-    - _LowIntensity: 0.8
+    - _LowIntensity: 1.31
     - _OutlineSize: 1.25
-    - _RampLevels: 2
+    - _RampLevels: 2.8
     - _RimAlpha: 0
     - _RimDropOff: 0
     - _RimPower: 0

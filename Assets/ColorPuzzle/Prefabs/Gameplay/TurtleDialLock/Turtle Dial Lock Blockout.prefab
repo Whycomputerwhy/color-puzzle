@@ -834,7 +834,7 @@ MonoBehaviour:
   greyscaleMaterials:
   - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400022, type: 2}
   colorMaterials:
-  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400012, type: 2}
+  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400011, type: 2}
   legacyColorProxy: {fileID: 0}
   useColorViewTint: 0
   colorViewTint: {r: 1, g: 1, b: 1, a: 1}
@@ -996,10 +996,10 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1901265916793799296}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -7, y: 1.3, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalRotation: {x: -0, y: 0.9389913, z: -0, w: -0.34394106}
+  m_LocalPosition: {x: -15.1, y: 0.67, z: 15.83}
+  m_LocalScale: {x: 1.53, y: 1.53, z: 1.53}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1389377481446089848}
   - {fileID: 7596159495723831461}

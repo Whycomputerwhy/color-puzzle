@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using ColorPuzzle.Rendering;
 
@@ -44,6 +45,23 @@ namespace ColorPuzzle
         public bool CanPickUp => kind == PieceKind.Key && !carried && !placed;
         public Renderer CueRenderer => transform.Find("Beige Cube")?.GetComponent<Renderer>();
         public Renderer PearlRenderer => transform.Find("Color Pearl")?.GetComponent<Renderer>();
+        /// <summary>
+        /// Returns the coloured focal detail for feedback pulses. Pearl keys use their
+        /// pearl; Puzzle 2's patterned stones use each coloured pattern segment.
+        /// </summary>
+        public Renderer[] FeedbackRenderers
+        {
+            get
+            {
+                Renderer pearl = PearlRenderer;
+                if (pearl != null) return new[] { pearl };
+
+                List<Renderer> patterns = new List<Renderer>();
+                foreach (Renderer renderer in GetComponentsInChildren<Renderer>(true))
+                    if (renderer.name.StartsWith("Pattern Segment")) patterns.Add(renderer);
+                return patterns.ToArray();
+            }
+        }
         public Vector3 SlotPosition
         {
             get
