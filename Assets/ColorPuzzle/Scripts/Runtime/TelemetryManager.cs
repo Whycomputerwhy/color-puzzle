@@ -32,6 +32,7 @@ namespace ColorPuzzle
         [SerializeField] private string desktopOutputDirectoryName = "ColorPuzzleTelemetry";
 
         private static TelemetryManager instance;
+        private const string LosAngelesTimeZoneId = "America/Los_Angeles";
 
         private string runId;
         private DateTime runStartUtc;
@@ -162,10 +163,31 @@ namespace ColorPuzzle
             instance.BeginSession("Ocean Stage 1 — Pearl Puzzle", true);
         }
 
+        /// <summary>
+        /// Supports the valid no-magnifier route through Puzzle 1. If the player
+        /// already collected the magnifier, its more specific telemetry window is
+        /// kept instead.
+        /// </summary>
+        public static void BeginStageOnePuzzleWithoutMagnifierIfNeeded()
+        {
+            if (instance == null || instance.stageOnePearlPuzzleRun) return;
+            const string stageOneName = "Ocean Puzzle 1";
+            if (instance.sessionActive && instance.levelName == stageOneName) return;
+            if (instance.sessionActive)
+                instance.WriteSession("started Puzzle 1 without magnifier pickup", true);
+            instance.BeginSession(stageOneName);
+        }
+
         public static void CompleteStageOnePearlPuzzle()
         {
-            if (instance == null || !instance.sessionActive || !instance.stageOnePearlPuzzleRun) return;
-            instance.WriteSession("pearl puzzle completed", true);
+            if (instance == null || !instance.sessionActive) return;
+            if (instance.stageOnePearlPuzzleRun)
+            {
+                instance.WriteSession("pearl puzzle completed", true);
+                return;
+            }
+            if (instance.levelName == "Ocean Puzzle 1")
+                instance.WriteSession("pearl puzzle completed without magnifier pickup", true);
         }
 
         public static void CompleteCampaignStage(int stageNumber)
@@ -245,7 +267,7 @@ namespace ColorPuzzle
                 text.AppendLine("================================================================");
                 text.AppendLine("COLOR PUZZLE — PLAYTEST TELEMETRY");
                 text.AppendLine($"Play session: {runId}");
-                text.AppendLine($"Started (UTC): {runStartUtc:O}");
+                text.AppendLine($"Started (Los Angeles): {FormatLosAngelesTime(runStartUtc)}");
                 text.AppendLine("================================================================");
                 text.AppendLine();
                 wroteFileHeader = true;
@@ -253,7 +275,7 @@ namespace ColorPuzzle
 
             bool completed = reason.Contains("door entered") || reason.Contains("puzzle completed");
             text.AppendLine("STAGE RECORD");
-            text.AppendLine($"  Recorded (UTC): {DateTime.UtcNow:O}");
+            text.AppendLine($"  Recorded (Los Angeles): {FormatLosAngelesTime(DateTime.UtcNow)}");
             text.AppendLine($"  Stage: {levelName}");
             text.AppendLine($"  Window: {(stageOnePearlPuzzleRun ? "Magnifier pickup → pearl puzzle completion" : "Stage/session")}");
             text.AppendLine($"  Outcome: {(completed ? "Completed" : "In progress / incomplete")}");
@@ -365,8 +387,28 @@ namespace ColorPuzzle
             if (string.IsNullOrWhiteSpace(baseName)) baseName = "ColorPuzzle-Telemetry";
             if (string.IsNullOrWhiteSpace(extension)) extension = ".txt";
             string idFragment = string.IsNullOrEmpty(runId) ? "pending" : runId.Substring(0, 8);
-            return $"{baseName}-{runStartUtc:yyyy-MM-dd_HH-mm-ss}-{idFragment}{extension}";
+            DateTimeOffset localStart = ToLosAngelesTime(runStartUtc);
+            return $"{baseName}-{localStart:yyyy-MM-dd_HH-mm-ss}-{idFragment}{extension}";
         }
+
+        private static DateTimeOffset ToLosAngelesTime(DateTime utcTime)
+        {
+            DateTimeOffset utc = new DateTimeOffset(DateTime.SpecifyKind(utcTime, DateTimeKind.Utc));
+            try
+            {
+                return TimeZoneInfo.ConvertTimeBySystemTimeZoneId(utc, LosAngelesTimeZoneId);
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                // Windows uses the alternate ID; retain a usable local timestamp on
+                // unusual platforms rather than failing telemetry output.
+                try { return TimeZoneInfo.ConvertTimeBySystemTimeZoneId(utc, "Pacific Standard Time"); }
+                catch (TimeZoneNotFoundException) { return utc.ToLocalTime(); }
+            }
+        }
+
+        private static string FormatLosAngelesTime(DateTime utcTime) =>
+            ToLosAngelesTime(utcTime).ToString("yyyy-MM-dd HH:mm:ss.fff zzz", CultureInfo.InvariantCulture);
 
         private static string FormatSeconds(double seconds)
         {

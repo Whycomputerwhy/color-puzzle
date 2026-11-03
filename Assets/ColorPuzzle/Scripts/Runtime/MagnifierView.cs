@@ -307,6 +307,10 @@ namespace ColorPuzzle
                         IsRevealButtonHeld() &&
                         player != null &&
                         player.IsGrounded;
+            // Count one intentional button press, not every time the view happens
+            // to reactivate (for example while grounded state changes during a hold).
+            if (held && IsRevealButtonPressedThisFrame())
+                TelemetryManager.RecordMagnifierUse();
             if (held != active) SetActive(held);
         }
 
@@ -334,14 +338,11 @@ namespace ColorPuzzle
 
         private void SetActive(bool value)
         {
-            bool wasActive = active;
             active = value &&
                      magnifierUnlocked &&
                      !worldRestored &&
                      currentPuzzleMode == PuzzleMode.ColorSearch &&
                      currentDevViewMode == DevViewMode.PuzzleView;
-            if (active && !wasActive)
-                TelemetryManager.RecordMagnifierUse();
             if (value && resetLensToCenterOnOpen)
             {
                 lensScreenPosition = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
@@ -1262,6 +1263,14 @@ namespace ColorPuzzle
             return revealMouseButton == MagnifierMouseButton.Right
                 ? Mouse.current.rightButton.isPressed
                 : Mouse.current.middleButton.isPressed;
+        }
+
+        private bool IsRevealButtonPressedThisFrame()
+        {
+            if (Mouse.current == null) return false;
+            return revealMouseButton == MagnifierMouseButton.Right
+                ? Mouse.current.rightButton.wasPressedThisFrame
+                : Mouse.current.middleButton.wasPressedThisFrame;
         }
 
         private void PrepareCompleteColorView()

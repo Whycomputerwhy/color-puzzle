@@ -167,7 +167,9 @@ namespace ColorPuzzle
         public void NotifyPuzzleInteraction(int stageIndex)
         {
             if (!CanAttemptStage(stageIndex)) return;
-            if (stageIndex == 1 || stageIndex == 2)
+            if (stageIndex == 0)
+                TelemetryManager.BeginStageOnePuzzleWithoutMagnifierIfNeeded();
+            else if (stageIndex == 1 || stageIndex == 2)
                 TelemetryManager.BeginCampaignPuzzle(stageIndex + 1);
         }
 
