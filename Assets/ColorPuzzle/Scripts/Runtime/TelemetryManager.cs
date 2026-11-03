@@ -48,6 +48,7 @@ namespace ColorPuzzle
         private bool sessionActive;
         private bool portalUnlocked;
         private bool stageOnePearlPuzzleRun;
+        private int campaignPuzzleCompletionOrder;
 
         public static string OutputFilePath => instance != null
             ? instance.GetOutputFilePath()
@@ -137,6 +138,20 @@ namespace ColorPuzzle
         }
 
         /// <summary>
+        /// Starts the telemetry window for the puzzle the player actually begins.
+        /// This lets the two optional middle puzzles be solved in either order.
+        /// </summary>
+        public static void BeginCampaignPuzzle(int stageNumber)
+        {
+            if (instance == null) return;
+            string puzzleName = $"Ocean Puzzle {stageNumber}";
+            if (instance.sessionActive && instance.levelName == puzzleName) return;
+            if (instance.sessionActive)
+                instance.WriteSession("switched to another puzzle before completion", true);
+            instance.BeginSession(puzzleName);
+        }
+
+        /// <summary>
         /// Stage 1's evaluation window begins only when the player earns the magnifier.
         /// The earlier stage-one arrival record is intentionally discarded.
         /// </summary>
@@ -163,7 +178,12 @@ namespace ColorPuzzle
         public static void CompleteCampaignPuzzle(int stageNumber)
         {
             if (instance != null && instance.sessionActive)
-                instance.WriteSession($"stage {stageNumber} puzzle completed", true);
+            {
+                instance.campaignPuzzleCompletionOrder++;
+                instance.WriteSession(
+                    $"stage {stageNumber} puzzle completed (campaign puzzle order #{instance.campaignPuzzleCompletionOrder})",
+                    true);
+            }
         }
 
         public static void RecordPortalUnlocked()

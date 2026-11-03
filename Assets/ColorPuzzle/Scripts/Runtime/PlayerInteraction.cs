@@ -60,6 +60,11 @@ namespace ColorPuzzle
         [SerializeField, Min(0f)] private float dropMovementMinimumSpeed = 0.15f;
         [SerializeField] private LayerMask interactionLayers = ~0;
 
+        // DIAL HOLD INPUT — captures a held LMB only when a number dial is aimed.
+        [Header("Dial Hold Input")]
+        [SerializeField, Min(0f)] private float dialHoldInitialDelay = 0.32f;
+        [SerializeField, Min(0.02f)] private float dialHoldRepeatInterval = 0.12f;
+
         [Header("Drop Animation")]
         [SerializeField, Min(0f)] private float dropAnimationDuration = 0.22f;
         [SerializeField, Range(1f, 4f)] private float dropAnimationFallExponent = 2.2f;
@@ -126,6 +131,10 @@ namespace ColorPuzzle
         private bool openingTutorialActive;
         private bool showedPickupTutorial;
         private bool showedMagnifierTutorial;
+        private bool showedDialTutorial;
+        private NumberDial heldDial;
+        private NumberDialLockController heldDialLock;
+        private float nextDialHoldStepTime;
 
         public InteractionCueMode CurrentInteractionCueMode => interactionCueMode;
 
@@ -180,7 +189,11 @@ namespace ColorPuzzle
             if (magnifier != null && magnifier.IsActive) { UpdateStatus(); return; }
 
             if (Keyboard.current[interactKey].wasPressedThisFrame) TryActivateStageGate();
-            if (Mouse.current.leftButton.wasPressedThisFrame && carried == null && carriedShellKey == null) TryPickUp();
+            if (Mouse.current.leftButton.wasPressedThisFrame && carried == null && carriedShellKey == null)
+            {
+                if (!TryBeginNumberDialHold()) TryPickUp();
+            }
+            UpdateNumberDialHold();
             if (Keyboard.current[dropOrPlaceKey].wasPressedThisFrame)
             {
                 if (carriedShellKey != null) TryDropOrPlaceShellKey();
@@ -196,12 +209,6 @@ namespace ColorPuzzle
             if (Physics.Raycast(ray, out RaycastHit hit, interactionDistance, interactionLayers,
                     QueryTriggerInteraction.Collide))
             {
-                NumberDial dial = hit.collider.GetComponentInParent<NumberDial>();
-                NumberDialLockController dialLock = dial != null
-                    ? dial.GetComponentInParent<NumberDialLockController>()
-                    : null;
-                if (dialLock != null && dialLock.TryRotate(dial)) return;
-
                 StageGateBeacon aimedGate = hit.collider.GetComponentInParent<StageGateBeacon>();
                 if (aimedGate != null && aimedGate.TryActivate(transform, interactionDistance)) return;
             }
@@ -209,6 +216,65 @@ namespace ColorPuzzle
             StageGateBeacon[] gates = FindObjectsByType<StageGateBeacon>(FindObjectsSortMode.None);
             foreach (StageGateBeacon gate in gates)
                 if (gate.TryActivate(transform, interactionDistance)) return;
+        }
+
+        private bool TryBeginNumberDialHold()
+        {
+            // UpdateInteractionCue runs immediately before input. Reusing its
+            // candidate means the visible dial cue and LMB targeting share one
+            // answer, instead of two slightly different raycast decisions.
+            if (currentCueTarget is NumberDial cuedDial && TryCaptureNumberDial(cuedDial))
+                return true;
+
+            if (viewCamera == null) return false;
+            Ray ray = new Ray(viewCamera.transform.position, viewCamera.transform.forward);
+            if (!Physics.Raycast(ray, out RaycastHit hit, interactionDistance, interactionLayers,
+                    QueryTriggerInteraction.Collide)) return false;
+
+            NumberDial dial = hit.collider.GetComponentInParent<NumberDial>();
+            return TryCaptureNumberDial(dial);
+        }
+
+        private bool TryCaptureNumberDial(NumberDial dial)
+        {
+            NumberDialLockController dialLock = dial != null
+                ? dial.GetComponentInParent<NumberDialLockController>()
+                : null;
+            if (dialLock == null || !dialLock.TryRotate(dial)) return false;
+
+            // The press advances once. Holding repeats after a short delay, while
+            // releasing LMB always stops the captured dial immediately.
+            if (dialLock.CanRotate(dial))
+            {
+                heldDial = dial;
+                heldDialLock = dialLock;
+                nextDialHoldStepTime = Time.unscaledTime + dialHoldInitialDelay;
+            }
+            return true;
+        }
+
+        private void UpdateNumberDialHold()
+        {
+            if (heldDial == null || heldDialLock == null) return;
+            if (!Mouse.current.leftButton.isPressed)
+            {
+                // Resolve the complete combination only after the player has
+                // stopped changing this dial. This also makes every later hold
+                // a fresh answer check after an earlier failure.
+                heldDialLock.EvaluateDialInput();
+                heldDial = null;
+                heldDialLock = null;
+                return;
+            }
+            if (Time.unscaledTime < nextDialHoldStepTime) return;
+
+            if (!heldDialLock.TryRotate(heldDial))
+            {
+                heldDial = null;
+                heldDialLock = null;
+                return;
+            }
+            nextDialHoldStepTime = Time.unscaledTime + dialHoldRepeatInterval;
         }
 
         private void TryPickUp()
@@ -921,6 +987,11 @@ namespace ColorPuzzle
                 showedPickupTutorial = true;
                 ShowTutorial("LMB pick up  •  Q drop");
             }
+            if (!showedDialTutorial && cueTarget is NumberDial)
+            {
+                showedDialTutorial = true;
+                ShowTutorial("HOLD LMB rotate");
+            }
 
             bool sameCue = currentCueTarget == cueTarget && currentCueLabel == cueLabel;
             if (!sameCue)
@@ -935,8 +1006,12 @@ namespace ColorPuzzle
             interactionCueDwellElapsed += Time.unscaledDeltaTime;
             if (interactionCueDwellElapsed < interactionCueDwellDuration) return;
 
-            if (cueTarget is MagnifierPickup || cueTarget is NumberDial ||
-                interactionCueMode == InteractionCueMode.CenterText)
+            if (cueTarget is NumberDial)
+            {
+                // The dial uses the one-time bottom tutorial, never the centre cue.
+                return;
+            }
+            if (cueTarget is MagnifierPickup || interactionCueMode == InteractionCueMode.CenterText)
                 ShowInteractionCueText(cueLabel);
             else if (supportsGlow)
             {
@@ -1000,7 +1075,7 @@ namespace ColorPuzzle
             if (dialLock != null && dialLock.CanRotate(dial))
             {
                 cueTarget = dial;
-                cueLabel = "E ROTATE";
+                cueLabel = "HOLD LMB ROTATE";
                 return true;
             }
             ShellPuzzlePiece shell = centerHit.collider.GetComponentInParent<ShellPuzzlePiece>();
@@ -1214,7 +1289,7 @@ namespace ColorPuzzle
 
         private void ShowTutorial(string message)
         {
-            if (!openingTutorialActive || tutorialHudRoot == null || tutorialText == null) return;
+            if (tutorialHudRoot == null || tutorialText == null) return;
             if (tutorialRoutine != null) StopCoroutine(tutorialRoutine);
             tutorialRoutine = StartCoroutine(ShowTutorialRoutine(message));
         }

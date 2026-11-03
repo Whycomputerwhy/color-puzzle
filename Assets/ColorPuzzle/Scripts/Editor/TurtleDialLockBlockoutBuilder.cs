@@ -12,12 +12,16 @@ namespace ColorPuzzle.Editor
         private const string StagePath = "Assets/ColorPuzzle/Prefabs/Level/CampaignStages/OceanStage03.prefab";
         private const string PrefabFolder = "Assets/ColorPuzzle/Prefabs/Gameplay/TurtleDialLock";
         private const string PrefabPath = PrefabFolder + "/Turtle Dial Lock Blockout.prefab";
+        private const string DialBasePrefabPath = PrefabFolder + "/Number Dial Base.prefab";
+        private const string DialVariantPathFormat = PrefabFolder + "/Number Dial {0:00}.prefab";
 
         private const string GreyStone = "Assets/ColorPuzzle/Materials/Underwater/M_Cel_Grey_Stone.mat";
         private const string GreyArchitecture = "Assets/ColorPuzzle/Materials/Underwater/M_Cel_Grey_Architecture.mat";
         private const string Aqua = "Assets/ColorPuzzle/Materials/Underwater/M_Cel_Env_Aqua.mat";
         private const string DeepBlue = "Assets/ColorPuzzle/Materials/Underwater/M_Cel_Env_DeepBlue.mat";
         private const string Gold = "Assets/ColorPuzzle/Materials/Underwater/M_Cel_Env_TreasureGold.mat";
+        private const string WrongCombinationClip = "Assets/ColorPuzzle/Resources/Audio/WrongShellPlacement.wav";
+        private const string CorrectCombinationClip = "Assets/ColorPuzzle/Resources/Audio/CorrectShellPlacementAndReveal.wav";
         private static readonly int[] DialTargets = { 8, 4, 5, 10 };
         private static readonly string[] PatternMaterials =
         {
@@ -60,6 +64,28 @@ namespace ColorPuzzle.Editor
             }
         }
 
+        [MenuItem("Color Puzzle/Rebuild Puzzle 3 Number Dials (Preserve Wall)")]
+        public static void RebuildNumberDials()
+        {
+            GameObject contents = PrefabUtility.LoadPrefabContents(PrefabPath);
+            try
+            {
+                Transform oldLock = FindChild(contents.transform, "Four Number Dials Lock");
+                Vector3 position = oldLock != null ? oldLock.localPosition : new Vector3(2.5f, 2.5f, 2.35f);
+                Quaternion rotation = oldLock != null ? oldLock.localRotation : Quaternion.identity;
+                Vector3 scale = oldLock != null ? oldLock.localScale : Vector3.one;
+                if (oldLock != null) UnityEngine.Object.DestroyImmediate(oldLock.gameObject);
+
+                CreateNumberDials(contents.transform,
+                    RequiredMaterial(GreyStone), RequiredMaterial(Gold), position, rotation, scale);
+                PrefabUtility.SaveAsPrefabAsset(contents, PrefabPath);
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+                Debug.Log("Rebuilt Puzzle 3's 1–10 ring dials while preserving the wall and all other blockout content.");
+            }
+            finally { PrefabUtility.UnloadPrefabContents(contents); }
+        }
+
         private static GameObject GetOrCreateBlockoutPrefab()
         {
             GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
@@ -87,7 +113,8 @@ namespace ColorPuzzle.Editor
             {
                 CreateTurtle(root.transform, greyStone, aqua, deepBlue);
                 CreatePatternWall(root.transform, greyArchitecture, gold);
-                CreateNumberDials(root.transform, greyStone, gold);
+                CreateNumberDials(root.transform, greyStone, gold,
+                    new Vector3(2.5f, 2.5f, 2.35f), Quaternion.identity, Vector3.one);
                 return PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
             }
             finally
@@ -151,31 +178,69 @@ namespace ColorPuzzle.Editor
             }
         }
 
-        private static void CreateNumberDials(Transform parent, Material grey, Material color)
+        private static void CreateNumberDials(Transform parent, Material grey, Material color,
+            Vector3 localPosition, Quaternion localRotation, Vector3 localScale)
         {
             GameObject dialLock = new GameObject("Four Number Dials Lock");
             dialLock.transform.SetParent(parent, false);
-            dialLock.transform.localPosition = new Vector3(2.5f, 2.5f, 2.35f);
+            dialLock.transform.localPosition = localPosition;
+            dialLock.transform.localRotation = localRotation;
+            dialLock.transform.localScale = localScale;
 
             for (int index = 0; index < 4; index++)
             {
-                GameObject dial = new GameObject($"Number Dial {index + 1}");
-                dial.transform.SetParent(dialLock.transform, false);
+                GameObject dialPrefab = GetOrCreateDialVariant(index, grey, color);
+                GameObject dial = (GameObject)PrefabUtility.InstantiatePrefab(dialPrefab, dialLock.transform);
+                dial.name = $"Number Dial {index + 1}";
                 dial.transform.localPosition = new Vector3(-4.35f + index * 2.9f, 0f, 0f);
-                NumberDial numberDial = dial.AddComponent<NumberDial>();
-
-                GameObject wheel = CreateVisual("Rotatable Wheel", PrimitiveType.Cylinder, dial.transform,
-                    Vector3.zero, new Vector3(0.92f, 0.18f, 0.92f), grey, color);
-                wheel.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-                GameObject pointer = CreateVisual("Number Pointer", PrimitiveType.Cube, dial.transform,
-                    new Vector3(0f, 0.36f, -0.23f), new Vector3(0.14f, 0.48f, 0.1f), grey, color);
-                CreateVisual("Dial Base", PrimitiveType.Cube, dial.transform,
-                    new Vector3(0f, 0f, 0.18f), new Vector3(1.35f, 1.35f, 0.22f), grey, color);
-                TextMesh label = CreateValueLabel(dial.transform);
-                ConfigureDial(numberDial, DialTargets[index], pointer.transform, label);
             }
 
             ConfigureDialLock(dialLock.transform.parent);
+        }
+
+        private static GameObject GetOrCreateDialVariant(int index, Material grey, Material color)
+        {
+            string path = string.Format(DialVariantPathFormat, index + 1);
+            GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (existing != null) return existing;
+
+            GameObject basePrefab = GetOrCreateDialBase(grey, color);
+            GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(basePrefab);
+            try
+            {
+                instance.name = $"Number Dial {index + 1:00}";
+                ConfigureDial(instance.GetComponent<NumberDial>(), DialTargets[index],
+                    instance.transform.Find("Rotatable Arrow"));
+                return PrefabUtility.SaveAsPrefabAsset(instance, path);
+            }
+            finally { UnityEngine.Object.DestroyImmediate(instance); }
+        }
+
+        private static GameObject GetOrCreateDialBase(Material grey, Material color)
+        {
+            GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(DialBasePrefabPath);
+            if (existing != null) return existing;
+
+            GameObject dial = new GameObject("Number Dial Base");
+            try
+            {
+                NumberDial numberDial = dial.AddComponent<NumberDial>();
+                GameObject ring = CreateVisual("Number Ring", PrimitiveType.Cylinder, dial.transform,
+                    Vector3.zero, new Vector3(1.02f, 0.16f, 1.02f), grey, color);
+                ring.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+                CreateVisual("Dial Backplate", PrimitiveType.Cylinder, dial.transform,
+                    new Vector3(0f, 0f, 0.15f), new Vector3(0.82f, 0.09f, 0.82f), grey, color)
+                    .transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+
+                GameObject pointer = new GameObject("Rotatable Arrow");
+                pointer.transform.SetParent(dial.transform, false);
+                CreateVisual("Arrow Cylinder", PrimitiveType.Cylinder, pointer.transform,
+                    new Vector3(0f, 0.36f, -0.25f), new Vector3(0.11f, 0.38f, 0.11f), grey, color);
+                CreateNumberRingLabels(dial.transform);
+                ConfigureDial(numberDial, DialTargets[0], pointer.transform);
+                return PrefabUtility.SaveAsPrefabAsset(dial, DialBasePrefabPath);
+            }
+            finally { UnityEngine.Object.DestroyImmediate(dial); }
         }
 
         private static void ConfigureDialLock(Transform root)
@@ -192,10 +257,6 @@ namespace ColorPuzzle.Editor
                 if (dialTransform == null) continue;
                 NumberDial dial = dialTransform.GetComponent<NumberDial>();
                 if (dial == null) dial = dialTransform.gameObject.AddComponent<NumberDial>();
-                Transform pointer = dialTransform.Find("Number Pointer");
-                TextMesh label = dialTransform.GetComponentInChildren<TextMesh>(true);
-                if (label == null) label = CreateValueLabel(dialTransform);
-                ConfigureDial(dial, DialTargets[index], pointer, label);
                 dials[index] = dial;
             }
 
@@ -204,33 +265,45 @@ namespace ColorPuzzle.Editor
             dialList.arraySize = dials.Length;
             for (int index = 0; index < dials.Length; index++)
                 dialList.GetArrayElementAtIndex(index).objectReferenceValue = dials[index];
+            controllerData.FindProperty("wrongCombinationClip").objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<AudioClip>(WrongCombinationClip);
+            controllerData.FindProperty("wrongCombinationVolume").floatValue = 0.42f;
+            controllerData.FindProperty("correctCombinationClip").objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<AudioClip>(CorrectCombinationClip);
+            controllerData.FindProperty("correctCombinationVolume").floatValue = 0.3f;
+            controllerData.FindProperty("revealPuzzleColorOnSuccess").boolValue = true;
             controllerData.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static void ConfigureDial(NumberDial dial, int target, Transform pointer, TextMesh label)
+        private static void ConfigureDial(NumberDial dial, int target, Transform pointer)
         {
             SerializedObject data = new SerializedObject(dial);
             data.FindProperty("targetValue").intValue = target;
-            data.FindProperty("currentValue").intValue = 0;
+            data.FindProperty("currentValue").intValue = 1;
             data.FindProperty("pointer").objectReferenceValue = pointer;
-            data.FindProperty("valueText").objectReferenceValue = label;
+            data.FindProperty("valueText").objectReferenceValue = null;
             data.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static TextMesh CreateValueLabel(Transform parent)
+        private static void CreateNumberRingLabels(Transform parent)
         {
-            GameObject labelObject = new GameObject("Number Value");
-            labelObject.transform.SetParent(parent, false);
-            labelObject.transform.localPosition = new Vector3(0f, -0.05f, -0.34f);
-            labelObject.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
-            TextMesh label = labelObject.AddComponent<TextMesh>();
-            label.text = "0";
-            label.anchor = TextAnchor.MiddleCenter;
-            label.alignment = TextAlignment.Center;
-            label.characterSize = 0.42f;
-            label.fontSize = 64;
-            label.color = Color.white;
-            return label;
+            const float radius = 0.73f;
+            for (int number = 1; number <= 10; number++)
+            {
+                float angle = Mathf.Deg2Rad * (90f - (number - 1) * 36f);
+                GameObject labelObject = new GameObject($"Number {number}");
+                labelObject.transform.SetParent(parent, false);
+                labelObject.transform.localPosition = new Vector3(
+                    Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, -0.24f);
+                labelObject.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+                TextMesh label = labelObject.AddComponent<TextMesh>();
+                label.text = number.ToString();
+                label.anchor = TextAnchor.MiddleCenter;
+                label.alignment = TextAlignment.Center;
+                label.characterSize = 0.18f;
+                label.fontSize = 64;
+                label.color = Color.white;
+            }
         }
 
         private static GameObject CreateVisual(string name, PrimitiveType type, Transform parent,

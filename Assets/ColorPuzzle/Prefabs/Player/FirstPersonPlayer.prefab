@@ -517,6 +517,8 @@ MonoBehaviour:
   interactionLayers:
     serializedVersion: 2
     m_Bits: 4294967295
+  dialHoldInitialDelay: 0.32
+  dialHoldRepeatInterval: 0.22
   dropAnimationDuration: 0.35
   dropAnimationFallExponent: 2.2
   wallDropAnimationStartDistance: 0.35
@@ -551,8 +553,6 @@ MonoBehaviour:
   showOpeningTutorial: 1
   tutorialFadeDuration: 0.25
   tutorialVisibleDuration: 2
-  tutorialWalkDistance: 1
-  tutorialSettleDuration: 1.25
 --- !u!114 &9175544705949783069
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -10,6 +10,7 @@ namespace ColorPuzzle
     {
         private const string CheckpointKey = "ColorPuzzle.OceanCampaign.Checkpoint";
         private const string MagnifierSkillKey = "ColorPuzzle.OceanCampaign.MagnifierSkill";
+        private const string CompletedStagesKey = "ColorPuzzle.OceanCampaign.CompletedStages";
 
         [Header("Campaign Structure")]
         [SerializeField] private FirstPersonPlayer player;
@@ -38,6 +39,7 @@ namespace ColorPuzzle
         private readonly List<OceanCampaignStage> stages = new List<OceanCampaignStage>();
         private static int pendingDeveloperStageNumber = -1;
         private int currentStageIndex;
+        private bool[] completedStages;
         private bool campaignComplete;
         private bool magnifierSkillUnlocked;
         public static OceanCampaignManager Active { get; private set; }
@@ -57,6 +59,8 @@ namespace ColorPuzzle
             }
 
             currentStageIndex = Mathf.Clamp(resumeFromSavedCheckpoint ? PlayerPrefs.GetInt(CheckpointKey, 0) : 0, 0, stages.Count - 1);
+            completedStages = new bool[stages.Count];
+            RestoreCompletedStageProgress();
             magnifierSkillUnlocked = PlayerPrefs.GetInt(MagnifierSkillKey, 0) != 0 || currentStageIndex > 0;
             player?.GetComponent<MagnifierView>()?.SetMagnifierUnlocked(magnifierSkillUnlocked);
             // Stage 1 reveals this reward only after the shell combination succeeds.
@@ -109,12 +113,23 @@ namespace ColorPuzzle
             {
                 stages[index].CompletionBeacon?.Configure(this, index);
                 stages[index].ShellPuzzle?.Configure(this, index);
+                if (!IsStageComplete(index)) continue;
+                stages[index].ShellPuzzle?.CompleteForDeveloperSkip();
+                stages[index].DialLock?.CompleteForProgressRestore();
+                stages[index].CompletionBeacon?.CompleteForDeveloperSkip();
             }
         }
 
         public bool CompleteStage(int stageIndex)
         {
-            if (stageIndex != currentStageIndex) return false;
+            if (!CanAttemptStage(stageIndex)) return false;
+            completedStages[stageIndex] = true;
+
+            // Puzzle 2 and Puzzle 3 form an unordered pair. Their telemetry is
+            // finalized against the puzzle actually solved, not a fixed campaign slot.
+            if (stageIndex == 1 || stageIndex == 2)
+                TelemetryManager.CompleteCampaignPuzzle(stageIndex + 1);
+
             if (stageIndex >= stages.Count - 1)
             {
                 campaignComplete = true;
@@ -122,8 +137,38 @@ namespace ColorPuzzle
                 RestoreColorForFinalStageIfNeeded();
                 return true;
             }
-            ReachNextStage(stageIndex);
+
+            if (stageIndex == 0)
+                currentStageIndex = 1;
+            else if (stageIndex == 1 || stageIndex == 2)
+                currentStageIndex = !IsStageComplete(1) ? 1 : !IsStageComplete(2) ? 2 : 3;
+            else
+                currentStageIndex = Mathf.Min(stageIndex + 1, stages.Count - 1);
+
+            SaveProgress();
             return true;
+        }
+
+        /// <summary>
+        /// Puzzle 2 and Puzzle 3 unlock together after Puzzle 1, so either can be
+        /// attempted first. Later stages remain ordered after both are complete.
+        /// </summary>
+        public bool CanAttemptStage(int stageIndex)
+        {
+            if (stageIndex < 0 || completedStages == null || stageIndex >= completedStages.Length ||
+                IsStageComplete(stageIndex)) return false;
+            if (stageIndex == 0) return !IsStageComplete(0);
+            if (stageIndex == 1 || stageIndex == 2) return IsStageComplete(0);
+            if (stageIndex == 3) return IsStageComplete(1) && IsStageComplete(2);
+            return stageIndex == currentStageIndex;
+        }
+
+        /// <summary>Called when a player first manipulates a currently available puzzle.</summary>
+        public void NotifyPuzzleInteraction(int stageIndex)
+        {
+            if (!CanAttemptStage(stageIndex)) return;
+            if (stageIndex == 1 || stageIndex == 2)
+                TelemetryManager.BeginCampaignPuzzle(stageIndex + 1);
         }
 
         /// <summary>Called by Puzzle 1 after its casing has opened.</summary>
@@ -151,8 +196,9 @@ namespace ColorPuzzle
             if (doorStageIndex != currentStageIndex) return;
             TelemetryManager.CompleteCampaignStage(doorStageIndex + 1);
             currentStageIndex = Mathf.Min(doorStageIndex + 1, stages.Count - 1);
-            PlayerPrefs.SetInt(CheckpointKey, currentStageIndex);
-            PlayerPrefs.Save();
+            if (completedStages != null && doorStageIndex >= 0 && doorStageIndex < completedStages.Length)
+                completedStages[doorStageIndex] = true;
+            SaveProgress();
             TelemetryManager.BeginCampaignStage(currentStageIndex + 1);
             RequestUpcomingStageLoad(currentStageIndex + 1);
             RestoreColorForFinalStageIfNeeded();
@@ -198,7 +244,10 @@ namespace ColorPuzzle
         {
             for (int index = 0; index < destinationStageIndex; index++)
             {
+                if (completedStages != null && index < completedStages.Length)
+                    completedStages[index] = true;
                 stages[index].ShellPuzzle?.CompleteForDeveloperSkip();
+                stages[index].DialLock?.CompleteForProgressRestore();
                 stages[index].CompletionBeacon?.CompleteForDeveloperSkip();
             }
         }
@@ -207,6 +256,7 @@ namespace ColorPuzzle
         {
             if (!enabled) return;
             currentStageIndex = Mathf.Clamp(PlayerPrefs.GetInt(CheckpointKey, currentStageIndex), 0, stages.Count - 1);
+            RestoreCompletedStageProgress();
             magnifierSkillUnlocked = PlayerPrefs.GetInt(MagnifierSkillKey, 0) != 0 || currentStageIndex > 0;
             player?.GetComponent<MagnifierView>()?.SetMagnifierUnlocked(magnifierSkillUnlocked);
             if (magnifierSkillUnlocked)
@@ -227,6 +277,34 @@ namespace ColorPuzzle
         {
             PlayerPrefs.DeleteKey(CheckpointKey);
             PlayerPrefs.DeleteKey(MagnifierSkillKey);
+            PlayerPrefs.DeleteKey(CompletedStagesKey);
+            PlayerPrefs.Save();
+        }
+
+        private bool IsStageComplete(int stageIndex) =>
+            completedStages != null && stageIndex >= 0 && stageIndex < completedStages.Length && completedStages[stageIndex];
+
+        private void RestoreCompletedStageProgress()
+        {
+            if (completedStages == null) return;
+            int progressMask = PlayerPrefs.GetInt(CompletedStagesKey, 0);
+            for (int index = 0; index < completedStages.Length; index++)
+                completedStages[index] = (progressMask & (1 << index)) != 0;
+
+            // Existing saves used only a checkpoint. Treat prior checkpoint stages
+            // as complete so they continue to load coherently after this upgrade.
+            for (int index = 0; index < currentStageIndex; index++)
+                completedStages[index] = true;
+        }
+
+        private void SaveProgress()
+        {
+            int progressMask = 0;
+            if (completedStages != null)
+                for (int index = 0; index < completedStages.Length; index++)
+                    if (completedStages[index]) progressMask |= 1 << index;
+            PlayerPrefs.SetInt(CompletedStagesKey, progressMask);
+            PlayerPrefs.SetInt(CheckpointKey, currentStageIndex);
             PlayerPrefs.Save();
         }
 

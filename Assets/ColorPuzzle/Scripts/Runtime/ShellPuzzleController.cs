@@ -101,8 +101,10 @@ namespace ColorPuzzle
         {
             if (!IsReady || complete || campaign == null || key == null || keyhole == null ||
                 !Owns(key) || !Owns(keyhole) || keyhole.IsOccupied ||
-                campaign.CurrentStageNumber != stageIndex + 1)
+                !campaign.CanAttemptStage(stageIndex))
                 return false;
+
+            campaign.NotifyPuzzleInteraction(stageIndex);
 
             if (key.Kind != ShellPuzzlePiece.PieceKind.Key ||
                 keyhole.Kind != ShellPuzzlePiece.PieceKind.Keyhole)
@@ -136,10 +138,6 @@ namespace ColorPuzzle
             // The shell puzzle can be reused by later stages; only Puzzle 1 owns this telemetry milestone.
             if (stageIndex == 0)
                 TelemetryManager.CompleteStageOnePearlPuzzle();
-            else if (stageIndex == 1)
-                // Stage 2's record ends on the final correct pattern/keyhole match,
-                // not on a later door interaction.
-                TelemetryManager.CompleteCampaignPuzzle(stageIndex + 1);
             if (!campaign.CompleteStage(stageIndex)) return true;
             complete = true;
             foreach (ShellPuzzlePiece hole in keyholes)
