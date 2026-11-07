@@ -1,20 +1,161 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &7200000000000000107
+--- !u!1 &654634146372147004
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7185332895874519179}
+  m_Layer: 0
+  m_Name: Key Anchor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7185332895874519179
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 654634146372147004}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.08, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8636740746645688751}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &748617752527049992
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2042779047181845824}
+  - component: {fileID: 8352069041144106154}
+  m_Layer: 0
+  m_Name: Final Heart Dial Puzzle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2042779047181845824
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 748617752527049992}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.0000038146973, y: 61.75, z: -4.5099945}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2402462653182644305}
+  - {fileID: 1508143589554859714}
+  - {fileID: 3603091265927712425}
+  - {fileID: 3373980253291975626}
+  m_Father: {fileID: 1333476623014903070}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8352069041144106154
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4330146513232700693}
+  m_GameObject: {fileID: 748617752527049992}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9fd59e6338104cf6b467fa2990ef4f4b, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewRoot
-  scanIntervalSeconds: 1
-  includeInactiveChildren: 1
-  logMissingColorMaterials: 1
+  m_Script: {fileID: 11500000, guid: 538320a07b3d84a24bdf1c28912c7399, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.FinalHeartVictory
+  heartRenderer: {fileID: 5261709753308038773}
+  heartGlowColor: {r: 0.25, g: 0.88, b: 1, a: 1}
+  heartGlowDuration: 0.85
+  heartGlowBrightness: 1.45
+  glassCasing: {fileID: 7468426854376701846}
+  glassFadeDuration: 1.1
+  campaignStageIndex: 3
+--- !u!1 &1483380485779810265
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3603091265927712425}
+  - component: {fileID: 3668236095961596128}
+  m_Layer: 0
+  m_Name: Four Combination Dials
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3603091265927712425
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1483380485779810265}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0.45461246, z: 0.8906894, w: 0}
+  m_LocalPosition: {x: -0, y: 1.09, z: -5.43}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 3093262345855428819}
+  - {fileID: 4747030642142354352}
+  - {fileID: 8719434722245372644}
+  - {fileID: 7421925311050104617}
+  m_Father: {fileID: 2042779047181845824}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3668236095961596128
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1483380485779810265}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 931ff5595bd954fbd9a728e2730d30a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.NumberDialLockController
+  dials:
+  - {fileID: 3181153545658665295}
+  - {fileID: 5127371036730489388}
+  - {fileID: 9208001224213531512}
+  - {fileID: 6933074207369027253}
+  keySlots:
+  - {fileID: 7189286071251859425}
+  - {fileID: 7132164509222629194}
+  - {fileID: 8716288331488674412}
+  - {fileID: 6889609881789022119}
+  campaignStageIndex: 3
+  lockWhenSolved: 1
+  wrongCombinationClip: {fileID: 8300000, guid: bc14027ba8a394c99ba46158c49ae8f2, type: 3}
+  wrongCombinationVolume: 0.42
+  failureFlashDuration: 0.24
+  failureFlashBrightness: 0.55
+  failureFlashColor: {r: 1, g: 0.35, b: 0.2, a: 1}
+  failureFlashRimSize: 0.65
+  correctCombinationClip: {fileID: 8300000, guid: f7bd1e49b1c0641a6809e6f6cf857de0, type: 3}
+  correctCombinationVolume: 0.3
+  revealPuzzleColorOnSuccess: 1
+  finalHeartVictory: {fileID: 8352069041144106154}
 --- !u!1 &1637938884785580625
 GameObject:
   m_ObjectHideFlags: 0
@@ -40,11 +181,12 @@ Transform:
   m_GameObject: {fileID: 1637938884785580625}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 3.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8876731506393436659}
+  - {fileID: 2042779047181845824}
   m_Father: {fileID: 4418807041778622484}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2370668567172959215
@@ -72,12 +214,426 @@ Transform:
   m_GameObject: {fileID: 2370668567172959215}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -75.23454, y: 61.74853, z: 23.68948}
+  m_LocalPosition: {x: 0.2, y: 61.74853, z: -62.6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1333476623014903070}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2622939550700501950
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7090133932413049534}
+  - component: {fileID: 285458755418174066}
+  - component: {fileID: 697699318788172788}
+  - component: {fileID: 5376035914470294829}
+  - component: {fileID: 4153159289006377365}
+  - component: {fileID: 7132164509222629194}
+  m_Layer: 0
+  m_Name: "Shape Key Slot \u2014 Pentagon"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7090133932413049534
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2622939550700501950}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 0.23}
+  m_LocalScale: {x: 0.38, y: 0.06, z: 0.38}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 678037107842406384}
+  m_Father: {fileID: 4747030642142354352}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &285458755418174066
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2622939550700501950}
+  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!136 &697699318788172788
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2622939550700501950}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &5376035914470294829
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2622939550700501950}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400022, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &4153159289006377365
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2622939550700501950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fa90e9b0b6f48aeab877f073df59e62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
+  greyscaleMaterials:
+  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400022, type: 2}
+  colorMaterials:
+  - {fileID: 2100000, guid: 19a23466cd8dd4f0c875ab5384c12c90, type: 2}
+  legacyColorProxy: {fileID: 0}
+  useColorViewTint: 0
+  colorViewTint: {r: 1, g: 1, b: 1, a: 1}
+--- !u!114 &7132164509222629194
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2622939550700501950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ecbabdb1737648ceb4e499ee9dbfa6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.FinalDialKeySlot
+  requiredKeyNumber: 2
+  keyAnchor: {fileID: 678037107842406384}
+  recessRenderer: {fileID: 5376035914470294829}
+  placementAimRadius: 0.9
+--- !u!1 &2874604160181724471
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 388380892690580914}
+  - component: {fileID: 4040688861984421748}
+  - component: {fileID: 1260815761707869257}
+  - component: {fileID: 8122097502462176016}
+  - component: {fileID: 4235298050132003806}
+  - component: {fileID: 6889609881789022119}
+  m_Layer: 0
+  m_Name: "Shape Key Slot \u2014 Line"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &388380892690580914
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2874604160181724471}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 0.23}
+  m_LocalScale: {x: 0.38, y: 0.06, z: 0.38}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 4761568426292117923}
+  m_Father: {fileID: 7421925311050104617}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &4040688861984421748
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2874604160181724471}
+  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!136 &1260815761707869257
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2874604160181724471}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &8122097502462176016
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2874604160181724471}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400022, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &4235298050132003806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2874604160181724471}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fa90e9b0b6f48aeab877f073df59e62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
+  greyscaleMaterials:
+  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400022, type: 2}
+  colorMaterials:
+  - {fileID: 2100000, guid: 936d504d9ac7b4e5bbfe1ba86fdbb0ad, type: 2}
+  legacyColorProxy: {fileID: 0}
+  useColorViewTint: 0
+  colorViewTint: {r: 1, g: 1, b: 1, a: 1}
+--- !u!114 &6889609881789022119
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2874604160181724471}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ecbabdb1737648ceb4e499ee9dbfa6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.FinalDialKeySlot
+  requiredKeyNumber: 4
+  keyAnchor: {fileID: 4761568426292117923}
+  recessRenderer: {fileID: 8122097502462176016}
+  placementAimRadius: 0.9
+--- !u!1 &3234555630488548752
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3387296468088576403}
+  - component: {fileID: 6816027981841675745}
+  - component: {fileID: 1420863488932064884}
+  - component: {fileID: 5279999371764794112}
+  m_Layer: 0
+  m_Name: Heart Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3387296468088576403
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3234555630488548752}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.14644663, y: 0.3535534, z: 0.3535534, w: 0.85355335}
+  m_LocalPosition: {x: 0, y: -0.75, z: 0}
+  m_LocalScale: {x: 1.3, y: 1.3, z: 0.7}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1508143589554859714}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &6816027981841675745
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3234555630488548752}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &1420863488932064884
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3234555630488548752}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400022, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &5279999371764794112
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3234555630488548752}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fa90e9b0b6f48aeab877f073df59e62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
+  greyscaleMaterials:
+  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400022, type: 2}
+  colorMaterials:
+  - {fileID: 2100000, guid: 4d49d33c26d924898bf5ac251baca705, type: 2}
+  legacyColorProxy: {fileID: 0}
+  useColorViewTint: 0
+  colorViewTint: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &4330146513232700693
 GameObject:
   m_ObjectHideFlags: 0
@@ -122,7 +678,1494 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2d15323d598e40a38e42f5e50e28786a, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.OceanCampaignStage
   checkpointSpawn: {fileID: 8876731506393436659}
   completionBeacon: {fileID: 0}
+--- !u!114 &7200000000000000107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4330146513232700693}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9fd59e6338104cf6b467fa2990ef4f4b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewRoot
+  scanIntervalSeconds: 1
+  includeInactiveChildren: 1
+  logMissingColorMaterials: 1
+--- !u!1 &4732523379189097504
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4761568426292117923}
+  m_Layer: 0
+  m_Name: Key Anchor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4761568426292117923
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4732523379189097504}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.08, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 388380892690580914}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4981671066478957014
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1508143589554859714}
+  m_Layer: 0
+  m_Name: Heart
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1508143589554859714
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4981671066478957014}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 4.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 8098308844478995724}
+  - {fileID: 1037708803387707425}
+  - {fileID: 3387296468088576403}
+  m_Father: {fileID: 2042779047181845824}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &6141370868851100647
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3373980253291975626}
+  m_Layer: 0
+  m_Name: Shape Key Stones
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3373980253291975626
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6141370868851100647}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1636612299620988854}
+  - {fileID: 5597841447879712476}
+  - {fileID: 2640838978747460779}
+  - {fileID: 4509568192079504556}
+  m_Father: {fileID: 2042779047181845824}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &6155181048038020180
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8636740746645688751}
+  - component: {fileID: 1572615317163756758}
+  - component: {fileID: 3098244667409525189}
+  - component: {fileID: 1262624600820335736}
+  - component: {fileID: 6004581138154957397}
+  - component: {fileID: 8716288331488674412}
+  m_Layer: 0
+  m_Name: "Shape Key Slot \u2014 Square"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8636740746645688751
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6155181048038020180}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 0.23}
+  m_LocalScale: {x: 0.38, y: 0.06, z: 0.38}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 7185332895874519179}
+  m_Father: {fileID: 8719434722245372644}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &1572615317163756758
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6155181048038020180}
+  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!136 &3098244667409525189
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6155181048038020180}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &1262624600820335736
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6155181048038020180}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400022, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &6004581138154957397
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6155181048038020180}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fa90e9b0b6f48aeab877f073df59e62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
+  greyscaleMaterials:
+  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400022, type: 2}
+  colorMaterials:
+  - {fileID: 2100000, guid: 6b72948852faa461ea71b427fee00f78, type: 2}
+  legacyColorProxy: {fileID: 0}
+  useColorViewTint: 0
+  colorViewTint: {r: 1, g: 1, b: 1, a: 1}
+--- !u!114 &8716288331488674412
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6155181048038020180}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ecbabdb1737648ceb4e499ee9dbfa6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.FinalDialKeySlot
+  requiredKeyNumber: 3
+  keyAnchor: {fileID: 7185332895874519179}
+  recessRenderer: {fileID: 1262624600820335736}
+  placementAimRadius: 0.9
+--- !u!1 &7468426854376701846
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2402462653182644305}
+  - component: {fileID: 3100387784189534330}
+  - component: {fileID: 4992116555785999855}
+  - component: {fileID: 9057037235926380701}
+  m_Layer: 0
+  m_Name: Glass Heart Casing
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2402462653182644305
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7468426854376701846}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 3.9, z: 0}
+  m_LocalScale: {x: 8.4, y: 3.9, z: 8.4}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2042779047181845824}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &3100387784189534330
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7468426854376701846}
+  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &4992116555785999855
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7468426854376701846}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 61781351ed44141a08691fbdcc32bde7, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &9057037235926380701
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7468426854376701846}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fa90e9b0b6f48aeab877f073df59e62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
+  greyscaleMaterials:
+  - {fileID: 2100000, guid: 61781351ed44141a08691fbdcc32bde7, type: 2}
+  colorMaterials:
+  - {fileID: 2100000, guid: 61781351ed44141a08691fbdcc32bde7, type: 2}
+  legacyColorProxy: {fileID: 0}
+  useColorViewTint: 0
+  colorViewTint: {r: 1, g: 1, b: 1, a: 1}
+--- !u!1 &8662984613767793011
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7303942050656634195}
+  - component: {fileID: 7867913513603050275}
+  - component: {fileID: 1591443103525730654}
+  - component: {fileID: 5743929609880417386}
+  - component: {fileID: 1324565582326295034}
+  - component: {fileID: 7189286071251859425}
+  m_Layer: 0
+  m_Name: "Shape Key Slot \u2014 Triangle"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7303942050656634195
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8662984613767793011}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 0.23}
+  m_LocalScale: {x: 0.38, y: 0.06, z: 0.38}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1064759374036248900}
+  m_Father: {fileID: 3093262345855428819}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &7867913513603050275
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8662984613767793011}
+  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!136 &1591443103525730654
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8662984613767793011}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &5743929609880417386
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8662984613767793011}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400022, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &1324565582326295034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8662984613767793011}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fa90e9b0b6f48aeab877f073df59e62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
+  greyscaleMaterials:
+  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400022, type: 2}
+  colorMaterials:
+  - {fileID: 2100000, guid: 4d49d33c26d924898bf5ac251baca705, type: 2}
+  legacyColorProxy: {fileID: 0}
+  useColorViewTint: 0
+  colorViewTint: {r: 1, g: 1, b: 1, a: 1}
+--- !u!114 &7189286071251859425
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8662984613767793011}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ecbabdb1737648ceb4e499ee9dbfa6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.FinalDialKeySlot
+  requiredKeyNumber: 1
+  keyAnchor: {fileID: 1064759374036248900}
+  recessRenderer: {fileID: 5743929609880417386}
+  placementAimRadius: 0.9
+--- !u!1 &8925133867555012667
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8098308844478995724}
+  - component: {fileID: 6654243959759954184}
+  - component: {fileID: 5261709753308038773}
+  - component: {fileID: 945596415726420452}
+  m_Layer: 0
+  m_Name: Heart Lobe Left
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8098308844478995724
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8925133867555012667}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.55, y: 0.25, z: 0}
+  m_LocalScale: {x: 1.15, y: 1.15, z: 1.15}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1508143589554859714}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &6654243959759954184
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8925133867555012667}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &5261709753308038773
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8925133867555012667}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400022, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &945596415726420452
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8925133867555012667}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fa90e9b0b6f48aeab877f073df59e62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
+  greyscaleMaterials:
+  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400022, type: 2}
+  colorMaterials:
+  - {fileID: 2100000, guid: 4d49d33c26d924898bf5ac251baca705, type: 2}
+  legacyColorProxy: {fileID: 0}
+  useColorViewTint: 0
+  colorViewTint: {r: 1, g: 1, b: 1, a: 1}
+--- !u!1 &9057488046482152737
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 678037107842406384}
+  m_Layer: 0
+  m_Name: Key Anchor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &678037107842406384
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9057488046482152737}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.08, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7090133932413049534}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &9058907574086601092
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1064759374036248900}
+  m_Layer: 0
+  m_Name: Key Anchor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1064759374036248900
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9058907574086601092}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.08, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7303942050656634195}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &9182337375877519175
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1037708803387707425}
+  - component: {fileID: 1180272305953932492}
+  - component: {fileID: 1528246779308445574}
+  - component: {fileID: 5833243158016328329}
+  m_Layer: 0
+  m_Name: Heart Lobe Right
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1037708803387707425
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9182337375877519175}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.55, y: 0.25, z: 0}
+  m_LocalScale: {x: 1.15, y: 1.15, z: 1.15}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1508143589554859714}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &1180272305953932492
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9182337375877519175}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &1528246779308445574
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9182337375877519175}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400022, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &5833243158016328329
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9182337375877519175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fa90e9b0b6f48aeab877f073df59e62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
+  greyscaleMaterials:
+  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400022, type: 2}
+  colorMaterials:
+  - {fileID: 2100000, guid: 4d49d33c26d924898bf5ac251baca705, type: 2}
+  legacyColorProxy: {fileID: 0}
+  useColorViewTint: 0
+  colorViewTint: {r: 1, g: 1, b: 1, a: 1}
+--- !u!1001 &516157871069949595
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 3603091265927712425}
+    m_Modifications:
+    - target: {fileID: 2696962856284496058, guid: e338369a742a140b58fef9bc7483d0bb, type: 3}
+      propertyPath: 'colorMaterials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 4d49d33c26d924898bf5ac251baca705, type: 2}
+    - target: {fileID: 3297966915257402952, guid: e338369a742a140b58fef9bc7483d0bb, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.45
+      objectReference: {fileID: 0}
+    - target: {fileID: 3297966915257402952, guid: e338369a742a140b58fef9bc7483d0bb, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.45
+      objectReference: {fileID: 0}
+    - target: {fileID: 3297966915257402952, guid: e338369a742a140b58fef9bc7483d0bb, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.45
+      objectReference: {fileID: 0}
+    - target: {fileID: 3297966915257402952, guid: e338369a742a140b58fef9bc7483d0bb, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -3.73
+      objectReference: {fileID: 0}
+    - target: {fileID: 3297966915257402952, guid: e338369a742a140b58fef9bc7483d0bb, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.08
+      objectReference: {fileID: 0}
+    - target: {fileID: 3297966915257402952, guid: e338369a742a140b58fef9bc7483d0bb, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3297966915257402952, guid: e338369a742a140b58fef9bc7483d0bb, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 3297966915257402952, guid: e338369a742a140b58fef9bc7483d0bb, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 3297966915257402952, guid: e338369a742a140b58fef9bc7483d0bb, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3297966915257402952, guid: e338369a742a140b58fef9bc7483d0bb, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3297966915257402952, guid: e338369a742a140b58fef9bc7483d0bb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3297966915257402952, guid: e338369a742a140b58fef9bc7483d0bb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3297966915257402952, guid: e338369a742a140b58fef9bc7483d0bb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4239124705025527710, guid: e338369a742a140b58fef9bc7483d0bb, type: 3}
+      propertyPath: 'colorMaterials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 4d49d33c26d924898bf5ac251baca705, type: 2}
+    - target: {fileID: 6217409790566520877, guid: e338369a742a140b58fef9bc7483d0bb, type: 3}
+      propertyPath: 'colorMaterials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 4d49d33c26d924898bf5ac251baca705, type: 2}
+    - target: {fileID: 8775532874646058973, guid: e338369a742a140b58fef9bc7483d0bb, type: 3}
+      propertyPath: m_Name
+      value: "Combination Dial 1 \u2014 Triangle 8"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 3297966915257402952, guid: e338369a742a140b58fef9bc7483d0bb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7303942050656634195}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e338369a742a140b58fef9bc7483d0bb, type: 3}
+--- !u!4 &3093262345855428819 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3297966915257402952, guid: e338369a742a140b58fef9bc7483d0bb, type: 3}
+  m_PrefabInstance: {fileID: 516157871069949595}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3181153545658665295 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3101986815063680980, guid: e338369a742a140b58fef9bc7483d0bb, type: 3}
+  m_PrefabInstance: {fileID: 516157871069949595}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe91853384c134976b6aea9dbbff65e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.NumberDial
+--- !u!1001 &2888338770349472951
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 3373980253291975626}
+    m_Modifications:
+    - target: {fileID: 1621371381023741979, guid: 9f8f55f17a9e24264813a1455688859b, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.809017
+      objectReference: {fileID: 0}
+    - target: {fileID: 1621371381023741979, guid: 9f8f55f17a9e24264813a1455688859b, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1621371381023741979, guid: 9f8f55f17a9e24264813a1455688859b, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.58778524
+      objectReference: {fileID: 0}
+    - target: {fileID: 1621371381023741979, guid: 9f8f55f17a9e24264813a1455688859b, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1621371381023741979, guid: 9f8f55f17a9e24264813a1455688859b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1621371381023741979, guid: 9f8f55f17a9e24264813a1455688859b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1621371381023741979, guid: 9f8f55f17a9e24264813a1455688859b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3819207376613938114, guid: 9f8f55f17a9e24264813a1455688859b, type: 3}
+      propertyPath: m_Name
+      value: "Shape Key Stone 4 \u2014 Line"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3819207376613938114, guid: 9f8f55f17a9e24264813a1455688859b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3741649841929044497}
+  m_SourcePrefab: {fileID: 100100000, guid: 9f8f55f17a9e24264813a1455688859b, type: 3}
+--- !u!1 &2095858352680284021 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3819207376613938114, guid: 9f8f55f17a9e24264813a1455688859b, type: 3}
+  m_PrefabInstance: {fileID: 2888338770349472951}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3741649841929044497
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2095858352680284021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f00e5bfd535a045cd8ced3fabd216480, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.FinalDialKeyColorLock
+--- !u!4 &4509568192079504556 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1621371381023741979, guid: 9f8f55f17a9e24264813a1455688859b, type: 3}
+  m_PrefabInstance: {fileID: 2888338770349472951}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &3205277763338369737
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 3373980253291975626}
+    m_Modifications:
+    - target: {fileID: 4237048406201879935, guid: c9baad97723ac4296a1876d8f61b888c, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4237048406201879935, guid: c9baad97723ac4296a1876d8f61b888c, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4237048406201879935, guid: c9baad97723ac4296a1876d8f61b888c, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4237048406201879935, guid: c9baad97723ac4296a1876d8f61b888c, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4237048406201879935, guid: c9baad97723ac4296a1876d8f61b888c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4237048406201879935, guid: c9baad97723ac4296a1876d8f61b888c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4237048406201879935, guid: c9baad97723ac4296a1876d8f61b888c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8952492735072373291, guid: c9baad97723ac4296a1876d8f61b888c, type: 3}
+      propertyPath: m_Name
+      value: "Shape Key Stone 1 \u2014 Triangle"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8952492735072373291, guid: c9baad97723ac4296a1876d8f61b888c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4352212757227209255}
+  m_SourcePrefab: {fileID: 100100000, guid: c9baad97723ac4296a1876d8f61b888c, type: 3}
+--- !u!4 &1636612299620988854 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4237048406201879935, guid: c9baad97723ac4296a1876d8f61b888c, type: 3}
+  m_PrefabInstance: {fileID: 3205277763338369737}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &5784534596821250274 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8952492735072373291, guid: c9baad97723ac4296a1876d8f61b888c, type: 3}
+  m_PrefabInstance: {fileID: 3205277763338369737}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4352212757227209255
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5784534596821250274}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f00e5bfd535a045cd8ced3fabd216480, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.FinalDialKeyColorLock
+--- !u!1001 &3529006170840365814
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 3603091265927712425}
+    m_Modifications:
+    - target: {fileID: 2158460126910964103, guid: c0414e6e6fc134ee6927fc9986f3758f, type: 3}
+      propertyPath: m_Name
+      value: "Combination Dial 3 \u2014 Square 5"
+      objectReference: {fileID: 0}
+    - target: {fileID: 3635598867440193143, guid: c0414e6e6fc134ee6927fc9986f3758f, type: 3}
+      propertyPath: 'colorMaterials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6b72948852faa461ea71b427fee00f78, type: 2}
+    - target: {fileID: 4706571426039576288, guid: c0414e6e6fc134ee6927fc9986f3758f, type: 3}
+      propertyPath: 'colorMaterials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6b72948852faa461ea71b427fee00f78, type: 2}
+    - target: {fileID: 5330058282402680850, guid: c0414e6e6fc134ee6927fc9986f3758f, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.45
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330058282402680850, guid: c0414e6e6fc134ee6927fc9986f3758f, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.45
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330058282402680850, guid: c0414e6e6fc134ee6927fc9986f3758f, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.45
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330058282402680850, guid: c0414e6e6fc134ee6927fc9986f3758f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 1.28
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330058282402680850, guid: c0414e6e6fc134ee6927fc9986f3758f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330058282402680850, guid: c0414e6e6fc134ee6927fc9986f3758f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330058282402680850, guid: c0414e6e6fc134ee6927fc9986f3758f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330058282402680850, guid: c0414e6e6fc134ee6927fc9986f3758f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330058282402680850, guid: c0414e6e6fc134ee6927fc9986f3758f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330058282402680850, guid: c0414e6e6fc134ee6927fc9986f3758f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330058282402680850, guid: c0414e6e6fc134ee6927fc9986f3758f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5330058282402680850, guid: c0414e6e6fc134ee6927fc9986f3758f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6838986370744326596, guid: c0414e6e6fc134ee6927fc9986f3758f, type: 3}
+      propertyPath: 'colorMaterials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6b72948852faa461ea71b427fee00f78, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 5330058282402680850, guid: c0414e6e6fc134ee6927fc9986f3758f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8636740746645688751}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c0414e6e6fc134ee6927fc9986f3758f, type: 3}
+--- !u!4 &8719434722245372644 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5330058282402680850, guid: c0414e6e6fc134ee6927fc9986f3758f, type: 3}
+  m_PrefabInstance: {fileID: 3529006170840365814}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &9208001224213531512 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5706316063609057678, guid: c0414e6e6fc134ee6927fc9986f3758f, type: 3}
+  m_PrefabInstance: {fileID: 3529006170840365814}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe91853384c134976b6aea9dbbff65e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.NumberDial
+--- !u!1001 &3974740086813813956
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 3373980253291975626}
+    m_Modifications:
+    - target: {fileID: 6582690157152278372, guid: 21f2b69091a0b4be9a20787bfe83f2da, type: 3}
+      propertyPath: m_Name
+      value: "Shape Key Stone 2 \u2014 Pentagon"
+      objectReference: {fileID: 0}
+    - target: {fileID: 8828913648926650904, guid: 21f2b69091a0b4be9a20787bfe83f2da, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.9781476
+      objectReference: {fileID: 0}
+    - target: {fileID: 8828913648926650904, guid: 21f2b69091a0b4be9a20787bfe83f2da, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8828913648926650904, guid: 21f2b69091a0b4be9a20787bfe83f2da, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.2079117
+      objectReference: {fileID: 0}
+    - target: {fileID: 8828913648926650904, guid: 21f2b69091a0b4be9a20787bfe83f2da, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8828913648926650904, guid: 21f2b69091a0b4be9a20787bfe83f2da, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8828913648926650904, guid: 21f2b69091a0b4be9a20787bfe83f2da, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8828913648926650904, guid: 21f2b69091a0b4be9a20787bfe83f2da, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6582690157152278372, guid: 21f2b69091a0b4be9a20787bfe83f2da, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1487162528468417860}
+  m_SourcePrefab: {fileID: 100100000, guid: 21f2b69091a0b4be9a20787bfe83f2da, type: 3}
+--- !u!4 &5597841447879712476 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8828913648926650904, guid: 21f2b69091a0b4be9a20787bfe83f2da, type: 3}
+  m_PrefabInstance: {fileID: 3974740086813813956}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &7814718277507054496 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6582690157152278372, guid: 21f2b69091a0b4be9a20787bfe83f2da, type: 3}
+  m_PrefabInstance: {fileID: 3974740086813813956}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1487162528468417860
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7814718277507054496}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f00e5bfd535a045cd8ced3fabd216480, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.FinalDialKeyColorLock
+--- !u!1001 &5199195094587668840
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 3603091265927712425}
+    m_Modifications:
+    - target: {fileID: 2770149010301575347, guid: b57f305452f3540fcb299dd7fa2c02fe, type: 3}
+      propertyPath: 'colorMaterials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 936d504d9ac7b4e5bbfe1ba86fdbb0ad, type: 2}
+    - target: {fileID: 3375652271102019137, guid: b57f305452f3540fcb299dd7fa2c02fe, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.45
+      objectReference: {fileID: 0}
+    - target: {fileID: 3375652271102019137, guid: b57f305452f3540fcb299dd7fa2c02fe, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.45
+      objectReference: {fileID: 0}
+    - target: {fileID: 3375652271102019137, guid: b57f305452f3540fcb299dd7fa2c02fe, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.45
+      objectReference: {fileID: 0}
+    - target: {fileID: 3375652271102019137, guid: b57f305452f3540fcb299dd7fa2c02fe, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 3.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 3375652271102019137, guid: b57f305452f3540fcb299dd7fa2c02fe, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 3375652271102019137, guid: b57f305452f3540fcb299dd7fa2c02fe, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 3375652271102019137, guid: b57f305452f3540fcb299dd7fa2c02fe, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3375652271102019137, guid: b57f305452f3540fcb299dd7fa2c02fe, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3375652271102019137, guid: b57f305452f3540fcb299dd7fa2c02fe, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3375652271102019137, guid: b57f305452f3540fcb299dd7fa2c02fe, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3375652271102019137, guid: b57f305452f3540fcb299dd7fa2c02fe, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4163691934953459607, guid: b57f305452f3540fcb299dd7fa2c02fe, type: 3}
+      propertyPath: 'colorMaterials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 936d504d9ac7b4e5bbfe1ba86fdbb0ad, type: 2}
+    - target: {fileID: 6148732870105929764, guid: b57f305452f3540fcb299dd7fa2c02fe, type: 3}
+      propertyPath: 'colorMaterials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 936d504d9ac7b4e5bbfe1ba86fdbb0ad, type: 2}
+    - target: {fileID: 8850969730037856212, guid: b57f305452f3540fcb299dd7fa2c02fe, type: 3}
+      propertyPath: m_Name
+      value: "Combination Dial 4 \u2014 Line 10"
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 3375652271102019137, guid: b57f305452f3540fcb299dd7fa2c02fe, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 388380892690580914}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: b57f305452f3540fcb299dd7fa2c02fe, type: 3}
+--- !u!114 &6933074207369027253 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2886941666541742045, guid: b57f305452f3540fcb299dd7fa2c02fe, type: 3}
+  m_PrefabInstance: {fileID: 5199195094587668840}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe91853384c134976b6aea9dbbff65e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.NumberDial
+--- !u!4 &7421925311050104617 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3375652271102019137, guid: b57f305452f3540fcb299dd7fa2c02fe, type: 3}
+  m_PrefabInstance: {fileID: 5199195094587668840}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &6536401403657533204
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 3603091265927712425}
+    m_Modifications:
+    - target: {fileID: 884393672951244146, guid: e39e3468072d94990880ff96708863be, type: 3}
+      propertyPath: 'colorMaterials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 19a23466cd8dd4f0c875ab5384c12c90, type: 2}
+    - target: {fileID: 1440047164590852694, guid: e39e3468072d94990880ff96708863be, type: 3}
+      propertyPath: 'colorMaterials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 19a23466cd8dd4f0c875ab5384c12c90, type: 2}
+    - target: {fileID: 1969516997189643428, guid: e39e3468072d94990880ff96708863be, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.45
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969516997189643428, guid: e39e3468072d94990880ff96708863be, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.45
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969516997189643428, guid: e39e3468072d94990880ff96708863be, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.45
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969516997189643428, guid: e39e3468072d94990880ff96708863be, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -1.23
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969516997189643428, guid: e39e3468072d94990880ff96708863be, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969516997189643428, guid: e39e3468072d94990880ff96708863be, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969516997189643428, guid: e39e3468072d94990880ff96708863be, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969516997189643428, guid: e39e3468072d94990880ff96708863be, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969516997189643428, guid: e39e3468072d94990880ff96708863be, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969516997189643428, guid: e39e3468072d94990880ff96708863be, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969516997189643428, guid: e39e3468072d94990880ff96708863be, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1969516997189643428, guid: e39e3468072d94990880ff96708863be, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5717722758498475313, guid: e39e3468072d94990880ff96708863be, type: 3}
+      propertyPath: m_Name
+      value: "Combination Dial 2 \u2014 Pentagon 4"
+      objectReference: {fileID: 0}
+    - target: {fileID: 6978670029780644545, guid: e39e3468072d94990880ff96708863be, type: 3}
+      propertyPath: 'colorMaterials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 19a23466cd8dd4f0c875ab5384c12c90, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 1969516997189643428, guid: e39e3468072d94990880ff96708863be, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7090133932413049534}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e39e3468072d94990880ff96708863be, type: 3}
+--- !u!4 &4747030642142354352 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1969516997189643428, guid: e39e3468072d94990880ff96708863be, type: 3}
+  m_PrefabInstance: {fileID: 6536401403657533204}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5127371036730489388 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2134111092399230264, guid: e39e3468072d94990880ff96708863be, type: 3}
+  m_PrefabInstance: {fileID: 6536401403657533204}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe91853384c134976b6aea9dbbff65e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.NumberDial
+--- !u!1001 &7940560011176982105
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 3373980253291975626}
+    m_Modifications:
+    - target: {fileID: 475002954580099629, guid: fbf4e4fe182464055b7f8de5efb3e49a, type: 3}
+      propertyPath: m_Name
+      value: "Shape Key Stone 3 \u2014 Square"
+      objectReference: {fileID: 0}
+    - target: {fileID: 5374109703865326322, guid: fbf4e4fe182464055b7f8de5efb3e49a, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.1500001
+      objectReference: {fileID: 0}
+    - target: {fileID: 5374109703865326322, guid: fbf4e4fe182464055b7f8de5efb3e49a, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.06
+      objectReference: {fileID: 0}
+    - target: {fileID: 5374109703865326322, guid: fbf4e4fe182464055b7f8de5efb3e49a, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 6.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5374109703865326322, guid: fbf4e4fe182464055b7f8de5efb3e49a, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.9135454
+      objectReference: {fileID: 0}
+    - target: {fileID: 5374109703865326322, guid: fbf4e4fe182464055b7f8de5efb3e49a, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5374109703865326322, guid: fbf4e4fe182464055b7f8de5efb3e49a, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.40673664
+      objectReference: {fileID: 0}
+    - target: {fileID: 5374109703865326322, guid: fbf4e4fe182464055b7f8de5efb3e49a, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5374109703865326322, guid: fbf4e4fe182464055b7f8de5efb3e49a, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5374109703865326322, guid: fbf4e4fe182464055b7f8de5efb3e49a, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5374109703865326322, guid: fbf4e4fe182464055b7f8de5efb3e49a, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 475002954580099629, guid: fbf4e4fe182464055b7f8de5efb3e49a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3862185791466959789}
+  m_SourcePrefab: {fileID: 100100000, guid: fbf4e4fe182464055b7f8de5efb3e49a, type: 3}
+--- !u!4 &2640838978747460779 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5374109703865326322, guid: fbf4e4fe182464055b7f8de5efb3e49a, type: 3}
+  m_PrefabInstance: {fileID: 7940560011176982105}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &7540439653562856564 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 475002954580099629, guid: fbf4e4fe182464055b7f8de5efb3e49a, type: 3}
+  m_PrefabInstance: {fileID: 7940560011176982105}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3862185791466959789
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7540439653562856564}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f00e5bfd535a045cd8ced3fabd216480, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.FinalDialKeyColorLock

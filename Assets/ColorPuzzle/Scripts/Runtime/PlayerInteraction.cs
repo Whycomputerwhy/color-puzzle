@@ -108,7 +108,8 @@ namespace ColorPuzzle
         [Header("Opening Tutorial")]
         [SerializeField] private bool showOpeningTutorial = true;
         [SerializeField, Min(0f)] private float tutorialFadeDuration = 0.25f;
-        [SerializeField, Min(0f)] private float tutorialVisibleDuration = 2.8f;
+        [SerializeField, Min(0f), Tooltip("Minimum time each tutorial cue remains on screen. It will then wait for the player to try one of its shown actions before fading.")]
+        private float tutorialVisibleDuration = 3.8f;
 
         private DiscoverableObject carried;
         private ShellPuzzlePiece carriedShellKey;
@@ -132,6 +133,17 @@ namespace ColorPuzzle
         private bool showedPickupTutorial;
         private bool showedMagnifierTutorial;
         private bool showedDialTutorial;
+        private TutorialAction activeTutorialAction;
+        private bool tutorialActionAttempted;
+
+        private enum TutorialAction
+        {
+            None,
+            MoveOrJump,
+            PickUpOrDrop,
+            Magnifier,
+            RotateDial
+        }
         private NumberDial heldDial;
         private NumberDialLockController heldDialLock;
         private float nextDialHoldStepTime;
@@ -155,7 +167,7 @@ namespace ColorPuzzle
             openingTutorialActive = showOpeningTutorial && OceanCampaignManager.Active != null &&
                                     OceanCampaignManager.Active.CurrentStageNumber == 1;
             if (openingTutorialActive)
-                ShowTutorial("WASD move  •  SPACE jump");
+                ShowTutorial("WASD move  •  SPACE jump", TutorialAction.MoveOrJump);
         }
 
         private void ConfigureStatusTextOutline()
@@ -184,6 +196,8 @@ namespace ColorPuzzle
                 SceneManager.LoadScene(SceneManager.GetActiveScene().name);
                 return;
             }
+
+            TrackTutorialActionAttempt();
 
             UpdateInteractionCue();
             if (magnifier != null && magnifier.IsActive) { UpdateStatus(); return; }
@@ -231,6 +245,9 @@ namespace ColorPuzzle
             if (!Physics.Raycast(ray, out RaycastHit hit, interactionDistance, interactionLayers,
                     QueryTriggerInteraction.Collide)) return false;
 
+            // Puzzle 4 reserves the dial centre for key placement. Only its outer
+            // ring/backplate may begin a number rotation.
+            if (hit.collider.GetComponentInParent<FinalDialKeySlot>() != null) return false;
             NumberDial dial = hit.collider.GetComponentInParent<NumberDial>();
             return TryCaptureNumberDial(dial);
         }
@@ -318,16 +335,31 @@ namespace ColorPuzzle
 
         private void TryDropOrPlaceShellKey()
         {
-            if (TryFindShellKeyhole(out ShellPuzzlePiece keyhole))
+            if (TryFindFinalDialKeySlot(out FinalDialKeySlot dialSlot))
             {
-                ShellPuzzleController puzzle = keyhole.GetComponentInParent<ShellPuzzleController>();
-                if (puzzle != null && puzzle.TryPlace(carriedShellKey, keyhole))
+                if (dialSlot.TryPlace(carriedShellKey, out ShellPuzzlePiece swappedOutKey))
                 {
-                    carriedShellKey = null;
+                    // Replacing an occupied slot is a direct hand-to-slot swap:
+                    // the outgoing key becomes the player's carried item.
+                    carriedShellKey = swappedOutKey;
+                    TelemetryManager.RecordObjectDrop();
+                    if (swappedOutKey != null) TelemetryManager.RecordObjectPickup();
                     ResetInteractionCue();
                     RefreshInventoryHud();
                 }
-                return; // A wrong key rests on the slot until picked up again.
+                return;
+            }
+            if (TryFindShellKeyhole(out ShellPuzzlePiece keyhole))
+            {
+                ShellPuzzleController puzzle = keyhole.GetComponentInParent<ShellPuzzleController>();
+                if (puzzle != null && puzzle.TryPlace(carriedShellKey, keyhole,
+                        out ShellPuzzlePiece swappedOutKey))
+                {
+                    carriedShellKey = swappedOutKey;
+                    ResetInteractionCue();
+                    RefreshInventoryHud();
+                }
+                return;
             }
 
             Vector3 candidate = viewCamera.transform.position + viewCamera.transform.forward * dropDistance;
@@ -369,19 +401,152 @@ namespace ColorPuzzle
             float bestScore = float.PositiveInfinity;
             foreach (ShellPuzzlePiece candidate in FindObjectsByType<ShellPuzzlePiece>(FindObjectsSortMode.None))
             {
-                if (candidate.Kind != ShellPuzzlePiece.PieceKind.Keyhole || candidate.IsOccupied) continue;
-                Vector3 slot = candidate.SlotPosition;
+                if (candidate.Kind != ShellPuzzlePiece.PieceKind.Keyhole) continue;
+                Vector3 slot = candidate.IsOccupied
+                    ? candidate.PlacedKey.transform.position
+                    : candidate.SlotPosition;
                 Vector3 toSlot = slot - origin;
                 float forwardDistance = Vector3.Dot(toSlot, forward);
                 if (forwardDistance < 0f || forwardDistance > placementDistance) continue;
                 float aimError = Vector3.Distance(slot, origin + forward * forwardDistance);
-                if (aimError > Mathf.Max(placementCastRadius, candidate.FitDiameter * 0.5f + 0.25f) ||
+                float targetRadius = candidate.IsOccupied
+                    ? Mathf.Max(placementCastRadius, 0.9f)
+                    : Mathf.Max(placementCastRadius, candidate.FitDiameter * 0.5f + 0.25f);
+                if (aimError > targetRadius ||
                     aimError >= bestScore) continue;
                 if (!HasShellPlacementLineOfSight(candidate, origin, toSlot)) continue;
                 selected = candidate;
                 bestScore = aimError;
             }
             return selected != null;
+        }
+
+        private bool TryFindFinalDialKeySlot(out FinalDialKeySlot selected)
+        {
+            selected = null;
+            if (carriedShellKey == null || viewCamera == null) return false;
+
+            if (TryFindAimedOccupiedFinalDialKeySlot(out FinalDialKeySlot occupiedSlot))
+            {
+                selected = occupiedSlot;
+                return true;
+            }
+
+            // An occupied slot is selected by aiming at its actual placed key, not
+            // its hidden center anchor. This makes swapping feel like a direct
+            // replacement interaction and avoids requiring an awkward precision aim.
+            if (TryFindFocusedPlacedDialKey(0f, out ShellPuzzlePiece focusedKey) ||
+                TryFindFocusedPlacedDialKey(placementCastRadius, out focusedKey))
+            {
+                FinalDialKeySlot focusedSlot = focusedKey.CurrentDialSlot;
+                if (focusedSlot != null && focusedSlot.PlacedKey == focusedKey && focusedKey.CanPickUp)
+                {
+                    selected = focusedSlot;
+                    return true;
+                }
+            }
+
+            // The recessed slot lives inside a dial. A simple raycast usually hits the
+            // dial's outer rim first, which used to make Q fall through to a normal
+            // ground drop. Select the authored anchor instead, using a forgiving
+            // screen-space-style aim radius just like the earlier keyhole placement.
+            Vector3 origin = viewCamera.transform.position;
+            Vector3 forward = viewCamera.transform.forward;
+            float bestScore = float.PositiveInfinity;
+            foreach (FinalDialKeySlot candidate in FindObjectsByType<FinalDialKeySlot>(FindObjectsSortMode.None))
+            {
+                if (candidate == null || candidate.PlacedKey != null) continue;
+
+                Vector3 target = candidate.KeyPosition;
+                Vector3 toTarget = target - origin;
+                float forwardDistance = Vector3.Dot(toTarget, forward);
+                if (forwardDistance < 0f || forwardDistance > placementDistance) continue;
+
+                float aimError = Vector3.Distance(target, origin + forward * forwardDistance);
+                if (aimError > candidate.PlacementAimRadius || aimError >= bestScore) continue;
+                if (!HasFinalDialSlotLineOfSight(candidate, origin, toTarget)) continue;
+
+                selected = candidate;
+                bestScore = aimError;
+            }
+
+            return selected != null;
+        }
+
+        private bool TryFindAimedOccupiedFinalDialKeySlot(out FinalDialKeySlot selected)
+        {
+            selected = null;
+            Vector3 origin = viewCamera.transform.position;
+            Vector3 forward = viewCamera.transform.forward;
+            float bestScore = float.PositiveInfinity;
+
+            foreach (FinalDialKeySlot candidate in FindObjectsByType<FinalDialKeySlot>(FindObjectsSortMode.None))
+            {
+                ShellPuzzlePiece placedKey = candidate != null ? candidate.PlacedKey : null;
+                if (placedKey == null) continue;
+
+                // Use the placed model's authored transform as the target. This
+                // avoids relying on individual imported stone collider shapes.
+                Vector3 target = placedKey.transform.position;
+                Vector3 toTarget = target - origin;
+                float forwardDistance = Vector3.Dot(toTarget, forward);
+                if (forwardDistance < 0f || forwardDistance > placementDistance) continue;
+
+                float aimError = Vector3.Distance(target, origin + forward * forwardDistance);
+                float generousKeyRadius = Mathf.Max(candidate.PlacementAimRadius, 0.9f);
+                if (aimError > generousKeyRadius || aimError >= bestScore) continue;
+                if (!HasFinalDialSlotLineOfSight(candidate, origin, toTarget)) continue;
+
+                selected = candidate;
+                bestScore = aimError;
+            }
+
+            return selected != null;
+        }
+
+        private bool TryFindFocusedPlacedDialKey(float radius, out ShellPuzzlePiece selectedKey)
+        {
+            selectedKey = null;
+            RaycastHit[] hits = radius <= 0f
+                ? Physics.RaycastAll(viewCamera.transform.position, viewCamera.transform.forward,
+                    placementDistance, interactionLayers, QueryTriggerInteraction.Ignore)
+                : Physics.SphereCastAll(viewCamera.transform.position, radius, viewCamera.transform.forward,
+                    placementDistance, interactionLayers, QueryTriggerInteraction.Ignore);
+
+            float nearestDistance = float.PositiveInfinity;
+            foreach (RaycastHit hit in hits)
+            {
+                if (IsPlayerCollider(hit.collider) || hit.distance >= nearestDistance) continue;
+                ShellPuzzlePiece key = hit.collider.GetComponentInParent<ShellPuzzlePiece>();
+                if (key == null || key.CurrentDialSlot == null || !key.CanPickUp) continue;
+                selectedKey = key;
+                nearestDistance = hit.distance;
+            }
+            return selectedKey != null;
+        }
+
+        private bool HasFinalDialSlotLineOfSight(FinalDialKeySlot slot, Vector3 origin, Vector3 toSlot)
+        {
+            float distance = toSlot.magnitude;
+            if (distance < 0.001f) return true;
+
+            NumberDialLockController slotDial = slot.GetComponentInParent<NumberDialLockController>();
+            foreach (RaycastHit hit in Physics.RaycastAll(origin, toSlot / distance, distance,
+                         interactionLayers, QueryTriggerInteraction.Ignore))
+            {
+                if (IsPlayerCollider(hit.collider)) continue;
+
+                // The dial rim and its center recess are intentionally in front of the
+                // anchor. They are part of the target, not an obstruction.
+                if (hit.collider.GetComponentInParent<FinalDialKeySlot>() == slot ||
+                    hit.collider.GetComponentInParent<ShellPuzzlePiece>() == slot.PlacedKey ||
+                    (slotDial != null && hit.collider.GetComponentInParent<NumberDialLockController>() == slotDial))
+                    continue;
+
+                return false;
+            }
+
+            return true;
         }
 
         private bool HasShellPlacementLineOfSight(ShellPuzzlePiece keyhole, Vector3 origin, Vector3 toSlot)
@@ -393,6 +558,7 @@ namespace ColorPuzzle
             {
                 if (IsPlayerCollider(hit.collider) ||
                     hit.collider.GetComponentInParent<ShellPuzzlePiece>() == keyhole ||
+                    hit.collider.GetComponentInParent<ShellPuzzlePiece>() == keyhole.PlacedKey ||
                     IsInsideNamedObject(hit.collider.transform, "Clam Casing")) continue;
                 return false;
             }
@@ -985,12 +1151,12 @@ namespace ColorPuzzle
             if (!showedPickupTutorial && (cueTarget is ShellPuzzlePiece || cueTarget is DiscoverableObject))
             {
                 showedPickupTutorial = true;
-                ShowTutorial("LMB pick up  •  Q drop");
+                ShowTutorial("LMB pick up  •  Q drop", TutorialAction.PickUpOrDrop);
             }
             if (!showedDialTutorial && cueTarget is NumberDial)
             {
                 showedDialTutorial = true;
-                ShowTutorial("HOLD LMB rotate");
+                ShowTutorial("HOLD LMB rotate", TutorialAction.RotateDial);
             }
 
             bool sameCue = currentCueTarget == cueTarget && currentCueLabel == cueLabel;
@@ -1046,6 +1212,13 @@ namespace ColorPuzzle
                 return true;
             }
 
+            if (carriedShellKey != null && TryFindFinalDialKeySlot(out FinalDialKeySlot dialGoal))
+            {
+                cueTarget = dialGoal;
+                cueLabel = "Q PLACE";
+                return true;
+            }
+
             if (carried != null && TryFindPlacementGoal(out GoalPedestal goal))
             {
                 cueTarget = goal;
@@ -1069,6 +1242,8 @@ namespace ColorPuzzle
                 return true;
             }
             NumberDial dial = centerHit.collider.GetComponentInParent<NumberDial>();
+            if (centerHit.collider.GetComponentInParent<FinalDialKeySlot>() != null)
+                return false;
             NumberDialLockController dialLock = dial != null
                 ? dial.GetComponentInParent<NumberDialLockController>()
                 : null;
@@ -1284,14 +1459,38 @@ namespace ColorPuzzle
         {
             if (showedMagnifierTutorial) return;
             showedMagnifierTutorial = true;
-            ShowTutorial("RMB look through magnifier");
+            ShowTutorial("RMB look through magnifier", TutorialAction.Magnifier);
         }
 
-        private void ShowTutorial(string message)
+        private void ShowTutorial(string message, TutorialAction requiredAction = TutorialAction.None)
         {
             if (tutorialHudRoot == null || tutorialText == null) return;
             if (tutorialRoutine != null) StopCoroutine(tutorialRoutine);
+            activeTutorialAction = requiredAction;
+            tutorialActionAttempted = requiredAction == TutorialAction.None;
             tutorialRoutine = StartCoroutine(ShowTutorialRoutine(message));
+        }
+
+        private void TrackTutorialActionAttempt()
+        {
+            if (tutorialActionAttempted || activeTutorialAction == TutorialAction.None ||
+                tutorialHudRoot == null || !tutorialHudRoot.activeSelf)
+                return;
+
+            bool attempted = activeTutorialAction switch
+            {
+                TutorialAction.MoveOrJump =>
+                    Keyboard.current.wKey.wasPressedThisFrame || Keyboard.current.aKey.wasPressedThisFrame ||
+                    Keyboard.current.sKey.wasPressedThisFrame || Keyboard.current.dKey.wasPressedThisFrame ||
+                    Keyboard.current.spaceKey.wasPressedThisFrame,
+                TutorialAction.PickUpOrDrop =>
+                    Mouse.current.leftButton.wasPressedThisFrame || Keyboard.current[dropOrPlaceKey].wasPressedThisFrame,
+                TutorialAction.Magnifier => Mouse.current.rightButton.wasPressedThisFrame,
+                TutorialAction.RotateDial => Mouse.current.leftButton.wasPressedThisFrame,
+                _ => false
+            };
+
+            if (attempted) tutorialActionAttempted = true;
         }
 
         private IEnumerator ShowTutorialRoutine(string message)
@@ -1299,12 +1498,15 @@ namespace ColorPuzzle
             tutorialText.text = message;
             tutorialHudRoot.SetActive(true);
             RefreshInventoryHud();
-            yield return FadeTutorial(0f, 1f);
+            yield return FadeTutorial(tutorialCanvasGroup != null ? tutorialCanvasGroup.alpha : 0f, 1f);
             if (tutorialVisibleDuration > 0f)
                 yield return new WaitForSecondsRealtime(tutorialVisibleDuration);
+            while (!tutorialActionAttempted)
+                yield return null;
             yield return FadeTutorial(1f, 0f);
             tutorialHudRoot.SetActive(false);
             RefreshInventoryHud();
+            activeTutorialAction = TutorialAction.None;
             tutorialRoutine = null;
         }
 

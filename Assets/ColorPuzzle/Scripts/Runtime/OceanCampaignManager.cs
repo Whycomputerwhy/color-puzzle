@@ -127,7 +127,7 @@ namespace ColorPuzzle
 
             // Puzzle 2 and Puzzle 3 form an unordered pair. Their telemetry is
             // finalized against the puzzle actually solved, not a fixed campaign slot.
-            if (stageIndex == 1 || stageIndex == 2)
+            if (stageIndex == 1 || stageIndex == 2 || stageIndex == 3)
                 TelemetryManager.CompleteCampaignPuzzle(stageIndex + 1);
 
             if (stageIndex >= stages.Count - 1)
@@ -169,7 +169,7 @@ namespace ColorPuzzle
             if (!CanAttemptStage(stageIndex)) return;
             if (stageIndex == 0)
                 TelemetryManager.BeginStageOnePuzzleWithoutMagnifierIfNeeded();
-            else if (stageIndex == 1 || stageIndex == 2)
+            else if (stageIndex == 1 || stageIndex == 2 || stageIndex == 3)
                 TelemetryManager.BeginCampaignPuzzle(stageIndex + 1);
         }
 
@@ -228,6 +228,34 @@ namespace ColorPuzzle
             MovePlayerToCheckpoint(currentStageIndex);
             TelemetryManager.BeginCampaignStage(currentStageIndex + 1);
             RestoreColorForFinalStageIfNeeded();
+        }
+
+        /// <summary>
+        /// Developer-panel shortcut: present Puzzle 4 as solved and run its normal
+        /// heart, glass-fade, and world-colour reveal sequence. This is transient
+        /// play-session state and deliberately does not write a checkpoint.
+        /// </summary>
+        public void CompleteFinalPuzzleForDeveloper()
+        {
+            if (stages.Count == 0 || completedStages == null) return;
+
+            int finalStageIndex = stages.Count - 1;
+            currentStageIndex = finalStageIndex;
+            CompletePreviousStagesForDeveloperJump(finalStageIndex);
+            magnifierSkillUnlocked = true;
+            player?.GetComponent<MagnifierView>()?.UnlockMagnifier();
+            magnifierPickup?.SetAvailable(false);
+            MovePlayerToCheckpoint(finalStageIndex);
+
+            // Show the final puzzle's completed presentation before the casing
+            // disappears, then reuse the actual victory animation rather than a
+            // separate developer-only visual path.
+            stages[finalStageIndex].DialLock?.CompleteForProgressRestore();
+            FinalHeartVictory victory = stages[finalStageIndex].GetComponentInChildren<FinalHeartVictory>(true);
+            if (victory != null)
+                victory.Play();
+            else
+                CompleteStage(finalStageIndex);
         }
 
         private void ApplyPendingDeveloperStageJump()

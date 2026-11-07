@@ -1,4 +1,5 @@
 using UnityEngine;
+using ColorPuzzle;
 
 namespace ColorPuzzle.Rendering
 {
@@ -38,6 +39,13 @@ namespace ColorPuzzle.Rendering
                 Renderer renderer = renderers[i];
                 if (renderer == null || renderer.gameObject.layer == proxyLayer ||
                     renderer is not MeshRenderer || renderer.sharedMaterials.Length == 0) continue;
+
+                // The numbered dials use a baked alpha-cutout font material. It
+                // intentionally looks identical in both cameras and must not be
+                // converted into a DualViewMaterial, which would replace it with
+                // the legacy transparent font material during camera rendering.
+                if (renderer.GetComponent<TextMesh>() != null &&
+                    renderer.GetComponentInParent<NumberDial>() != null) continue;
 
                 DualViewMaterial appearance = renderer.GetComponent<DualViewMaterial>();
                 if (appearance == null)

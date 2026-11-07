@@ -104,7 +104,7 @@ namespace ColorPuzzle
         [SerializeField, Min(0.05f)] private float backgroundMusicFadeOutDuration = 1.5f;
 
         [Header("World Color Reveal")]
-        [SerializeField, Min(0.1f)] private float worldRevealDuration = 2.4f;
+        [SerializeField, Min(0.1f)] private float worldRevealDuration = 4.8f;
         [SerializeField, Min(0f)] private float worldRevealStartRadius = 0.18f;
         [SerializeField, Min(0.1f)] private float worldRevealEndRadius = 42f;
         [SerializeField, Min(0.001f)] private float worldRevealEdgeFeather = 0.8f;
@@ -189,6 +189,7 @@ namespace ColorPuzzle
         private Button oceanLevelButton;
         private Button villageLevelButton;
         private readonly Button[] campaignStageButtons = new Button[4];
+        private Button completeFinalPuzzleButton;
         private Button resetCampaignProgressButton;
         private GameObject developerPanelRoot;
         private bool developerPanelOpen;
@@ -735,24 +736,16 @@ namespace ColorPuzzle
                 ? Mathf.Clamp01(worldRevealEasing.Evaluate(normalizedTime))
                 : normalizedTime;
             float radius = Mathf.Lerp(worldRevealStartRadius, worldRevealEndRadius, easedTime);
-            Vector3 pillarViewportPosition = sourceCamera.WorldToViewportPoint(revealOrigin);
-            float distanceToPillar = Mathf.Max(0.01f, Vector3.Distance(sourceCamera.transform.position, revealOrigin));
-            float verticalProjectionScale = Mathf.Max(
-                0.001f,
-                2f * distanceToPillar * Mathf.Tan(sourceCamera.fieldOfView * Mathf.Deg2Rad * 0.5f));
-
-            // The prior depth-reconstructed version depended on which of the two
-            // cameras last wrote Unity's depth texture. Projecting the sphere's
-            // centre and radius directly is robust across the normal, lens, and
-            // render-texture cameras while preserving the intended expanding sphere.
-            float screenRadius = radius / verticalProjectionScale;
-            float screenFeather = worldRevealEdgeFeather / verticalProjectionScale;
+            // The UI overlay samples the main camera's depth texture, so give it
+            // that camera's exact GPU projection to reconstruct every visible
+            // pixel back into world space. The shader can then test a genuine
+            // distance-to-origin sphere instead of drawing a screen-space circle.
+            Matrix4x4 gpuProjection = GL.GetGPUProjectionMatrix(sourceCamera.projectionMatrix, false);
+            Matrix4x4 inverseViewProjection = (gpuProjection * sourceCamera.worldToCameraMatrix).inverse;
             worldRevealMaterial.SetVector("_RevealOriginRadius", new Vector4(
                 revealOrigin.x, revealOrigin.y, revealOrigin.z, radius));
             worldRevealMaterial.SetFloat("_RevealEdgeFeather", worldRevealEdgeFeather);
-            worldRevealMaterial.SetVector("_RevealScreenCenterRadius", new Vector4(
-                pillarViewportPosition.x, pillarViewportPosition.y, screenRadius, pillarViewportPosition.z));
-            worldRevealMaterial.SetFloat("_RevealScreenFeather", screenFeather);
+            worldRevealMaterial.SetMatrix("_RevealInverseViewProjection", inverseViewProjection);
         }
 
         private void SetPuzzleMode(PuzzleMode mode)
@@ -855,6 +848,18 @@ namespace ColorPuzzle
                     2);
                 resetCampaignProgressButton.targetGraphic.color = unselectedModeColor;
                 resetCampaignProgressButton.onClick.AddListener(() => OceanCampaignManager.Active?.ResetProgress());
+                completeFinalPuzzleButton = CreateModeButton(
+                    stageJumpGroup,
+                    "COMPLETE P4",
+                    selectorGroupPadding,
+                    font,
+                    2);
+                completeFinalPuzzleButton.targetGraphic.color = unselectedModeColor;
+                completeFinalPuzzleButton.onClick.AddListener(() =>
+                {
+                    OceanCampaignManager.Active?.CompleteFinalPuzzleForDeveloper();
+                    SetDeveloperPanelOpen(false);
+                });
             }
 
             RectTransform devViewGroup = CreateSelectorGroup(
@@ -1249,6 +1254,8 @@ namespace ColorPuzzle
                         ? selectedModeColor : unselectedModeColor;
             if (resetCampaignProgressButton != null)
                 resetCampaignProgressButton.targetGraphic.color = unselectedModeColor;
+            if (completeFinalPuzzleButton != null)
+                completeFinalPuzzleButton.targetGraphic.color = unselectedModeColor;
         }
 
         private static void EnsureEventSystem()

@@ -27,6 +27,7 @@ namespace ColorPuzzle
         private Collider[] colliders;
         private ShellPuzzlePiece placedKey;
         private ShellPuzzlePiece temporaryKeyhole;
+        private FinalDialKeySlot temporaryDialSlot;
         private bool correctlyMatched;
         private Transform originalParent;
         private bool carried;
@@ -41,6 +42,8 @@ namespace ColorPuzzle
         public Color PearlColor => pearlColor;
         public bool IsOccupied => placedKey != null;
         public ShellPuzzlePiece PlacedKey => placedKey;
+        /// <summary>The Puzzle 4 dial slot this key is currently resting in, if any.</summary>
+        public FinalDialKeySlot CurrentDialSlot => temporaryDialSlot;
         public bool IsCorrectlyFilled => placedKey != null && placedKey.correctlyMatched;
         public bool CanPickUp => kind == PieceKind.Key && !carried && !placed;
         public Renderer CueRenderer => transform.Find("Beige Cube")?.GetComponent<Renderer>();
@@ -133,12 +136,32 @@ namespace ColorPuzzle
         public bool PickUp()
         {
             if (!CanPickUp) return false;
+            return BeginCarryFromDialSlotOrWorld();
+        }
+
+        /// <summary>Moves a Puzzle 4 slot key into the carry state during a direct swap.</summary>
+        public bool PickUpForDialSlotSwap()
+        {
+            if (kind != PieceKind.Key || carried ||
+                (temporaryKeyhole == null && temporaryDialSlot == null)) return false;
+            return BeginCarryFromDialSlotOrWorld();
+        }
+
+        private bool BeginCarryFromDialSlotOrWorld()
+        {
             RestorePlayerCollision();
             if (temporaryKeyhole != null)
             {
-                temporaryKeyhole.placedKey = null;
+                if (temporaryKeyhole.placedKey == this)
+                    temporaryKeyhole.placedKey = null;
                 temporaryKeyhole = null;
                 correctlyMatched = false;
+                transform.SetParent(originalParent, true);
+            }
+            if (temporaryDialSlot != null)
+            {
+                temporaryDialSlot.RemovePlacedKey(this);
+                temporaryDialSlot = null;
                 transform.SetParent(originalParent, true);
             }
             carried = true;
@@ -215,6 +238,27 @@ namespace ColorPuzzle
             SetRenderersEnabled(true);
             SetCollidersEnabled(true);
             Play(dropClip, dropVolume);
+        }
+
+        /// <summary>Places this reusable key into Puzzle 4's authored dial slot.</summary>
+        public bool PlaceOnDialSlot(FinalDialKeySlot slot)
+        {
+            if (!carried || kind != PieceKind.Key || slot == null) return false;
+            RestorePlayerCollision();
+
+            // The authored dial slots are deliberately flattened with non-uniform
+            // scale. Parenting a rotated stone to one transfers that scale into the
+            // mesh and visibly stretches it. The slot reference below still owns the
+            // placement state; the stone stays under its original scale-neutral root.
+            transform.SetParent(originalParent, true);
+            transform.SetPositionAndRotation(slot.KeyPosition, slot.KeyRotation);
+            carried = false;
+            correctlyMatched = false;
+            temporaryDialSlot = slot;
+            SetRenderersEnabled(true);
+            SetCollidersEnabled(true);
+            Play(dropClip, dropVolume);
+            return true;
         }
 
         public void LockPlacedKey()

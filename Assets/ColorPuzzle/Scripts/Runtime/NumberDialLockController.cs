@@ -9,6 +9,8 @@ namespace ColorPuzzle
     public sealed class NumberDialLockController : MonoBehaviour
     {
         [SerializeField] private NumberDial[] dials;
+        [Tooltip("Optional Puzzle 4 center slots. When assigned, each dial also requires its matching shape key.")]
+        [SerializeField] private FinalDialKeySlot[] keySlots;
         [SerializeField, Min(0)] private int campaignStageIndex = 2;
         [SerializeField] private bool lockWhenSolved = true;
 
@@ -26,8 +28,10 @@ namespace ColorPuzzle
         [SerializeField] private AudioClip correctCombinationClip;
         [SerializeField, Range(0f, 1f)] private float correctCombinationVolume = 0.3f;
         [SerializeField] private bool revealPuzzleColorOnSuccess = true;
+        [SerializeField] private FinalHeartVictory finalHeartVictory;
 
         private bool solved;
+        private bool[] revealedDialGroups;
         // The first answer is only valid once every dial has been moved away
         // from its authored starting value of 1. Once a complete answer has
         // failed, every later dial release is still an answer check.
@@ -50,6 +54,7 @@ namespace ColorPuzzle
             // requiring a prefab rebuild that could disturb their manual layout.
             if (correctCombinationClip == null)
                 correctCombinationClip = Resources.Load<AudioClip>("Audio/CorrectShellPlacementAndReveal");
+            revealedDialGroups = new bool[dials != null ? dials.Length : 0];
         }
 
         public bool CanRotate(NumberDial dial) =>
@@ -84,14 +89,17 @@ namespace ColorPuzzle
         {
             if (solved) return;
             if (!hasSubmittedCompleteCombination && !AllDialsHaveLeftStartingValue()) return;
+            // Puzzle 4 adds one key input per dial. Do not call an incomplete
+            // board a failure until every center slot has received a key.
+            if (!AllKeySlotsAreOccupied()) return;
 
             hasSubmittedCompleteCombination = true;
-            foreach (NumberDial candidate in dials)
-                if (candidate == null || candidate.CurrentValue != candidate.TargetValue)
-                {
-                    PlayFailedAttemptFeedback();
-                    return;
-                }
+            RevealCompletedDialGroups();
+            if (!HasCorrectCombination())
+            {
+                PlayFailedAttemptFeedback();
+                return;
+            }
 
             solved = true;
             if (lockWhenSolved)
@@ -100,7 +108,48 @@ namespace ColorPuzzle
             if (revealPuzzleColorOnSuccess) RevealPuzzleColor();
             if (correctCombinationClip != null)
                 audioSource.PlayOneShot(correctCombinationClip, correctCombinationVolume);
-            OceanCampaignManager.Active?.CompleteStage(campaignStageIndex);
+            if (finalHeartVictory != null)
+                finalHeartVictory.Play();
+            else
+                OceanCampaignManager.Active?.CompleteStage(campaignStageIndex);
+        }
+
+        private bool HasCorrectCombination()
+        {
+            foreach (NumberDial candidate in dials)
+                if (candidate == null || candidate.CurrentValue != candidate.TargetValue) return false;
+            if (keySlots == null || keySlots.Length == 0) return true;
+            if (keySlots.Length != dials.Length) return false;
+            foreach (FinalDialKeySlot slot in keySlots)
+                if (slot == null || !slot.IsCorrectlyFilled) return false;
+            return true;
+        }
+
+        private bool AllKeySlotsAreOccupied()
+        {
+            if (keySlots == null || keySlots.Length == 0) return true;
+            foreach (FinalDialKeySlot slot in keySlots)
+                if (slot == null || slot.PlacedKey == null) return false;
+            return true;
+        }
+
+        private void RevealCompletedDialGroups()
+        {
+            if (keySlots == null || keySlots.Length != dials.Length) return;
+            if (revealedDialGroups == null || revealedDialGroups.Length != dials.Length)
+                revealedDialGroups = new bool[dials.Length];
+            for (int index = 0; index < dials.Length; index++)
+            {
+                if (revealedDialGroups[index] || dials[index] == null || keySlots[index] == null ||
+                    dials[index].CurrentValue != dials[index].TargetValue ||
+                    !keySlots[index].IsCorrectlyFilled) continue;
+                revealedDialGroups[index] = true;
+                foreach (DualViewMaterial visual in dials[index].GetComponentsInChildren<DualViewMaterial>(true))
+                    visual.SetColorInGreyscaleCamera(true);
+                keySlots[index].RevealColorInNormalView();
+                foreach (DualViewMaterial visual in keySlots[index].GetComponentsInChildren<DualViewMaterial>(true))
+                    visual.SetColorInGreyscaleCamera(true);
+            }
         }
 
         private bool AllDialsHaveLeftStartingValue()
@@ -121,6 +170,11 @@ namespace ColorPuzzle
                 visual.SetColorViewEnabled(true);
                 visual.SetColorInGreyscaleCamera(true);
             }
+            foreach (FinalDialKeyColorLock keyColor in puzzleRoot.GetComponentsInChildren<FinalDialKeyColorLock>(true))
+                keyColor.SetRevealed(true);
+            if (keySlots != null)
+                foreach (FinalDialKeySlot slot in keySlots)
+                    if (slot != null && slot.IsCorrectlyFilled) slot.RevealColorInNormalView();
         }
 
         private void PlayFailedAttemptFeedback()

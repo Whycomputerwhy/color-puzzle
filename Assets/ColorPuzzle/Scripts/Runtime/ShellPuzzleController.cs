@@ -97,10 +97,12 @@ namespace ColorPuzzle
             if (casing != null) casing.SetActive(false);
         }
 
-        public bool TryPlace(ShellPuzzlePiece key, ShellPuzzlePiece keyhole)
+        public bool TryPlace(ShellPuzzlePiece key, ShellPuzzlePiece keyhole,
+            out ShellPuzzlePiece swappedOutKey)
         {
+            swappedOutKey = null;
             if (!IsReady || complete || campaign == null || key == null || keyhole == null ||
-                !Owns(key) || !Owns(keyhole) || keyhole.IsOccupied ||
+                !Owns(key) || !Owns(keyhole) ||
                 !campaign.CanAttemptStage(stageIndex))
                 return false;
 
@@ -112,8 +114,15 @@ namespace ColorPuzzle
 
             bool correct = key.PairNumber == keyhole.PairNumber &&
                            Mathf.Approximately(key.FitDiameter, keyhole.FitDiameter);
+            ShellPuzzlePiece previousKey = keyhole.PlacedKey;
             key.PlaceOn(keyhole, correct);
             TelemetryManager.RecordObjectDrop();
+            if (previousKey != null)
+            {
+                if (!previousKey.PickUpForDialSlotSwap()) return false;
+                swappedOutKey = previousKey;
+                TelemetryManager.RecordObjectPickup();
+            }
 
             // A placement is not an attempt by itself. Let the player construct the
             // complete four-piece combination first, including deliberately wrong
