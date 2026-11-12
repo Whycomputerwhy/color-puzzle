@@ -1053,7 +1053,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
   greyscaleMaterials:
-  - {fileID: 2100000, guid: 61781351ed44141a08691fbdcc32bde7, type: 2}
+  - {fileID: 2100000, guid: 5c42c3f2f4c91438ebcf533aa4fc67fe, type: 2}
   colorMaterials:
   - {fileID: 2100000, guid: 61781351ed44141a08691fbdcc32bde7, type: 2}
   legacyColorProxy: {fileID: 0}
