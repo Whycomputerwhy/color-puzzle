@@ -53,6 +53,13 @@ Shader "ColorPuzzle/Flexible Cel URP/Outline"
             TEXTURE2D(_NormalTex); SAMPLER(sampler_NormalTex);
             TEXTURE2D(_EmmisTex); SAMPLER(sampler_EmmisTex);
 
+            // Global, per-camera aerial perspective. UnderwaterOceanBackdrop
+            // provides these values before each gameplay camera renders.
+            float _ColorPuzzleAerialEnabled;
+            float _ColorPuzzleAerialStart;
+            float _ColorPuzzleAerialEnd;
+            float4 _ColorPuzzleAerialColor;
+
             CBUFFER_START(UnityPerMaterial)
                 float4 _Color, _MainTex_ST, _NormalTex_ST, _EmmisTex_ST;
                 float4 _HighColor, _LowColor, _OutlineColor, _RimColor, _FresnelColor;
@@ -124,6 +131,15 @@ Shader "ColorPuzzle/Flexible Cel URP/Outline"
                 half3 emission = SAMPLE_TEXTURE2D(_EmmisTex, sampler_EmmisTex,
                     TRANSFORM_TEX(input.uv, _EmmisTex)).rgb;
                 color = lerp(color, emission, max(emission.r, max(emission.g, emission.b)));
+
+                // f(d) = smoothstep(start, end, distance(worldPosition, cameraPosition))
+                // This is world-distance haze, so it is stable as the player turns.
+                float distanceToCamera = distance(input.positionWS, _WorldSpaceCameraPos);
+                float aerialFactor = smoothstep(
+                    _ColorPuzzleAerialStart,
+                    max(_ColorPuzzleAerialStart + 0.1, _ColorPuzzleAerialEnd),
+                    distanceToCamera) * _ColorPuzzleAerialEnabled;
+                color = lerp(color, _ColorPuzzleAerialColor.rgb, aerialFactor);
                 return half4(color, albedo.a * _Color.a);
             }
             ENDHLSL

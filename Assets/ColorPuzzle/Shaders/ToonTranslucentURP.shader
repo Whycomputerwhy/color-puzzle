@@ -50,6 +50,13 @@ Shader "ColorPuzzle/Toon Translucent URP"
 
             TEXTURE2D(_MainTex); SAMPLER(sampler_MainTex);
 
+            // Global, per-camera aerial perspective supplied by
+            // UnderwaterOceanBackdrop before each gameplay view renders.
+            float _ColorPuzzleAerialEnabled;
+            float _ColorPuzzleAerialStart;
+            float _ColorPuzzleAerialEnd;
+            float4 _ColorPuzzleAerialColor;
+
             CBUFFER_START(UnityPerMaterial)
                 float4 _Color, _MainTex_ST, _HighColor, _LowColor, _FresnelColor, _HardRimColor;
                 float _RampLevels, _LightScalar, _HighIntensity, _LowIntensity;
@@ -103,6 +110,13 @@ Shader "ColorPuzzle/Toon Translucent URP"
                 half hardRim = step(_HardRimThreshold, edge) * _HardRimBrightness;
                 color += _FresnelColor.rgb * softRim + _HardRimColor.rgb * hardRim;
                 half alpha = saturate(albedo.a + (softRim + hardRim) * _RimOpacity);
+
+                float distanceToCamera = distance(input.positionWS, _WorldSpaceCameraPos);
+                float aerialFactor = smoothstep(
+                    _ColorPuzzleAerialStart,
+                    max(_ColorPuzzleAerialStart + 0.1, _ColorPuzzleAerialEnd),
+                    distanceToCamera) * _ColorPuzzleAerialEnabled;
+                color = lerp(color, _ColorPuzzleAerialColor.rgb, aerialFactor);
                 return half4(color, alpha);
             }
             ENDHLSL

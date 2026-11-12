@@ -680,10 +680,15 @@ MonoBehaviour:
   colorCameraName: ColorRevealCamera
   backdropDistance: 90
   backdropOverscan: 1.2
-  greyscaleUpperWater: {r: 0.3, g: 0.3, b: 0.3, a: 1}
-  greyscaleLowerWater: {r: 0.06, g: 0.06, b: 0.06, a: 1}
-  colorUpperWater: {r: 0.1, g: 0.42, b: 0.56, a: 1}
-  colorLowerWater: {r: 0.025, g: 0.12, b: 0.22, a: 1}
+  greyscaleUpperWater: {r: 0.28502136, g: 0.3108864, b: 0.3301887, a: 1}
+  greyscaleLowerWater: {r: 0.13438945, g: 0.1547481, b: 0.18867922, a: 1}
+  colorUpperWater: {r: 0.2236116, g: 0.42610937, b: 0.7075472, a: 1}
+  colorLowerWater: {r: 0.04774832, g: 0.1984025, b: 0.3490566, a: 1}
+  aerialPerspectiveEnabled: 1
+  aerialPerspectiveStartDistance: 12
+  aerialPerspectiveEndDistance: 46
+  greyscaleAerialColor: {r: 0.075, g: 0.075, b: 0.075, a: 1}
+  colorAerialColor: {r: 0.045, g: 0.22, b: 0.32, a: 1}
   hideBoundaryRenderers: 1
   boundaryRendererNames:
   - SideWallRight

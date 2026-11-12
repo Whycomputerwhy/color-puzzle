@@ -27,6 +27,19 @@ namespace ColorPuzzle
         [SerializeField] private Color colorUpperWater = new Color(0.10f, 0.42f, 0.56f, 1f);
         [SerializeField] private Color colorLowerWater = new Color(0.025f, 0.12f, 0.22f, 1f);
 
+        // CENTRALIZED AERIAL-PERSPECTIVE PARAMETERS — world-distance fog is
+        // supplied to the cel shaders per camera, so the two gameplay views can
+        // fade naturally into their own authored water palettes.
+        [Header("Aerial Perspective")]
+        [Tooltip("Blends distant cel-shaded objects into the underwater backdrop. This affects only the two gameplay cameras, not the editor Scene view.")]
+        [SerializeField] private bool aerialPerspectiveEnabled = true;
+        [SerializeField, Min(0f), Tooltip("World-space distance in metres at which the water haze begins.")]
+        private float aerialPerspectiveStartDistance = 16f;
+        [SerializeField, Min(0.1f), Tooltip("World-space distance in metres at which objects are fully blended into the water colour.")]
+        private float aerialPerspectiveEndDistance = 58f;
+        [SerializeField] private Color greyscaleAerialColor = new Color(0.075f, 0.075f, 0.075f, 1f);
+        [SerializeField] private Color colorAerialColor = new Color(0.045f, 0.22f, 0.32f, 1f);
+
         [Header("Invisible Play Boundaries")]
         [SerializeField] private bool hideBoundaryRenderers = true;
         [SerializeField] private string[] boundaryRendererNames =
@@ -51,11 +64,24 @@ namespace ColorPuzzle
         private Material colorBackdropMaterial;
         private float nextColorShadowCasterRefreshTime;
 
+        private static readonly int AerialEnabledId = Shader.PropertyToID("_ColorPuzzleAerialEnabled");
+        private static readonly int AerialStartId = Shader.PropertyToID("_ColorPuzzleAerialStart");
+        private static readonly int AerialEndId = Shader.PropertyToID("_ColorPuzzleAerialEnd");
+        private static readonly int AerialColorId = Shader.PropertyToID("_ColorPuzzleAerialColor");
+
         private void Awake()
         {
             ResolveCameras();
             ResolveBackdrops();
             if (hideBoundaryRenderers) HideBoundaryRenderers();
+        }
+
+        private void OnEnable() => RenderPipelineManager.beginCameraRendering += ConfigureAerialPerspective;
+
+        private void OnDisable()
+        {
+            RenderPipelineManager.beginCameraRendering -= ConfigureAerialPerspective;
+            Shader.SetGlobalFloat(AerialEnabledId, 0f);
         }
 
         private void Start()
@@ -113,6 +139,19 @@ namespace ColorPuzzle
                 camera.transform.position + camera.transform.forward * safeDistance,
                 camera.transform.rotation);
             backdrop.transform.localScale = new Vector3(height * camera.aspect, height, 1f);
+        }
+
+        private void ConfigureAerialPerspective(ScriptableRenderContext context, Camera camera)
+        {
+            if (camera == null || (camera != greyscaleCamera && camera != colorCamera)) return;
+
+            float endDistance = Mathf.Max(aerialPerspectiveStartDistance + 0.1f, aerialPerspectiveEndDistance);
+            Shader.SetGlobalFloat(AerialEnabledId, aerialPerspectiveEnabled ? 1f : 0f);
+            Shader.SetGlobalFloat(AerialStartId, aerialPerspectiveStartDistance);
+            Shader.SetGlobalFloat(AerialEndId, endDistance);
+            Shader.SetGlobalColor(AerialColorId, camera == colorCamera
+                ? colorAerialColor
+                : greyscaleAerialColor);
         }
 
         private void HideBoundaryRenderers()
