@@ -634,6 +634,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PLAYER
       objectReference: {fileID: 0}
+    - target: {fileID: 8325012864076619606, guid: c3cbf2c226a94488cac59d5a30072b2f, type: 3}
+      propertyPath: m_Dithering
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9175544705949783069, guid: c3cbf2c226a94488cac59d5a30072b2f, type: 3}
       propertyPath: requiresPickupToUse
       value: 1

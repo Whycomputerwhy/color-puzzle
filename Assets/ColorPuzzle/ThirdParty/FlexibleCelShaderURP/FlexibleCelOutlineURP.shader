@@ -46,8 +46,6 @@ Shader "ColorPuzzle/Flexible Cel URP/Outline"
             #pragma vertex CelVertex
             #pragma fragment CelFragment
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
-            #pragma multi_compile_fragment _ _SHADOWS_SOFT
-
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
@@ -171,9 +169,8 @@ Shader "ColorPuzzle/Flexible Cel URP/Outline"
             ENDHLSL
         }
 
-        // Reuse URP's standard geometry-only passes. The custom forward pass above
-        // samples shadow attenuation; this makes cel-shaded meshes also write into
-        // the main-light shadow map so they can cast onto one another.
+        // Reuse URP's standard geometry-only passes so cel meshes cast and
+        // receive the main-light shadows consistently.
         UsePass "Universal Render Pipeline/Lit/ShadowCaster"
         UsePass "Universal Render Pipeline/Lit/DepthOnly"
     }

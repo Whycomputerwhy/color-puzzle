@@ -4,16 +4,30 @@
 Material:
   serializedVersion: 8
   m_Name: M_Cel_Grey_Bubble
-  m_Shader: {fileID: 4800000, guid: 307f1f5eb60c44ce1980eaf71db4710f, type: 3}
-  m_Parent: {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400001, type: 2}
+  m_Shader: {fileID: 4800000, guid: b41dd3f27a7a4f35989c25c2d8a738b1, type: 3}
+  m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties:
   - _Color
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs: []
     m_Ints: []
-    m_Floats: []
+    m_Floats:
+    - _DoubleSided: 1
+    - _FresnelBrightness: 0.7
+    - _FresnelPower: 4
+    - _HardRimBrightness: 0.38
+    - _HardRimThreshold: 0.8
+    - _HighIntensity: 1.05
+    - _LightScalar: 1
+    - _LowIntensity: 0.56
+    - _RampLevels: 2
+    - _RimOpacity: 0.5
     m_Colors:
-    - _Color: {r: 0.88, g: 0.88, b: 0.88, a: 1}
+    - _Color: {r: 0.86, g: 0.9, b: 0.92, a: 0.24}
+    - _FresnelColor: {r: 0.96, g: 0.99, b: 1, a: 1}
+    - _HardRimColor: {r: 1, g: 1, b: 1, a: 1}
+    - _HighColor: {r: 1, g: 1, b: 1, a: 1}
+    - _LowColor: {r: 0.62, g: 0.68, b: 0.72, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
