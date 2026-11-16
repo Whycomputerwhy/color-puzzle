@@ -59,8 +59,8 @@ Shader "ColorPuzzle/UI/WorldSphereReveal"
                 float rawDepth = SampleSceneDepth(input.uv);
 
                 // There is no finite world surface behind the sky. Keep it in the
-                // original view until the final all-colour state, rather than
-                // inventing a flat depth plane that would distort the sphere.
+                // normal view until the final all-colour state rather than drawing
+                // an artificial plane, which would make the sphere camera-relative.
                 #if UNITY_REVERSED_Z
                 if (rawDepth <= 0.00001) return half4(0, 0, 0, 0);
                 #else

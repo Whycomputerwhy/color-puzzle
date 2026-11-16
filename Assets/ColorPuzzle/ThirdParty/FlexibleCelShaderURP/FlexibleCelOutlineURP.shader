@@ -30,6 +30,7 @@ Shader "ColorPuzzle/Flexible Cel URP/Outline"
         _FresnelBrightness("Soft Edge Light Brightness", Range(0, 1)) = 0
         _FresnelPower("Soft Edge Light Size", Range(0, 1)) = 0
         _FresnelShadowDropoff("Soft Edge Light Dropoff", Range(0, 1)) = 0
+        [HideInInspector] _ColorPuzzleSphereRevealProxy("Sphere Reveal Proxy", Float) = 0
     }
 
     SubShader
@@ -59,6 +60,16 @@ Shader "ColorPuzzle/Flexible Cel URP/Outline"
             float _ColorPuzzleAerialStart;
             float _ColorPuzzleAerialEnd;
             float4 _ColorPuzzleAerialColor;
+            // Colour proxies use this matching water hue during the final reveal,
+            // while the greyscale base keeps its regular greyscale aerial colour.
+            float4 _ColorPuzzleRevealAerialColor;
+            float _ColorPuzzleRevealSaturation;
+            float _ColorPuzzleRevealBrightness;
+            // FINAL WORLD REVEAL: colour-proxy geometry is clipped in world space.
+            // These are global because a single animated sphere drives every object.
+            float _ColorPuzzleSphereRevealEnabled;
+            float4 _ColorPuzzleSphereRevealOriginRadius;
+            float _ColorPuzzleSphereRevealFeather;
 
             CBUFFER_START(UnityPerMaterial)
                 float4 _Color, _MainTex_ST, _NormalTex_ST, _EmmisTex_ST;
@@ -66,6 +77,7 @@ Shader "ColorPuzzle/Flexible Cel URP/Outline"
                 float _RampLevels, _LightScalar, _HighIntensity, _LowIntensity, _OutlineSize;
                 float _RimAlpha, _RimPower, _RimDropOff;
                 float _FresnelBrightness, _FresnelPower, _FresnelShadowDropoff;
+                float _ColorPuzzleSphereRevealProxy;
             CBUFFER_END
 
             struct Attributes
@@ -104,6 +116,13 @@ Shader "ColorPuzzle/Flexible Cel URP/Outline"
 
             half4 CelFragment(Varyings input) : SV_Target
             {
+                if (_ColorPuzzleSphereRevealProxy > 0.5 && _ColorPuzzleSphereRevealEnabled > 0.5)
+                {
+                    float revealDistance = distance(
+                        input.positionWS,
+                        _ColorPuzzleSphereRevealOriginRadius.xyz);
+                    clip(_ColorPuzzleSphereRevealOriginRadius.w - revealDistance);
+                }
                 half4 albedo = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, TRANSFORM_TEX(input.uv, _MainTex));
                 half3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(_NormalTex, sampler_NormalTex,
                     TRANSFORM_TEX(input.uv, _NormalTex)));
@@ -139,7 +158,18 @@ Shader "ColorPuzzle/Flexible Cel URP/Outline"
                     _ColorPuzzleAerialStart,
                     max(_ColorPuzzleAerialStart + 0.1, _ColorPuzzleAerialEnd),
                     distanceToCamera) * _ColorPuzzleAerialEnabled;
-                color = lerp(color, _ColorPuzzleAerialColor.rgb, aerialFactor);
+                half3 aerialColor = _ColorPuzzleSphereRevealProxy > 0.5
+                    ? _ColorPuzzleRevealAerialColor.rgb
+                    : _ColorPuzzleAerialColor.rgb;
+                color = lerp(color, aerialColor, aerialFactor);
+                // A slight final-reveal boost offsets the flatter MainCamera
+                // composite without changing ordinary greyscale materials.
+                if (_ColorPuzzleSphereRevealProxy > 0.5)
+                {
+                    half luminance = dot(color, half3(0.2126h, 0.7152h, 0.0722h));
+                    color = lerp(luminance.xxx, color, _ColorPuzzleRevealSaturation);
+                    color *= _ColorPuzzleRevealBrightness;
+                }
                 return half4(color, albedo.a * _Color.a);
             }
             ENDHLSL
@@ -160,10 +190,13 @@ Shader "ColorPuzzle/Flexible Cel URP/Outline"
             CBUFFER_START(UnityPerMaterial)
                 float4 _OutlineColor;
                 float _OutlineSize;
+                float _ColorPuzzleSphereRevealProxy;
             CBUFFER_END
 
             struct Attributes { float4 positionOS : POSITION; float3 normalOS : NORMAL; };
-            struct Varyings { float4 positionCS : SV_POSITION; };
+            float _ColorPuzzleSphereRevealEnabled;
+            float4 _ColorPuzzleSphereRevealOriginRadius;
+            struct Varyings { float4 positionCS : SV_POSITION; float3 positionWS : TEXCOORD0; };
 
             Varyings OutlineVertex(Attributes input)
             {
@@ -171,6 +204,7 @@ Shader "ColorPuzzle/Flexible Cel URP/Outline"
                 float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
                 positionWS += TransformObjectToWorldNormal(input.normalOS) * (_OutlineSize * 0.001);
                 output.positionCS = TransformWorldToHClip(positionWS);
+                output.positionWS = positionWS;
                 return output;
             }
 
@@ -180,6 +214,10 @@ Shader "ColorPuzzle/Flexible Cel URP/Outline"
                 // depth as the lit pass. Without discarding it, it paints the whole
                 // mesh with _OutlineColor rather than disabling the outline.
                 clip(_OutlineSize - 0.0001);
+                if (_ColorPuzzleSphereRevealProxy > 0.5 && _ColorPuzzleSphereRevealEnabled > 0.5)
+                    clip(_ColorPuzzleSphereRevealOriginRadius.w - distance(
+                        input.positionWS,
+                        _ColorPuzzleSphereRevealOriginRadius.xyz));
                 return _OutlineColor;
             }
             ENDHLSL

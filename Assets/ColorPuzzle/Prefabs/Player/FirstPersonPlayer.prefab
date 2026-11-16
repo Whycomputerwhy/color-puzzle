@@ -620,7 +620,7 @@ MonoBehaviour:
   lensMoveEasing: 16
   screenEdgePadding: 8
   turnViewAtLensEdge: 1
-  lensEdgeTurnSensitivity: 0.6
+  lensEdgeTurnSensitivity: 0.25
   resetLensToCenterOnOpen: 1
   enableDeveloperPanel: 1
   developerPanelToggleKey: 2

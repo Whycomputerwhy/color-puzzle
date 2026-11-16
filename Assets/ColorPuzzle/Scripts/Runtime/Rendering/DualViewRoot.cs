@@ -34,10 +34,12 @@ namespace ColorPuzzle.Rendering
         {
             Renderer[] renderers = GetComponentsInChildren<Renderer>(includeInactiveChildren);
             int proxyLayer = LayerMask.NameToLayer("ColorReveal");
+            const int sphereRevealLayer = 10;
             for (int i = 0; i < renderers.Length; i++)
             {
                 Renderer renderer = renderers[i];
                 if (renderer == null || renderer.gameObject.layer == proxyLayer ||
+                    renderer.gameObject.layer == sphereRevealLayer ||
                     renderer is not MeshRenderer || renderer.sharedMaterials.Length == 0) continue;
 
                 // The numbered dials use a baked alpha-cutout font material. It

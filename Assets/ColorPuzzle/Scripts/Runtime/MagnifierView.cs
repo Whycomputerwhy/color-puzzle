@@ -108,6 +108,8 @@ namespace ColorPuzzle
         [SerializeField, Min(0f)] private float worldRevealStartRadius = 0.18f;
         [SerializeField, Min(0.1f)] private float worldRevealEndRadius = 42f;
         [SerializeField, Min(0.001f)] private float worldRevealEdgeFeather = 0.8f;
+        [SerializeField, Range(0.5f, 2f)] private float worldRevealColorSaturation = 1.12f;
+        [SerializeField, Range(0.5f, 2f)] private float worldRevealColorBrightness = 1.05f;
         [SerializeField] private AnimationCurve worldRevealEasing = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
         [Header("Lens Motion")]
@@ -199,10 +201,10 @@ namespace ColorPuzzle
         private GameObject valueSearchOverlayRoot;
         private RawImage valueSearchOverlay;
         private Material valueSearchGreyscaleMaterial;
-        private GameObject worldRevealRoot;
-        private RawImage worldRevealImage;
-        private Material worldRevealMaterial;
         private bool worldRevealAnimating;
+        // Once the finale has expanded, keep this same render path live. Switching
+        // over to the separate colour camera made the final frame visibly change.
+        private bool worldRestoredWithRevealCamera;
         private AudioSource backgroundMusicSource;
         private AudioSource backgroundMusicAlternateSource;
         private Coroutine backgroundMusicFadeCoroutine;
@@ -271,7 +273,9 @@ namespace ColorPuzzle
             PrepareCompleteColorView();
             EnsureRenderTexture();
             CreateValueSearchOverlay();
-            CreateWorldRevealOverlay();
+            // The final reveal is composited by WorldSphereRevealRendererFeature,
+            // inside the game camera.  Do not create a Canvas overlay here: UI
+            // cannot reliably sample the camera depth buffer in player builds.
             CreateStoryObjectiveCard();
             CreateDeveloperPanel();
             ApplyDisplayFont(currentDisplayFont);
@@ -291,7 +295,7 @@ namespace ColorPuzzle
             if (revealTexture != null) revealTexture.Release();
             RestoreValueSearchPalette();
             if (valueSearchGreyscaleMaterial != null) Destroy(valueSearchGreyscaleMaterial);
-            if (worldRevealMaterial != null) Destroy(worldRevealMaterial);
+            WorldSphereRevealRuntime.Hide();
         }
 
         private void Update()
@@ -438,7 +442,6 @@ namespace ColorPuzzle
             if (colorCamera != null) colorCamera.targetTexture = revealTexture;
             if (revealImage != null) revealImage.texture = revealTexture;
             if (valueSearchOverlay != null) valueSearchOverlay.texture = revealTexture;
-            if (worldRevealImage != null) worldRevealImage.texture = revealTexture;
         }
 
         private void ApplySolidSkyColors()
@@ -569,41 +572,6 @@ namespace ColorPuzzle
             backgroundMusicFadeCoroutine = null;
         }
 
-        private void CreateWorldRevealOverlay()
-        {
-            if (canvasRect == null || worldRevealRoot != null) return;
-
-            Shader revealShader = Shader.Find("ColorPuzzle/UI/WorldSphereReveal");
-            if (revealShader == null)
-            {
-                Debug.LogWarning("World color reveal shader could not be found.");
-                return;
-            }
-
-            worldRevealMaterial = new Material(revealShader)
-            {
-                name = "WorldSphereReveal_Runtime"
-            };
-            worldRevealRoot = new GameObject(
-                "WorldColorReveal",
-                typeof(RectTransform),
-                typeof(CanvasRenderer),
-                typeof(RawImage));
-            RectTransform rect = worldRevealRoot.GetComponent<RectTransform>();
-            rect.SetParent(canvasRect, false);
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-            rect.SetAsFirstSibling();
-
-            worldRevealImage = worldRevealRoot.GetComponent<RawImage>();
-            worldRevealImage.texture = revealTexture;
-            worldRevealImage.material = worldRevealMaterial;
-            worldRevealImage.raycastTarget = false;
-            worldRevealRoot.SetActive(false);
-        }
-
         private void SetDevViewMode(DevViewMode mode)
         {
             if (worldRestored) return;
@@ -627,7 +595,6 @@ namespace ColorPuzzle
             bool fullColor = worldRestored || (!valueSearch && currentDevViewMode == DevViewMode.FullColor);
             if (viewportRoot != null) viewportRoot.SetActive(active && !fullColor);
             if (valueSearchOverlayRoot != null) valueSearchOverlayRoot.SetActive(valueSearch);
-            if (worldRevealRoot != null) worldRevealRoot.SetActive(worldRevealAnimating);
             if (colorCamera == null) return;
 
             if (worldRevealAnimating)
@@ -642,6 +609,12 @@ namespace ColorPuzzle
                     ? sourceCamera.depth - 1f
                     : originalColorCameraDepth;
                 colorCamera.enabled = true;
+            }
+            else if (worldRestored && worldRestoredWithRevealCamera)
+            {
+                // MainCamera retains the completed grey + colour-proxy composite.
+                // This is intentionally the same path as the final animation frame.
+                colorCamera.enabled = false;
             }
             else if (valueSearch)
             {
@@ -692,18 +665,24 @@ namespace ColorPuzzle
         {
             if (worldRestored || worldRevealAnimating) return;
 
+            // A persisted developer full-colour view would otherwise bypass the
+            // mask for a frame. Always begin the ending from the monochrome camera
+            // so the colour can visibly expand as a sphere from the final heart.
+            currentDevViewMode = DevViewMode.PuzzleView;
             active = false;
             RestoreValueSearchPalette();
             ApplyDevViewMode();
             ApplyPlayerControlMode();
             RefreshStoryObjective();
             RefreshModeSelector();
+            // Set this before yielding so other completion callbacks cannot begin a
+            // second reveal in the same frame.
+            worldRevealAnimating = true;
             StartCoroutine(AnimateWorldColorReveal(revealOrigin));
         }
 
         private IEnumerator AnimateWorldColorReveal(Vector3 revealOrigin)
         {
-            worldRevealAnimating = true;
             // Seed the material before enabling its UI overlay. This avoids one
             // unmasked frame and makes the expansion visibly begin at the pillar.
             UpdateWorldRevealMask(revealOrigin, 0f);
@@ -721,6 +700,11 @@ namespace ColorPuzzle
             }
 
             UpdateWorldRevealMask(revealOrigin, 1f);
+            // Deliberately leave the completed sphere composite active. The source
+            // camera now renders the final state too, eliminating a second camera
+            // path (and its atmospheric-perspective jump) at the end.
+            WorldSphereRevealRuntime.HideGreyscaleBasesForCompletedReveal();
+            worldRestoredWithRevealCamera = true;
             worldRevealAnimating = false;
             worldRestored = true;
             ApplyDevViewMode();
@@ -731,22 +715,19 @@ namespace ColorPuzzle
 
         private void UpdateWorldRevealMask(Vector3 revealOrigin, float normalizedTime)
         {
-            if (worldRevealMaterial == null || sourceCamera == null) return;
+            if (sourceCamera == null || revealTexture == null) return;
 
             float easedTime = worldRevealEasing != null
                 ? Mathf.Clamp01(worldRevealEasing.Evaluate(normalizedTime))
                 : normalizedTime;
             float radius = Mathf.Lerp(worldRevealStartRadius, worldRevealEndRadius, easedTime);
-            // The UI overlay samples the main camera's depth texture, so give it
-            // that camera's exact GPU projection to reconstruct every visible
-            // pixel back into world space. The shader can then test a genuine
-            // distance-to-origin sphere instead of drawing a screen-space circle.
-            Matrix4x4 gpuProjection = GL.GetGPUProjectionMatrix(sourceCamera.projectionMatrix, false);
-            Matrix4x4 inverseViewProjection = (gpuProjection * sourceCamera.worldToCameraMatrix).inverse;
-            worldRevealMaterial.SetVector("_RevealOriginRadius", new Vector4(
-                revealOrigin.x, revealOrigin.y, revealOrigin.z, radius));
-            worldRevealMaterial.SetFloat("_RevealEdgeFeather", worldRevealEdgeFeather);
-            worldRevealMaterial.SetMatrix("_RevealInverseViewProjection", inverseViewProjection);
+            WorldSphereRevealRuntime.Show(
+                sourceCamera,
+                revealOrigin,
+                radius,
+                worldRevealEdgeFeather,
+                worldRevealColorSaturation,
+                worldRevealColorBrightness);
         }
 
         private void SetPuzzleMode(PuzzleMode mode)

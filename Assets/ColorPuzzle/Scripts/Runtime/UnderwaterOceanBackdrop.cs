@@ -8,6 +8,8 @@ namespace ColorPuzzle
     [DisallowMultipleComponent]
     public sealed class UnderwaterOceanBackdrop : MonoBehaviour
     {
+        /// <summary>The final colour-view water haze, shared by the sphere reveal.</summary>
+        public static Color RevealAerialColor { get; private set; } = new Color(0.045f, 0.22f, 0.32f, 1f);
         // CENTRALIZED OCEAN-VOLUME PARAMETERS — all visual tuning lives here.
         [Header("Cameras")]
         [SerializeField] private Camera greyscaleCamera;
@@ -55,6 +57,7 @@ namespace ColorPuzzle
 
         private const int GreyscaleLayer = 0;
         private const int ColorRevealLayer = 8;
+        private const int SphereRevealLayer = 10;
         private readonly List<Renderer> hiddenBoundaryRenderers = new();
         private readonly Dictionary<Renderer, ShadowCastingMode> colorShadowCasters = new();
         private readonly Dictionary<Renderer, GameObject> colorShadowOnlyCopies = new();
@@ -68,15 +71,81 @@ namespace ColorPuzzle
         private static readonly int AerialStartId = Shader.PropertyToID("_ColorPuzzleAerialStart");
         private static readonly int AerialEndId = Shader.PropertyToID("_ColorPuzzleAerialEnd");
         private static readonly int AerialColorId = Shader.PropertyToID("_ColorPuzzleAerialColor");
+        private static readonly int SphereRevealProxyId = Shader.PropertyToID("_ColorPuzzleSphereRevealProxy");
+
+        /// <summary>
+        /// The colour gradient is deliberately hidden during normal greyscale play.
+        /// The world-sphere reveal temporarily brings it back on the ColorReveal layer.
+        /// </summary>
+        public static void SetFinalRevealBackdropVisible(bool visible)
+        {
+            foreach (Transform transform in FindObjectsByType<Transform>(
+                         FindObjectsInactive.Include,
+                         FindObjectsSortMode.None))
+            {
+                if (transform != null && transform.name == "Ocean Gradient - Color")
+                {
+                    transform.gameObject.layer = visible ? SphereRevealLayer : ColorRevealLayer;
+                    transform.gameObject.SetActive(visible);
+                    // This card can start inactive, in which case Awake cannot
+                    // assign its property block. Set it here as well so its
+                    // shader is definitely clipped by the reveal sphere.
+                    SetBackdropRevealProxy(transform.gameObject, true);
+                    SetColorBackdropRenderOrder(transform, visible);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Leaves the authored colour gradient available to the full-colour camera
+        /// after the reveal has finished, avoiding a snap to its solid clear colour.
+        /// </summary>
+        public static void SetCompletedColorBackdropVisible(bool visible)
+        {
+            foreach (Transform transform in FindObjectsByType<Transform>(
+                         FindObjectsInactive.Include,
+                         FindObjectsSortMode.None))
+            {
+                if (transform != null && transform.name == "Ocean Gradient - Color")
+                {
+                    transform.gameObject.layer = ColorRevealLayer;
+                    transform.gameObject.SetActive(visible);
+                    // This is the normal final colour card, so preserve its
+                    // authored render order rather than treating it as an
+                    // intermediate reveal overlay.
+                    SetColorBackdropRenderOrder(transform, false);
+                }
+            }
+        }
+
+        private static void SetColorBackdropRenderOrder(Transform backdrop, bool useColorOverlayOrder)
+        {
+            if (backdrop == null) return;
+            foreach (Renderer renderer in backdrop.GetComponentsInChildren<Renderer>(true))
+            {
+                // The grey and colour cards otherwise share the same Background
+                // queue. Render the colour card one step later during the sphere
+                // transition, then restore its authored ordering afterwards.
+                Material material = renderer.material;
+                if (material != null)
+                    material.renderQueue = useColorOverlayOrder ? 1001 : -1;
+            }
+        }
 
         private void Awake()
         {
+            RevealAerialColor = colorAerialColor;
             ResolveCameras();
             ResolveBackdrops();
             if (hideBoundaryRenderers) HideBoundaryRenderers();
         }
 
         private void OnEnable() => RenderPipelineManager.beginCameraRendering += ConfigureAerialPerspective;
+
+        private void OnValidate()
+        {
+            RevealAerialColor = colorAerialColor;
+        }
 
         private void OnDisable()
         {
@@ -127,6 +196,20 @@ namespace ColorPuzzle
         {
             if (greyscaleBackdrop == null) greyscaleBackdrop = GameObject.Find("Ocean Gradient - Greyscale");
             if (colorBackdrop == null) colorBackdrop = GameObject.Find("Ocean Gradient - Color");
+            SetBackdropRevealProxy(greyscaleBackdrop, false);
+            SetBackdropRevealProxy(colorBackdrop, true);
+        }
+
+        private static void SetBackdropRevealProxy(GameObject backdrop, bool isColorProxy)
+        {
+            if (backdrop == null) return;
+            foreach (Renderer renderer in backdrop.GetComponentsInChildren<Renderer>(true))
+            {
+                MaterialPropertyBlock properties = new MaterialPropertyBlock();
+                renderer.GetPropertyBlock(properties);
+                properties.SetFloat(SphereRevealProxyId, isColorProxy ? 1f : 0f);
+                renderer.SetPropertyBlock(properties);
+            }
         }
 
         private void UpdateBackdrop(GameObject backdrop, Camera camera)
