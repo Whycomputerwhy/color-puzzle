@@ -63,8 +63,11 @@ namespace ColorPuzzle
             RestoreCompletedStageProgress();
             magnifierSkillUnlocked = PlayerPrefs.GetInt(MagnifierSkillKey, 0) != 0 || currentStageIndex > 0;
             player?.GetComponent<MagnifierView>()?.SetMagnifierUnlocked(magnifierSkillUnlocked);
-            // Stage 1 reveals this reward only after the shell combination succeeds.
-            magnifierPickup?.SetAvailable(false);
+            // Keep the authored magnifier in Puzzle 1 visible from the beginning.
+            // Interaction itself is never gated by this optional skill, and hiding it
+            // here made the campaign-linked pickup vanish while an old duplicate was
+            // the only visible model in the scene.
+            magnifierPickup?.SetAvailable(!magnifierSkillUnlocked);
             ConfigureAuthoredProgression();
             ApplyPendingDeveloperStageJump();
             StartCoroutine(PlacePlayerAfterSetup());

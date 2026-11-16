@@ -15,7 +15,9 @@ namespace ColorPuzzle
         [Header("Copy")]
         [SerializeField, TextArea(2, 2)] private string gameTitle = "COLOR\nTHE GREY";
         [SerializeField] private string playLabel = "PLAY";
+        [SerializeField] private string creditsLabel = "CREDITS";
         [SerializeField] private string quitLabel = "QUIT";
+        [SerializeField] private CreditsPresentationSettings creditsSettings;
 
         [Header("Layout")]
         [SerializeField] private Vector2 panelSize = new Vector2(620f, 470f);
@@ -99,11 +101,34 @@ namespace ColorPuzzle
             panel.sizeDelta = panelSize;
 
             CreateText(panel, "Title", gameTitle, font, titleFontSize, textColor,
-                new Vector2(0f, 125f), new Vector2(panelSize.x - 60f, 155f), TextAnchor.MiddleCenter);
+                new Vector2(0f, 155f), new Vector2(panelSize.x - 60f, 155f), TextAnchor.MiddleCenter);
 
             Button playButton = CreateButton(
-                panel, "PlayButton", playLabel, font, new Vector2(0f, -35f), StartGame);
-            CreateButton(panel, "QuitButton", quitLabel, font, new Vector2(0f, -125f), QuitGame);
+                panel, "PlayButton", playLabel, font, new Vector2(0f, 0f), StartGame);
+            CreateButton(panel, "CreditsButton", creditsLabel, font, new Vector2(0f, -80f), () =>
+            {
+                if (creditsSettings == null)
+                {
+                    Debug.LogError("Assign Credits Presentation Settings on the Start Menu Controller.", this);
+                    return;
+                }
+                panel.gameObject.SetActive(false);
+                EventSystem.current.SetSelectedGameObject(null);
+                CreditsSequence.PlayRollingSequence(
+                    this,
+                    creditsSettings.Heading,
+                    creditsSettings.CreditsText,
+                    string.Empty,
+                    creditsSettings.RollDuration,
+                    creditsSettings.HoldDuration,
+                    true,
+                    () =>
+                    {
+                        panel.gameObject.SetActive(true);
+                        EventSystem.current.SetSelectedGameObject(playButton.gameObject);
+                    });
+            });
+            CreateButton(panel, "QuitButton", quitLabel, font, new Vector2(0f, -160f), QuitGame);
             EventSystem.current.SetSelectedGameObject(playButton.gameObject);
         }
 

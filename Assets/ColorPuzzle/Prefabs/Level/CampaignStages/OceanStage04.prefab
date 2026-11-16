@@ -86,6 +86,11 @@ MonoBehaviour:
   glassCasing: {fileID: 7468426854376701846}
   glassFadeDuration: 1.1
   campaignStageIndex: 3
+  playEndCredits: 1
+  creditsDelayAfterRestoration: 30
+  creditsSettings: {fileID: 11400000, guid: a6e64f4d15114f0d84fd20c9abf8933a, type: 2}
+  creditsClosingLine: Thank you for playing Color the Grey!
+  menuSceneName: ColorPuzzleStartMenu
 --- !u!1 &1483380485779810265
 GameObject:
   m_ObjectHideFlags: 0

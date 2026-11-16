@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.Universal;
@@ -106,10 +107,11 @@ namespace ColorPuzzle.Rendering
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
                 UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
                 bool isColorCamera = InteractionOutlineRuntime.IsColorCamera(cameraData.camera);
-                Renderer targetRenderer = isColorCamera
-                    ? InteractionOutlineRuntime.ColorTargetRenderer
-                    : InteractionOutlineRuntime.GreyscaleTargetRenderer;
-                if (resourceData.isActiveTargetBackBuffer || targetRenderer == null)
+                IReadOnlyList<Renderer> activeRenderers = isColorCamera
+                    ? InteractionOutlineRuntime.ColorTargetRenderers
+                    : InteractionOutlineRuntime.GreyscaleTargetRenderers;
+                Renderer[] targetRenderers = CopyActiveRenderers(activeRenderers);
+                if (resourceData.isActiveTargetBackBuffer || targetRenderers.Length == 0)
                     return;
 
                 TextureHandle screenColor = resourceData.activeColorTexture;
@@ -156,7 +158,7 @@ namespace ColorPuzzle.Rendering
                            "Interaction Outline: Draw Object Mask",
                            out DrawMaskPassData passData))
                 {
-                    passData.Renderer = targetRenderer;
+                    passData.Renderers = targetRenderers;
                     passData.Material = MaskMaterial;
                     builder.SetRenderAttachment(maskTexture, 0);
                     // The stencil records the real object silhouette. The mask shader uses
@@ -203,10 +205,29 @@ namespace ColorPuzzle.Rendering
 
             private static void DrawObjectMask(DrawMaskPassData data, RasterGraphContext context)
             {
-                if (data.Renderer == null) return;
-                int materialCount = data.Renderer.sharedMaterials.Length;
-                for (int materialIndex = 0; materialIndex < materialCount; materialIndex++)
-                    context.cmd.DrawRenderer(data.Renderer, data.Material, materialIndex, 0);
+                if (data.Renderers == null) return;
+                for (int rendererIndex = 0; rendererIndex < data.Renderers.Length; rendererIndex++)
+                {
+                    Renderer renderer = data.Renderers[rendererIndex];
+                    if (renderer == null || !renderer.enabled || !renderer.gameObject.activeInHierarchy) continue;
+
+                    int materialCount = renderer.sharedMaterials.Length;
+                    for (int materialIndex = 0; materialIndex < materialCount; materialIndex++)
+                        context.cmd.DrawRenderer(renderer, data.Material, materialIndex, 0);
+                }
+            }
+
+            private static Renderer[] CopyActiveRenderers(IReadOnlyList<Renderer> source)
+            {
+                if (source == null || source.Count == 0) return System.Array.Empty<Renderer>();
+
+                List<Renderer> copy = new List<Renderer>(source.Count);
+                for (int i = 0; i < source.Count; i++)
+                {
+                    Renderer renderer = source[i];
+                    if (renderer != null) copy.Add(renderer);
+                }
+                return copy.ToArray();
             }
 
             private static void Blit(BlitPassData data, RasterGraphContext context)
@@ -221,7 +242,7 @@ namespace ColorPuzzle.Rendering
 
             private sealed class DrawMaskPassData
             {
-                internal Renderer Renderer;
+                internal Renderer[] Renderers;
                 internal Material Material;
             }
 

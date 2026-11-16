@@ -63,6 +63,7 @@ namespace ColorPuzzle
 
         private void Update()
         {
+            if (CreditsSequence.IsPlaying) return;
             if (Keyboard.current == null || pauseKey == Key.None) return;
             if (!Keyboard.current[pauseKey].wasPressedThisFrame) return;
             if (IsPaused) ResumeGame();

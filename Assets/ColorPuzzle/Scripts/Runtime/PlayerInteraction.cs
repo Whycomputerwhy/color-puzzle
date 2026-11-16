@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -26,6 +27,9 @@ namespace ColorPuzzle
             "WASD  •  SPACE jump  •  RMB magnifier  •  LMB pick up  •  Q drop/place  •  E activate  •  R reset";
         private const string ValueSearchInstructionText =
             "WASD  •  SPACE jump  •  LMB pick up  •  Q drop/place  •  E activate  •  R reset";
+
+        // Reused to avoid allocating while the player keeps their focus on a pickup.
+        private readonly List<Renderer> interactionCueRenderers = new List<Renderer>();
 
         [Header("References")]
         [SerializeField] private Camera viewCamera;
@@ -1186,7 +1190,7 @@ namespace ColorPuzzle
                     ? 1f
                     : Mathf.Clamp01(interactionCueGlowFadeElapsed / interactionCueGlowFadeInDuration);
                 float easedOpacity = fadeProgress * fadeProgress * (3f - 2f * fadeProgress);
-                ShowInteractionCueGlow(cueRenderer, cueColorRenderer, easedOpacity);
+                ShowInteractionCueGlow(cueTarget, cueRenderer, cueColorRenderer, easedOpacity);
             }
         }
 
@@ -1286,21 +1290,43 @@ namespace ColorPuzzle
         }
 
         private void ShowInteractionCueGlow(
+            Object cueTarget,
             Renderer sourceRenderer,
             Renderer colorSourceRenderer,
             float opacity)
         {
             if (interactionCueTextRoot != null) interactionCueTextRoot.SetActive(false);
             if (sourceRenderer == null) return;
+            CollectCueRenderers(cueTarget, sourceRenderer, interactionCueRenderers);
             InteractionOutlineRuntime.Show(
-                sourceRenderer,
-                colorSourceRenderer,
+                interactionCueRenderers,
+                interactionCueRenderers,
                 opacity,
                 interactionCueGlowWidthPixels,
                 interactionCueGlowSoftness,
                 interactionCueGreyscaleGlowColor,
                 interactionCueColorGlowColor,
                 interactionCueColorViewScale);
+        }
+
+        private static void CollectCueRenderers(
+            Object cueTarget,
+            Renderer fallbackRenderer,
+            List<Renderer> destination)
+        {
+            destination.Clear();
+            Component component = cueTarget as Component;
+            Transform root = component != null ? component.transform : fallbackRenderer.transform;
+            Renderer[] hierarchyRenderers = root.GetComponentsInChildren<Renderer>(true);
+            for (int i = 0; i < hierarchyRenderers.Length; i++)
+            {
+                Renderer renderer = hierarchyRenderers[i];
+                if (renderer == null || !renderer.enabled || !renderer.gameObject.activeInHierarchy) continue;
+                destination.Add(renderer);
+            }
+
+            if (destination.Count == 0 && fallbackRenderer != null)
+                destination.Add(fallbackRenderer);
         }
 
         private void ResetInteractionCue()

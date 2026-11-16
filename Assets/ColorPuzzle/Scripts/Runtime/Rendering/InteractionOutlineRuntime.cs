@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ColorPuzzle.Rendering
@@ -8,8 +9,14 @@ namespace ColorPuzzle.Rendering
     /// </summary>
     public static class InteractionOutlineRuntime
     {
-        public static Renderer GreyscaleTargetRenderer { get; private set; }
-        public static Renderer ColorTargetRenderer { get; private set; }
+        private static readonly List<Renderer> greyscaleTargetRenderers = new List<Renderer>();
+        private static readonly List<Renderer> colorTargetRenderers = new List<Renderer>();
+
+        /// <summary>All meshes that make up the currently focused pickup in the normal view.</summary>
+        public static IReadOnlyList<Renderer> GreyscaleTargetRenderers => greyscaleTargetRenderers;
+
+        /// <summary>All meshes that make up the currently focused pickup in the colour view.</summary>
+        public static IReadOnlyList<Renderer> ColorTargetRenderers => colorTargetRenderers;
         public static Camera ColorCamera { get; private set; }
         public static Color GreyscaleColor { get; private set; } = new Color(0f, 0f, 0f, 0.9f);
         public static Color ColorViewColor { get; private set; } = new Color(1f, 1f, 1f, 0.9f);
@@ -18,13 +25,13 @@ namespace ColorPuzzle.Rendering
         public static float Softness { get; private set; } = 0.8f;
         public static float ColorViewScale { get; private set; } = 0.5f;
 
-        public static bool HasVisibleTarget => GreyscaleTargetRenderer != null && Opacity > 0.001f;
+        public static bool HasVisibleTarget => greyscaleTargetRenderers.Count > 0 && Opacity > 0.001f;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetForPlaySession()
         {
-            GreyscaleTargetRenderer = null;
-            ColorTargetRenderer = null;
+            greyscaleTargetRenderers.Clear();
+            colorTargetRenderers.Clear();
             ColorCamera = null;
             Opacity = 0f;
             WidthPixels = 18;
@@ -47,8 +54,31 @@ namespace ColorPuzzle.Rendering
             Color colorViewColor,
             float colorViewScale)
         {
-            GreyscaleTargetRenderer = greyscaleTargetRenderer;
-            ColorTargetRenderer = colorTargetRenderer != null ? colorTargetRenderer : greyscaleTargetRenderer;
+            Show(
+                new[] { greyscaleTargetRenderer },
+                new[] { colorTargetRenderer != null ? colorTargetRenderer : greyscaleTargetRenderer },
+                opacity,
+                widthPixels,
+                softness,
+                greyscaleColor,
+                colorViewColor,
+                colorViewScale);
+        }
+
+        public static void Show(
+            IReadOnlyList<Renderer> greyscaleRenderers,
+            IReadOnlyList<Renderer> colorRenderers,
+            float opacity,
+            float widthPixels,
+            float softness,
+            Color greyscaleColor,
+            Color colorViewColor,
+            float colorViewScale)
+        {
+            CopyValidRenderers(greyscaleRenderers, greyscaleTargetRenderers);
+            CopyValidRenderers(colorRenderers, colorTargetRenderers);
+            if (colorTargetRenderers.Count == 0)
+                CopyValidRenderers(greyscaleTargetRenderers, colorTargetRenderers);
             Opacity = Mathf.Clamp01(opacity);
             WidthPixels = Mathf.Clamp(Mathf.RoundToInt(widthPixels), 1, 60);
             Softness = Mathf.Clamp01(softness);
@@ -59,9 +89,24 @@ namespace ColorPuzzle.Rendering
 
         public static void Hide()
         {
-            GreyscaleTargetRenderer = null;
-            ColorTargetRenderer = null;
+            greyscaleTargetRenderers.Clear();
+            colorTargetRenderers.Clear();
             Opacity = 0f;
+        }
+
+        private static void CopyValidRenderers(
+            IReadOnlyList<Renderer> source,
+            List<Renderer> destination)
+        {
+            destination.Clear();
+            if (source == null) return;
+
+            for (int i = 0; i < source.Count; i++)
+            {
+                Renderer renderer = source[i];
+                if (renderer != null && !destination.Contains(renderer))
+                    destination.Add(renderer);
+            }
         }
 
         public static bool IsColorCamera(Camera camera)

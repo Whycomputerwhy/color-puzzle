@@ -528,7 +528,7 @@ MonoBehaviour:
   topPlacementMaxCameraHeight: 3
   topPlacementMinimumDownwardLook: 0.1
   interactionCueMode: 0
-  interactionCueDwellDuration: 0.25
+  interactionCueDwellDuration: 0.05
   interactionCueGlowFadeInDuration: 0.25
   interactionCueFontSize: 24
   interactionCueTextSize: {x: 220, y: 28}

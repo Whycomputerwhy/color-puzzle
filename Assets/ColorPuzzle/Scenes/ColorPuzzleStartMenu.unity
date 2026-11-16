@@ -303,7 +303,9 @@ MonoBehaviour:
   firstLevelSceneName: ColorPuzzleOceanCampaign
   gameTitle: COLOR THE GREY
   playLabel: PLAY
+  creditsLabel: CREDITS
   quitLabel: QUIT
+  creditsSettings: {fileID: 11400000, guid: a6e64f4d15114f0d84fd20c9abf8933a, type: 2}
   panelSize: {x: 620, y: 470}
   buttonSize: {x: 300, y: 64}
   titleFontSize: 64

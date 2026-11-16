@@ -1,6 +1,7 @@
 using System.Collections;
 using ColorPuzzle.Rendering;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace ColorPuzzle
 {
@@ -18,6 +19,13 @@ namespace ColorPuzzle
         [SerializeField] private GameObject glassCasing;
         [SerializeField, Min(0f)] private float glassFadeDuration = 1.1f;
         [SerializeField, Min(0)] private int campaignStageIndex = 3;
+
+        [Header("End credits")]
+        [SerializeField] private bool playEndCredits = true;
+        [SerializeField, Min(0f)] private float creditsDelayAfterRestoration = 60f;
+        [SerializeField] private CreditsPresentationSettings creditsSettings;
+        [SerializeField] private string creditsClosingLine = "Thank you for playing Color the Grey!";
+        [SerializeField] private string menuSceneName = "ColorPuzzleStartMenu";
 
         private static readonly int FresnelBrightness = Shader.PropertyToID("_FresnelBrightness");
         private static readonly int FresnelPower = Shader.PropertyToID("_FresnelPower");
@@ -75,8 +83,39 @@ namespace ColorPuzzle
             Vector3 revealOrigin = heartRenderer != null ? heartRenderer.bounds.center : transform.position;
             magnifier?.RestoreWorldColor(revealOrigin);
             CompleteCampaign();
+            if (playEndCredits) StartCoroutine(PlayEndCreditsAfterRestoration(magnifier));
         }
 
         private void CompleteCampaign() => OceanCampaignManager.Active?.CompleteStage(campaignStageIndex);
+
+        private IEnumerator PlayEndCreditsAfterRestoration(MagnifierView magnifier)
+        {
+            if (magnifier != null)
+                yield return new WaitUntil(() => magnifier.IsWorldRestored);
+            yield return new WaitForSecondsRealtime(creditsDelayAfterRestoration);
+            if (creditsSettings == null)
+            {
+                Debug.LogError("Assign Credits Presentation Settings on Final Heart Victory.", this);
+                yield break;
+            }
+            CreditsSequence.PlayRollingSequence(
+                this,
+                creditsSettings.Heading,
+                creditsSettings.CreditsText,
+                creditsClosingLine,
+                creditsSettings.RollDuration,
+                creditsSettings.HoldDuration,
+                false,
+                ReturnToMainMenu);
+        }
+
+        private void ReturnToMainMenu()
+        {
+            OceanCampaignManager.Active?.ResetSavedProgress();
+            if (Application.CanStreamedLevelBeLoaded(menuSceneName))
+                SceneManager.LoadScene(menuSceneName);
+            else
+                Debug.LogError($"Cannot load credits return scene '{menuSceneName}'. Add it to Build Settings.", this);
+        }
     }
 }

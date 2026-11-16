@@ -1595,88 +1595,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6624632397855646244, guid: 29611a37544b940c6a62a96070240f72, type: 3}
   m_PrefabInstance: {fileID: 674889141}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &706647072
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 706647073}
-  - component: {fileID: 706647075}
-  - component: {fileID: 706647074}
-  m_Layer: 0
-  m_Name: Magnifier Reward
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &706647073
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 706647072}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0.30004904, y: 0.697174, z: 0.49612054, w: 0.42164376}
-  m_LocalPosition: {x: 0.36, y: 1.12, z: 7.42}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 863733930}
-  m_Father: {fileID: 1356294}
-  m_LocalEulerAnglesHint: {x: -70.873, y: 117.67, z: 0}
---- !u!114 &706647074
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 706647072}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 668807a56be794188bb5d877662f3770, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.MagnifierPickup
-  visualRoot: {fileID: 863733929}
-  pickupCollider: {fileID: 706647075}
-  pickupClip: {fileID: 8300000, guid: 2ea4f328e092346ecbaa9fd4f1aab5ba, type: 3}
-  pickupVolume: 0.18
-  showPickupGlow: 1
-  glowColor: {r: 0.22, g: 0.85, b: 1, a: 1}
-  glowBaseIntensity: 1.15
-  glowPulseIntensity: 0.65
-  glowBaseRange: 2.2
-  glowPulseRange: 0.25
-  glowPulseSpeed: 1.25
-  glowOffset: {x: 0, y: 0.18, z: 0.18}
-  glowRimBaseBrightness: 0.16
-  glowRimPulseBrightness: 0.12
-  glowRimSize: 0.38
---- !u!135 &706647075
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 706647072}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.46
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1001 &726979257
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2000,116 +1918,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3650121685576281552, guid: 268c999065976458e8659ba20f724bb1, type: 3}
   m_PrefabInstance: {fileID: 769182304}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &863733929
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 863733930}
-  - component: {fileID: 863733933}
-  - component: {fileID: 863733932}
-  - component: {fileID: 863733931}
-  m_Layer: 0
-  m_Name: magnifier.fbx Visual
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &863733930
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 863733929}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0.6830127, y: 0.1830127, z: 0.1830127, w: 0.6830127}
-  m_LocalPosition: {x: 0.0035125243, y: -0.17325537, z: 0.3}
-  m_LocalScale: {x: 103.06772, y: 103.06772, z: 103.06772}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 706647073}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &863733931
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 863733929}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5fa90e9b0b6f48aeab877f073df59e62, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
-  greyscaleMaterials:
-  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400021, type: 2}
-  colorMaterials:
-  - {fileID: 2100000, guid: 435e036c32be843fcb7806c76a02f1bc, type: 2}
-  legacyColorProxy: {fileID: 0}
-  useColorViewTint: 0
-  colorViewTint: {r: 1, g: 1, b: 1, a: 1}
---- !u!23 &863733932
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 863733929}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400021, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_MaskInteraction: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &863733933
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 863733929}
-  m_Mesh: {fileID: -7387706064836869012, guid: 87606ddf21c1a4983b70653f234c930c, type: 3}
 --- !u!1001 &942518862
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3567,7 +3375,7 @@ MonoBehaviour:
   greyscaleMaterials:
   - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400021, type: 2}
   colorMaterials:
-  - {fileID: 2100000, guid: 435e036c32be843fcb7806c76a02f1bc, type: 2}
+  - {fileID: 2100000, guid: d4143b311b149402f917bb71ee22f74b, type: 2}
   legacyColorProxy: {fileID: 0}
   useColorViewTint: 0
   colorViewTint: {r: 1, g: 1, b: 1, a: 1}
@@ -4045,9 +3853,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8180447643225140057, guid: 5aa419913a468406da199e5448b33552, type: 3}
       insertIndex: 8
       addedObject: {fileID: 739174622}
-    - targetCorrespondingSourceObject: {fileID: 8180447643225140057, guid: 5aa419913a468406da199e5448b33552, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 706647073}
     - targetCorrespondingSourceObject: {fileID: 8180447643225140057, guid: 5aa419913a468406da199e5448b33552, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1880447247}

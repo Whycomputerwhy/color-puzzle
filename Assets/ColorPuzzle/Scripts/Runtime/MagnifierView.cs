@@ -212,6 +212,7 @@ namespace ColorPuzzle
 
         public bool IsActive => active;
         public bool IsFullColorView => worldRestored || currentDevViewMode == DevViewMode.FullColor;
+        public bool IsWorldRestored => worldRestored;
         public bool IsValueSearchMode => !worldRestored && currentPuzzleMode == PuzzleMode.ValueSearch;
         public bool IsDeveloperPanelOpen => developerPanelOpen;
         public bool HasMagnifier => magnifierUnlocked;
