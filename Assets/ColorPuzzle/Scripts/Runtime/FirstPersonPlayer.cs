@@ -207,8 +207,7 @@ namespace ColorPuzzle
 
         private void UpdateFootsteps(Vector3 planarVelocity, bool wasGrounded)
         {
-            if (!wasGrounded || planarVelocity.sqrMagnitude < 0.01f ||
-                footstepClips == null || footstepClips.Length == 0)
+            if (!wasGrounded || planarVelocity.sqrMagnitude < 0.01f)
             {
                 distanceSinceFootstep = 0f;
                 return;
@@ -225,11 +224,17 @@ namespace ColorPuzzle
         {
             if (!useFootstepForJump) return;
             distanceSinceFootstep = 0f;
+            GameAudioMaster master = GameAudioMaster.Instance;
+            if (master != null && master.Library != null && master.PlaySfx(master.Library.jumpWater))
+                return;
             PlayFootstep(jumpFootstepVolume);
         }
 
         private void PlayFootstep(float volume)
         {
+            GameAudioMaster master = GameAudioMaster.Instance;
+            if (master != null && master.Library != null && master.PlaySfx(master.Library.footstepsSand))
+                return;
             if (footstepClips == null || footstepClips.Length == 0) return;
 
             int index = Random.Range(0, footstepClips.Length);

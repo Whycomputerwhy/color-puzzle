@@ -106,8 +106,11 @@ namespace ColorPuzzle
                 foreach (NumberDial candidate in dials)
                     candidate.enabled = false;
             if (revealPuzzleColorOnSuccess) RevealPuzzleColor();
+            GameAudioMaster master = GameAudioMaster.Instance;
+            if (master == null || master.Library == null || !master.PlaySfx(master.Library.puzzleCorrect))
             if (correctCombinationClip != null)
                 audioSource.PlayOneShot(correctCombinationClip, correctCombinationVolume);
+            master?.PlaySfx(master.Library?.puzzleElementColorReveal);
             if (finalHeartVictory != null)
                 finalHeartVictory.Play();
             else
@@ -180,7 +183,9 @@ namespace ColorPuzzle
         private void PlayFailedAttemptFeedback()
         {
             TelemetryManager.RecordFailedAttempt();
-            if (wrongCombinationClip != null)
+            GameAudioMaster master = GameAudioMaster.Instance;
+            if ((master == null || master.Library == null || !master.PlaySfx(master.Library.puzzleFail)) &&
+                wrongCombinationClip != null)
                 audioSource.PlayOneShot(wrongCombinationClip, wrongCombinationVolume);
             if (feedbackRoutine != null) StopCoroutine(feedbackRoutine);
             feedbackRoutine = StartCoroutine(FlashFailure());

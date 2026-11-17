@@ -134,7 +134,7 @@ namespace ColorPuzzle
                 if (!hole.IsCorrectlyFilled)
                 {
                     TelemetryManager.RecordFailedAttempt();
-                    Play(wrongPlacementClip, wrongPlacementVolume);
+                    PlayPuzzleCue(false);
                     // Begins in the same frame as the audio: a short, restrained
                     // whole-combination response rather than a penalty per key.
                     StartCoroutine(PlayPearlGlow(
@@ -156,7 +156,8 @@ namespace ColorPuzzle
             }
             SetPuzzleAppearance(true, true);
             RevealPuzzleTwoFishInNormalView();
-            Play(correctPlacementMusic, correctPlacementVolume);
+            PlayPuzzleCue(true);
+            GameAudioMaster.Instance?.PlaySfx(GameAudioMaster.Instance.Library?.puzzleElementColorReveal);
             StartCoroutine(PlayVictoryEffect());
             return true;
         }
@@ -171,6 +172,8 @@ namespace ColorPuzzle
                 if (stageIndex == 0) campaign?.RevealMagnifierReward();
                 yield break;
             }
+            GameAudioMaster master = GameAudioMaster.Instance;
+            master?.PlaySfx(master.Library?.clamOpen);
             DualViewMaterial[] casingViews = casing.GetComponentsInChildren<DualViewMaterial>(true);
             float elapsed = 0f;
             do
@@ -297,6 +300,17 @@ namespace ColorPuzzle
         private void Play(AudioClip clip, float volume)
         {
             if (clip != null) audioSource.PlayOneShot(clip, volume);
+        }
+
+        private void PlayPuzzleCue(bool correct)
+        {
+            GameAudioMaster master = GameAudioMaster.Instance;
+            AudioCueSlot cue = master != null && master.Library != null
+                ? (correct ? master.Library.puzzleCorrect : master.Library.puzzleFail)
+                : null;
+            if (master != null && master.PlaySfx(cue)) return;
+            Play(correct ? correctPlacementMusic : wrongPlacementClip,
+                correct ? correctPlacementVolume : wrongPlacementVolume);
         }
 
         private static Transform FindChildNamed(Transform parent, string name)

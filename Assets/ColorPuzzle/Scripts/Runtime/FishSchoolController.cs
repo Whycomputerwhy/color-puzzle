@@ -38,6 +38,7 @@ namespace ColorPuzzle
         private const string EditorPreviewContainerName = "Fish Preview (Editor Only)";
         private const string RuntimeContainerName = "Spawned Fish";
         private bool colorInNormalView;
+        private AudioSource swimAudioSource;
 #if UNITY_EDITOR
         private bool refreshQueued;
 #endif
@@ -45,10 +46,12 @@ namespace ColorPuzzle
         private void OnEnable()
         {
             RefreshSchool();
+            if (Application.isPlaying) StartSwimAudio();
         }
 
         private void OnDisable()
         {
+            if (swimAudioSource != null) swimAudioSource.Stop();
             ClearSchool();
         }
 
@@ -134,6 +137,20 @@ namespace ColorPuzzle
             foreach (FishGroup group in fishGroups)
                 if (group.prefab != null && group.count > 0) return true;
             return false;
+        }
+
+        private void StartSwimAudio()
+        {
+            GameAudioMaster master = GameAudioMaster.Instance;
+            AudioCueSlot cue = master != null && master.Library != null ? master.Library.fishSwim : null;
+            if (cue == null || cue.clips == null || cue.clips.Length == 0 || cue.clips[0] == null) return;
+            if (swimAudioSource == null) swimAudioSource = gameObject.AddComponent<AudioSource>();
+            swimAudioSource.clip = cue.clips[0];
+            swimAudioSource.loop = true;
+            swimAudioSource.playOnAwake = false;
+            swimAudioSource.spatialBlend = cue.spatial ? 1f : 0f;
+            swimAudioSource.volume = master.SfxOutputVolume * cue.volume;
+            swimAudioSource.Play();
         }
 
         private void ClearSchool()

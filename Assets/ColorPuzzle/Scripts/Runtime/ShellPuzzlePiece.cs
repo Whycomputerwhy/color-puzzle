@@ -166,7 +166,7 @@ namespace ColorPuzzle
             }
             carried = true;
             SetVisibleAndSolid(false);
-            Play(pickupClip, pickupVolume);
+            PlayPickupAudio();
             return true;
         }
 
@@ -212,7 +212,7 @@ namespace ColorPuzzle
         {
             transform.position = restingPosition;
             SetVisibleAndSolid(true);
-            Play(dropClip, dropVolume);
+            PlayDropAudio();
             if (playerCollider != null && OverlapsPlayer(playerCollider))
             {
                 ignoredPlayerCollider = playerCollider;
@@ -237,7 +237,7 @@ namespace ColorPuzzle
             // Every key stays pickable until the complete combination is confirmed.
             SetRenderersEnabled(true);
             SetCollidersEnabled(true);
-            Play(dropClip, dropVolume);
+            PlayDropAudio();
         }
 
         /// <summary>Places this reusable key into Puzzle 4's authored dial slot.</summary>
@@ -257,7 +257,7 @@ namespace ColorPuzzle
             temporaryDialSlot = slot;
             SetRenderersEnabled(true);
             SetCollidersEnabled(true);
-            Play(dropClip, dropVolume);
+            PlayDropAudio();
             return true;
         }
 
@@ -348,6 +348,20 @@ namespace ColorPuzzle
         }
 
         private void OnDisable() => RestorePlayerCollision();
+
+        private void PlayPickupAudio()
+        {
+            GameAudioMaster master = GameAudioMaster.Instance;
+            if (master != null && master.Library != null && master.PlaySfx(master.Library.pickupSand)) return;
+            Play(pickupClip, pickupVolume);
+        }
+
+        private void PlayDropAudio()
+        {
+            GameAudioMaster master = GameAudioMaster.Instance;
+            if (master != null && master.Library != null && master.PlaySfx(master.Library.dropSand)) return;
+            Play(dropClip, dropVolume);
+        }
 
         private void Play(AudioClip clip, float volume)
         {

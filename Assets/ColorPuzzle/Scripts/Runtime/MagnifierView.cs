@@ -300,6 +300,12 @@ namespace ColorPuzzle
 
         private void Update()
         {
+            if (backgroundMusicSource != null && GameAudioMaster.Instance != null &&
+                GameAudioMaster.Instance.IsLayeredOceanMusicPlaying)
+            {
+                backgroundMusicSource.Stop();
+                if (backgroundMusicAlternateSource != null) backgroundMusicAlternateSource.Stop();
+            }
             if (PauseMenuController.IsPaused) return;
             if (enableDeveloperPanel && developerPanelToggleKey != Key.None && Keyboard.current != null &&
                 Keyboard.current[developerPanelToggleKey].wasPressedThisFrame)
@@ -344,11 +350,14 @@ namespace ColorPuzzle
 
         private void SetActive(bool value)
         {
+            bool wasActive = active;
             active = value &&
                      magnifierUnlocked &&
                      !worldRestored &&
                      currentPuzzleMode == PuzzleMode.ColorSearch &&
                      currentDevViewMode == DevViewMode.PuzzleView;
+            if (active && !wasActive)
+                GameAudioMaster.Instance?.PlaySfx(GameAudioMaster.Instance.Library?.magnifierOpen);
             if (value && resetLensToCenterOnOpen)
             {
                 lensScreenPosition = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);

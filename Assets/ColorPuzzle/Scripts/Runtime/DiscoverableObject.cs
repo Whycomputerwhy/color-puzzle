@@ -262,12 +262,18 @@ namespace ColorPuzzle
 
         private void PlayDropAudio()
         {
+            GameAudioMaster master = GameAudioMaster.Instance;
+            if (master != null && master.Library != null && master.PlaySfx(master.Library.dropSand))
+                return;
             if (dropAudioSource != null && dropClip != null)
                 dropAudioSource.PlayOneShot(dropClip, dropVolume);
         }
 
         private void PlayPickupAudio()
         {
+            GameAudioMaster master = GameAudioMaster.Instance;
+            if (master != null && master.Library != null && master.PlaySfx(master.Library.pickupSand))
+                return;
             if (dropAudioSource != null && pickupClip != null)
                 dropAudioSource.PlayOneShot(pickupClip, pickupVolume);
         }

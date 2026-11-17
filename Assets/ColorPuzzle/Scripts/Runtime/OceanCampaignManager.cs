@@ -69,6 +69,11 @@ namespace ColorPuzzle
             // the only visible model in the scene.
             magnifierPickup?.SetAvailable(!magnifierSkillUnlocked);
             ConfigureAuthoredProgression();
+            SyncLayeredMusicWithPuzzleProgress();
+            // The soundtrack starts here too, after the campaign's saved progress
+            // is known. This makes direct scene launches and menu launches behave
+            // identically.
+            GameAudioMaster.Instance?.StartLayeredOceanMusic();
             ApplyPendingDeveloperStageJump();
             StartCoroutine(PlacePlayerAfterSetup());
         }
@@ -78,6 +83,7 @@ namespace ColorPuzzle
             yield return null;
             MovePlayerToCheckpoint(currentStageIndex);
             TelemetryManager.BeginCampaignStage(currentStageIndex + 1);
+            SyncLayeredMusicWithPuzzleProgress();
             RestoreColorForFinalStageIfNeeded();
         }
 
@@ -127,6 +133,7 @@ namespace ColorPuzzle
         {
             if (!CanAttemptStage(stageIndex)) return false;
             completedStages[stageIndex] = true;
+            GameAudioMaster.Instance?.SetOceanMusicPuzzleCompleted(stageIndex + 1, true);
 
             // Puzzle 2 and Puzzle 3 form an unordered pair. Their telemetry is
             // finalized against the puzzle actually solved, not a fixed campaign slot.
@@ -150,6 +157,16 @@ namespace ColorPuzzle
 
             SaveProgress();
             return true;
+        }
+
+        private void SyncLayeredMusicWithPuzzleProgress()
+        {
+            GameAudioMaster audio = GameAudioMaster.Instance;
+            if (audio == null || completedStages == null) return;
+
+            audio.StartLayeredOceanMusic();
+            for (int stageIndex = 0; stageIndex < completedStages.Length; stageIndex++)
+                audio.SetOceanMusicPuzzleCompleted(stageIndex + 1, completedStages[stageIndex], 0f);
         }
 
         /// <summary>
@@ -283,6 +300,7 @@ namespace ColorPuzzle
                 stages[index].DialLock?.CompleteForProgressRestore();
                 stages[index].CompletionBeacon?.CompleteForDeveloperSkip();
             }
+            SyncLayeredMusicWithPuzzleProgress();
         }
 
         public void ReloadCheckpoint()

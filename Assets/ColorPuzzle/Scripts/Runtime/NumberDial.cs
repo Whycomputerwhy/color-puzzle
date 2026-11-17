@@ -24,6 +24,8 @@ namespace ColorPuzzle
         {
             currentValue = currentValue >= 10 ? 1 : currentValue + 1;
             RefreshVisual();
+            GameAudioMaster master = GameAudioMaster.Instance;
+            master?.PlaySfx(master.Library?.puzzleDial);
         }
 
         private void RefreshVisual()

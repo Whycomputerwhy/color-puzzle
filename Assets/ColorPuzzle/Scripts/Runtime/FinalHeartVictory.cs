@@ -36,11 +36,16 @@ namespace ColorPuzzle
         {
             if (played) return;
             played = true;
+            // The fourth musical layer belongs to accepting Puzzle 4, not to the
+            // later glass/world-reveal animation.
+            GameAudioMaster.Instance?.SetOceanMusicPuzzleCompleted(campaignStageIndex + 1, true);
             StartCoroutine(PlaySequence());
         }
 
         private IEnumerator PlaySequence()
         {
+            GameAudioMaster master = GameAudioMaster.Instance;
+            master?.PlaySfx(master.Library?.heartProgress);
             MaterialPropertyBlock original = new MaterialPropertyBlock();
             if (heartRenderer != null) heartRenderer.GetPropertyBlock(original);
             float elapsed = 0f;
@@ -81,6 +86,8 @@ namespace ColorPuzzle
             // also prevents the manager's completion fallback from replacing it.
             MagnifierView magnifier = FindAnyObjectByType<MagnifierView>();
             Vector3 revealOrigin = heartRenderer != null ? heartRenderer.bounds.center : transform.position;
+            master = GameAudioMaster.Instance;
+            master?.PlaySfx(master.Library?.finalWorldColorReveal);
             magnifier?.RestoreWorldColor(revealOrigin);
             CompleteCampaign();
             if (playEndCredits) StartCoroutine(PlayEndCreditsAfterRestoration(magnifier));
