@@ -217,7 +217,8 @@ namespace ColorPuzzle
             {
                 ignoredPlayerCollider = playerCollider;
                 foreach (Collider pieceCollider in colliders)
-                    Physics.IgnoreCollision(pieceCollider, playerCollider, true);
+                    if (pieceCollider != null)
+                        Physics.IgnoreCollision(pieceCollider, playerCollider, true);
                 collisionRestore = StartCoroutine(RestoreCollisionAfterPlayerExits());
             }
         }
@@ -295,6 +296,7 @@ namespace ColorPuzzle
             Bounds bounds = default;
             foreach (Renderer visual in visualRenderers)
             {
+                if (visual == null) continue;
                 if (!visual.gameObject.activeInHierarchy) continue;
                 if (!found) { bounds = visual.bounds; found = true; }
                 else bounds.Encapsulate(visual.bounds);
@@ -310,18 +312,23 @@ namespace ColorPuzzle
 
         private void SetRenderersEnabled(bool enabled)
         {
-            foreach (Renderer visual in visualRenderers) visual.enabled = enabled;
+            // Some visual helpers are created and disposed at runtime. Keep the
+            // key functional if one of those renderers was removed after Awake.
+            foreach (Renderer visual in visualRenderers)
+                if (visual != null) visual.enabled = enabled;
         }
 
         private void SetCollidersEnabled(bool enabled)
         {
-            foreach (Collider pieceCollider in colliders) pieceCollider.enabled = enabled;
+            foreach (Collider pieceCollider in colliders)
+                if (pieceCollider != null) pieceCollider.enabled = enabled;
         }
 
         private bool OverlapsPlayer(Collider playerCollider)
         {
             foreach (Collider pieceCollider in colliders)
-                if (pieceCollider.enabled && pieceCollider.bounds.Intersects(playerCollider.bounds))
+                if (pieceCollider != null && pieceCollider.enabled &&
+                    pieceCollider.bounds.Intersects(playerCollider.bounds))
                     return true;
             return false;
         }
@@ -343,7 +350,8 @@ namespace ColorPuzzle
             }
             if (ignoredPlayerCollider != null)
                 foreach (Collider pieceCollider in colliders)
-                    Physics.IgnoreCollision(pieceCollider, ignoredPlayerCollider, false);
+                    if (pieceCollider != null)
+                        Physics.IgnoreCollision(pieceCollider, ignoredPlayerCollider, false);
             ignoredPlayerCollider = null;
         }
 

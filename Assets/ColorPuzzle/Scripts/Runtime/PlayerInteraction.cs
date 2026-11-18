@@ -98,14 +98,13 @@ namespace ColorPuzzle
 
         [Header("Inventory HUD")]
         [SerializeField] private bool showInventoryHud = true;
-        [SerializeField] private Vector2 inventoryHudSize = new Vector2(150f, 42f);
-        [SerializeField] private Vector2 inventoryHudOffset = new Vector2(0f, 92f);
-        [SerializeField, Min(0f)] private float inventoryHudGap = 8f;
-        [SerializeField, Min(8)] private int inventoryBallFontSize = 28;
-        [SerializeField, Min(8)] private int inventoryFontSize = 18;
-        [SerializeField] private Color inventoryFillColor = new Color(0.12f, 0.12f, 0.12f, 1f);
-        [SerializeField] private Color inventoryOutlineColor = Color.white;
-        [SerializeField] private Vector2 inventoryOutlineDistance = new Vector2(1f, -1f);
+        [Tooltip("Camera-relative position for the held object, in the lower-right of the player's view.")]
+        [SerializeField] private Vector3 inventoryViewModelPosition = new Vector3(0.72f, -0.5f, 1.15f);
+        [SerializeField, Min(0.1f)] private float inventoryPreviewModelSize = 0.55f;
+        [SerializeField] private Vector3 inventoryPreviewRotation = new Vector3(14f, -20f, -8f);
+        [Tooltip("Used by flat patterned stones so their marked face reads clearly in the player's hand.")]
+        [SerializeField] private Vector3 inventoryPreviewStoneRotation = new Vector3(-90f, 75f, 0f);
+        [SerializeField, Min(0f)] private float inventoryPreviewStoneVerticalOffset = 0.12f;
 
         [Header("Opening Tutorial")]
         [SerializeField] private bool showOpeningTutorial = true;
@@ -117,9 +116,11 @@ namespace ColorPuzzle
         private ShellPuzzlePiece carriedShellKey;
         private MagnifierView magnifier;
         private CharacterController playerController;
-        private GameObject inventoryHudRoot;
-        private Text inventoryLabel;
-        private Text inventoryIcon;
+        private GameObject inventoryPreviewRoot;
+        private GameObject inventoryPreviewVisual;
+        private GameObject inventoryPreviewLight;
+        private int originalViewCameraCullingMask;
+        private bool inventoryPreviewCullingConfigured;
         private GameObject tutorialHudRoot;
         private CanvasGroup tutorialCanvasGroup;
         private Text tutorialText;
@@ -1150,7 +1151,7 @@ namespace ColorPuzzle
             if (!showedPickupTutorial && (cueTarget is ShellPuzzlePiece || cueTarget is DiscoverableObject))
             {
                 showedPickupTutorial = true;
-                ShowTutorial("LMB pick up  •  LMB drop", TutorialAction.PickUpOrDrop);
+                ShowTutorial("LMB pick up / drop", TutorialAction.PickUpOrDrop);
             }
             if (!showedDialTutorial && cueTarget is NumberDial)
             {
@@ -1384,65 +1385,31 @@ namespace ColorPuzzle
 
         private void CreateInventoryHud()
         {
-            if (!showInventoryHud || statusText == null) return;
-            Canvas canvas = statusText.GetComponentInParent<Canvas>();
-            if (canvas == null) return;
+            if (!showInventoryHud || viewCamera == null) return;
+            CreateInventoryPreviewCamera();
+        }
 
-            inventoryHudRoot = new GameObject("InventoryHUD", typeof(RectTransform));
-            RectTransform panelRect = inventoryHudRoot.GetComponent<RectTransform>();
-            panelRect.SetParent(canvas.transform, false);
-            panelRect.anchorMin = panelRect.anchorMax = new Vector2(0.5f, 0f);
-            panelRect.pivot = new Vector2(0.5f, 0f);
-            panelRect.anchoredPosition = inventoryHudOffset;
-            panelRect.sizeDelta = inventoryHudSize;
-            panelRect.SetAsLastSibling();
+        private void CreateInventoryPreviewCamera()
+        {
+            const int previewLayer = 11;
+            inventoryPreviewRoot = new GameObject("CarriedObjectViewModel");
+            inventoryPreviewRoot.transform.SetParent(viewCamera.transform, false);
+            inventoryPreviewRoot.transform.localPosition = inventoryViewModelPosition;
+            inventoryPreviewRoot.layer = previewLayer;
+            originalViewCameraCullingMask = viewCamera.cullingMask;
+            viewCamera.cullingMask |= 1 << previewLayer;
+            inventoryPreviewCullingConfigured = true;
 
-            Font hudFont = statusText.font != null
-                ? statusText.font
-                : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-
-            float ballSlotWidth = Mathf.Max(inventoryBallFontSize, inventoryHudSize.y);
-            GameObject ballObject = new GameObject(
-                "BallShape",
-                typeof(RectTransform),
-                typeof(CanvasRenderer),
-                typeof(Text),
-                typeof(Outline));
-            RectTransform ballRect = ballObject.GetComponent<RectTransform>();
-            ballRect.SetParent(panelRect, false);
-            ballRect.anchorMin = new Vector2(0f, 0f);
-            ballRect.anchorMax = new Vector2(0f, 1f);
-            ballRect.pivot = new Vector2(0f, 0.5f);
-            ballRect.anchoredPosition = Vector2.zero;
-            ballRect.sizeDelta = new Vector2(ballSlotWidth, 0f);
-            inventoryIcon = ballObject.GetComponent<Text>();
-            inventoryIcon.font = hudFont;
-            inventoryIcon.fontSize = inventoryBallFontSize;
-            inventoryIcon.alignment = TextAnchor.MiddleCenter;
-            inventoryIcon.color = inventoryFillColor;
-            inventoryIcon.text = "●";
-            inventoryIcon.raycastTarget = false;
-            ConfigureInventoryOutline(ballObject.GetComponent<Outline>());
-
-            GameObject labelObject = new GameObject(
-                "ObjectLabel",
-                typeof(RectTransform),
-                typeof(CanvasRenderer),
-                typeof(Text),
-                typeof(Outline));
-            RectTransform labelRect = labelObject.GetComponent<RectTransform>();
-            labelRect.SetParent(panelRect, false);
-            labelRect.anchorMin = Vector2.zero;
-            labelRect.anchorMax = Vector2.one;
-            labelRect.offsetMin = new Vector2(ballSlotWidth + inventoryHudGap, 0f);
-            labelRect.offsetMax = Vector2.zero;
-            inventoryLabel = labelObject.GetComponent<Text>();
-            inventoryLabel.font = hudFont;
-            inventoryLabel.fontSize = inventoryFontSize;
-            inventoryLabel.alignment = TextAnchor.MiddleLeft;
-            inventoryLabel.color = inventoryFillColor;
-            inventoryLabel.raycastTarget = false;
-            ConfigureInventoryOutline(labelObject.GetComponent<Outline>());
+            inventoryPreviewLight = new GameObject("InventoryModelLight", typeof(Light));
+            inventoryPreviewLight.transform.SetParent(viewCamera.transform, false);
+            inventoryPreviewLight.transform.localRotation = Quaternion.Euler(16f, -10f, 0f);
+            Light previewLight = inventoryPreviewLight.GetComponent<Light>();
+            previewLight.type = LightType.Directional;
+            previewLight.intensity = 3f;
+            previewLight.color = Color.white;
+            previewLight.shadows = LightShadows.None;
+            previewLight.renderingLayerMask = -1;
+            previewLight.cullingMask = 1 << previewLayer;
         }
 
         private void CreateTutorialHud()
@@ -1457,17 +1424,17 @@ namespace ColorPuzzle
             rect.SetParent(canvas.transform, false);
             rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0f);
             rect.pivot = new Vector2(0.5f, 0f);
-            rect.anchoredPosition = inventoryHudOffset;
-            rect.sizeDelta = inventoryHudSize;
+            rect.anchoredPosition = new Vector2(0f, 92f);
+            rect.sizeDelta = new Vector2(300f, 42f);
             rect.SetAsLastSibling();
 
             tutorialText = tutorialHudRoot.GetComponent<Text>();
             tutorialText.font = statusText.font != null
                 ? statusText.font
                 : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            tutorialText.fontSize = inventoryFontSize;
+            tutorialText.fontSize = 18;
             tutorialText.alignment = TextAnchor.MiddleCenter;
-            tutorialText.color = inventoryFillColor;
+            tutorialText.color = new Color(0.12f, 0.12f, 0.12f, 1f);
             tutorialText.horizontalOverflow = HorizontalWrapMode.Overflow;
             tutorialText.verticalOverflow = VerticalWrapMode.Overflow;
             tutorialText.raycastTarget = false;
@@ -1549,23 +1516,108 @@ namespace ColorPuzzle
             tutorialCanvasGroup.alpha = to;
         }
 
-        private void ConfigureInventoryOutline(Outline outline)
-        {
-            if (outline == null) return;
-            outline.effectColor = inventoryOutlineColor;
-            outline.effectDistance = inventoryOutlineDistance;
-            outline.useGraphicAlpha = true;
-        }
-
         private void RefreshInventoryHud()
         {
-            if (inventoryHudRoot == null) return;
+            if (inventoryPreviewRoot == null) return;
             bool hasObject = carried != null || carriedShellKey != null;
-            bool tutorialIsShowing = tutorialHudRoot != null && tutorialHudRoot.activeSelf;
-            inventoryHudRoot.SetActive(hasObject && !tutorialIsShowing);
+            // The tutorial occupies the lower centre, while the carried object
+            // reads as a right-hand view model. Keeping both visible makes the
+            // first pickup immediately legible instead of hiding the model.
+            inventoryPreviewRoot.SetActive(hasObject);
             if (!hasObject) return;
-            inventoryLabel.text = carriedShellKey != null ? "Shell Key" : carried.DisplayName;
-            if (inventoryIcon != null) inventoryIcon.text = carriedShellKey != null ? "■" : "●";
+            RebuildInventoryPreview(carriedShellKey != null
+                ? carriedShellKey.transform
+                : carried.transform);
+        }
+
+        private void RebuildInventoryPreview(Transform source)
+        {
+            if (inventoryPreviewRoot == null || source == null) return;
+            if (inventoryPreviewVisual != null) Destroy(inventoryPreviewVisual);
+
+            inventoryPreviewVisual = new GameObject("Carried Object Visual");
+            inventoryPreviewVisual.transform.SetParent(inventoryPreviewRoot.transform, false);
+            ShellPuzzlePiece sourcePiece = source.GetComponent<ShellPuzzlePiece>();
+            bool isPatternStone = sourcePiece != null && sourcePiece.PearlRenderer == null;
+            inventoryPreviewVisual.transform.localRotation = Quaternion.Euler(
+                isPatternStone ? inventoryPreviewStoneRotation : inventoryPreviewRotation);
+            CopyVisualHierarchy(source, inventoryPreviewVisual.transform);
+
+            Bounds bounds = default;
+            bool hasBounds = false;
+            foreach (Renderer renderer in inventoryPreviewVisual.GetComponentsInChildren<Renderer>(true))
+            {
+                if (!renderer.enabled) continue;
+                if (!hasBounds) { bounds = renderer.bounds; hasBounds = true; }
+                else bounds.Encapsulate(renderer.bounds);
+            }
+            if (!hasBounds) return;
+
+            inventoryPreviewVisual.transform.position += inventoryPreviewRoot.transform.position - bounds.center;
+            float largestDimension = Mathf.Max(bounds.size.x, Mathf.Max(bounds.size.y, bounds.size.z));
+            float scale = largestDimension > 0.0001f ? inventoryPreviewModelSize / largestDimension : 1f;
+            inventoryPreviewVisual.transform.localScale = Vector3.one * scale;
+
+            // Scaling around an imported model's root can shift its mesh. Centre
+            // it again after scaling so every carried model sits consistently in
+            // the lower-right preview.
+            Bounds scaledBounds = default;
+            bool hasScaledBounds = false;
+            foreach (Renderer renderer in inventoryPreviewVisual.GetComponentsInChildren<Renderer>(true))
+            {
+                if (!renderer.enabled) continue;
+                if (!hasScaledBounds) { scaledBounds = renderer.bounds; hasScaledBounds = true; }
+                else scaledBounds.Encapsulate(renderer.bounds);
+            }
+            if (hasScaledBounds)
+                inventoryPreviewVisual.transform.position += inventoryPreviewRoot.transform.position - scaledBounds.center;
+            if (isPatternStone)
+                inventoryPreviewVisual.transform.localPosition +=
+                    Vector3.up * inventoryPreviewStoneVerticalOffset;
+        }
+
+        private void CopyVisualHierarchy(Transform source, Transform parent)
+        {
+            // DualViewMaterial creates a hidden runtime-only mesh called
+            // ColorSphereRevealProxy. The normal game cameras toggle it for the
+            // world-reveal effect, but a hand-held copy must never duplicate it:
+            // rendering that proxy over the real mesh causes a dark, outline-like
+            // slab. Inactive legacy colour proxies are likewise not presentation
+            // geometry for the normal view model.
+            if (source == null || !source.gameObject.activeSelf ||
+                source.name == "ColorSphereRevealProxy")
+                return;
+
+            GameObject copy = new GameObject(source.name);
+            copy.layer = 11;
+            copy.transform.SetParent(parent, false);
+            copy.transform.localPosition = source.localPosition;
+            copy.transform.localRotation = source.localRotation;
+            copy.transform.localScale = source.localScale;
+
+            MeshFilter sourceFilter = source.GetComponent<MeshFilter>();
+            MeshRenderer sourceRenderer = source.GetComponent<MeshRenderer>();
+            if (sourceFilter != null && sourceRenderer != null)
+            {
+                MeshFilter filter = copy.AddComponent<MeshFilter>();
+                filter.sharedMesh = sourceFilter.sharedMesh;
+                MeshRenderer renderer = copy.AddComponent<MeshRenderer>();
+                renderer.sharedMaterials = sourceRenderer.sharedMaterials;
+                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                renderer.receiveShadows = false;
+                MaterialPropertyBlock properties = new MaterialPropertyBlock();
+                sourceRenderer.GetPropertyBlock(properties);
+                if (sourceRenderer.sharedMaterial != null &&
+                    sourceRenderer.sharedMaterial.HasProperty("_LowIntensity"))
+                {
+                    properties.SetFloat("_LowIntensity", 1f);
+                    properties.SetColor("_LowColor", new Color(0.68f, 0.79f, 0.88f, 1f));
+                }
+                renderer.SetPropertyBlock(properties);
+            }
+
+            foreach (Transform child in source)
+                CopyVisualHierarchy(child, copy.transform);
         }
 
         private void OnDisable()
@@ -1577,6 +1629,11 @@ namespace ColorPuzzle
         {
             if (interactionCueTextRoot != null) Destroy(interactionCueTextRoot);
             if (tutorialHudRoot != null) Destroy(tutorialHudRoot);
+            if (inventoryPreviewVisual != null) Destroy(inventoryPreviewVisual);
+            if (inventoryPreviewRoot != null) Destroy(inventoryPreviewRoot);
+            if (inventoryPreviewLight != null) Destroy(inventoryPreviewLight);
+            if (viewCamera != null && inventoryPreviewCullingConfigured)
+                viewCamera.cullingMask = originalViewCameraCullingMask;
             InteractionOutlineRuntime.Hide();
         }
     }

@@ -542,14 +542,11 @@ MonoBehaviour:
   interactionCueColorGlowColor: {r: 1, g: 1, b: 1, a: 0.86}
   interactionCueColorViewScale: 0.5
   showInventoryHud: 1
-  inventoryHudSize: {x: 150, y: 42}
-  inventoryHudOffset: {x: 0, y: 92}
-  inventoryHudGap: 8
-  inventoryBallFontSize: 32
-  inventoryFontSize: 32
-  inventoryFillColor: {r: 1, g: 1, b: 1, a: 1}
-  inventoryOutlineColor: {r: 1, g: 1, b: 1, a: 0}
-  inventoryOutlineDistance: {x: 0, y: 0}
+  inventoryViewModelPosition: {x: 0.72, y: -0.5, z: 1.15}
+  inventoryPreviewModelSize: 0.55
+  inventoryPreviewRotation: {x: 14, y: -20, z: -8}
+  inventoryPreviewStoneRotation: {x: -90, y: 75, z: 0}
+  inventoryPreviewStoneVerticalOffset: 0.12
   showOpeningTutorial: 1
   tutorialFadeDuration: 0.25
   tutorialVisibleDuration: 2
