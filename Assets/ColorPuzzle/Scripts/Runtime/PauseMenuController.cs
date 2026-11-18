@@ -19,7 +19,7 @@ namespace ColorPuzzle
         [Header("Copy")]
         [SerializeField] private string pauseTitle = "PAUSED";
         [SerializeField, TextArea(7, 12)] private string controlsText =
-            "WASD  Move\nSPACE  Jump\nRMB  Magnifier\nLMB  Pick up\nQ  Drop / place\nR  Reset level\nENTER  Developer panel\nESC  Pause";
+            "WASD  Move\nSPACE  Jump\nRMB  Magnifier\nLMB  Pick up / drop / swap\nR  Reset level\nENTER  Developer panel\nESC  Pause";
         [SerializeField] private string resumeLabel = "RESUME";
         [SerializeField] private string quitLabel = "QUIT TO MENU";
         [SerializeField] private string volumeLabel = "VOLUME";

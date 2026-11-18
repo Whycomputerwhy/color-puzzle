@@ -24,9 +24,9 @@ namespace ColorPuzzle
         }
 
         private const string ColorSearchInstructionText =
-            "WASD  •  SPACE jump  •  RMB magnifier  •  LMB pick up  •  Q drop/place  •  E activate  •  R reset";
+            "WASD  •  SPACE jump  •  RMB magnifier  •  LMB interact / pick up / drop  •  E activate  •  R reset";
         private const string ValueSearchInstructionText =
-            "WASD  •  SPACE jump  •  LMB pick up  •  Q drop/place  •  E activate  •  R reset";
+            "WASD  •  SPACE jump  •  LMB interact / pick up / drop  •  E activate  •  R reset";
 
         // Reused to avoid allocating while the player keeps their focus on a pickup.
         private readonly List<Renderer> interactionCueRenderers = new List<Renderer>();
@@ -40,8 +40,6 @@ namespace ColorPuzzle
         [SerializeField] private Color statusTextOutlineColor = new Color(1f, 1f, 1f, 0.92f);
         [SerializeField] private Vector2 statusTextOutlineDistance = new Vector2(1.5f, -1.5f);
 
-        [Header("Controls")]
-        [SerializeField] private Key dropOrPlaceKey = Key.Q;
         [SerializeField] private Key interactKey = Key.E;
         [SerializeField] private Key resetKey = Key.R;
 
@@ -207,16 +205,13 @@ namespace ColorPuzzle
             if (magnifier != null && magnifier.IsActive) { UpdateStatus(); return; }
 
             if (Keyboard.current[interactKey].wasPressedThisFrame) TryActivateStageGate();
-            if (Mouse.current.leftButton.wasPressedThisFrame && carried == null && carriedShellKey == null)
-            {
-                if (!TryBeginNumberDialHold()) TryPickUp();
-            }
-            UpdateNumberDialHold();
-            if (Keyboard.current[dropOrPlaceKey].wasPressedThisFrame)
+            if (Mouse.current.leftButton.wasPressedThisFrame)
             {
                 if (carriedShellKey != null) TryDropOrPlaceShellKey();
                 else if (carried != null) TryDropOrPlace();
+                else if (!TryBeginNumberDialHold()) TryPickUp();
             }
+            UpdateNumberDialHold();
             UpdateStatus();
         }
 
@@ -1155,7 +1150,7 @@ namespace ColorPuzzle
             if (!showedPickupTutorial && (cueTarget is ShellPuzzlePiece || cueTarget is DiscoverableObject))
             {
                 showedPickupTutorial = true;
-                ShowTutorial("LMB pick up  •  Q drop", TutorialAction.PickUpOrDrop);
+                ShowTutorial("LMB pick up  •  LMB drop", TutorialAction.PickUpOrDrop);
             }
             if (!showedDialTutorial && cueTarget is NumberDial)
             {
@@ -1212,14 +1207,14 @@ namespace ColorPuzzle
             if (carriedShellKey != null && TryFindShellKeyhole(out ShellPuzzlePiece shellGoal))
             {
                 cueTarget = shellGoal;
-                cueLabel = "Q PLACE";
+                cueLabel = "LMB PLACE";
                 return true;
             }
 
             if (carriedShellKey != null && TryFindFinalDialKeySlot(out FinalDialKeySlot dialGoal))
             {
                 cueTarget = dialGoal;
-                cueLabel = "Q PLACE";
+                cueLabel = "LMB PLACE";
                 return true;
             }
 
@@ -1227,14 +1222,14 @@ namespace ColorPuzzle
             {
                 cueTarget = goal;
                 cueBounds = goal.PlacementBounds;
-                cueLabel = "Q PLACE";
+                cueLabel = "LMB PLACE";
                 // Goal bases keep the explicit text cue but never receive object glow.
                 supportsGlow = false;
                 return true;
             }
 
             // Carrying has only one contextual cue: a valid matching placement.
-            // Ordinary drops remain available through Q but are never suggested.
+            // Ordinary left-click drops remain available but are never suggested.
             if (carried != null || carriedShellKey != null) return false;
 
             if (!TryFindNearestPickupHit(0f, out RaycastHit centerHit)) return false;
@@ -1261,7 +1256,7 @@ namespace ColorPuzzle
             if (shell != null && shell.CanPickUp)
             {
                 cueTarget = shell;
-                cueLabel = "LC PICKUP";
+                cueLabel = "LMB PICK UP";
                 cueRenderer = shell.CueRenderer;
                 cueColorRenderer = cueRenderer;
                 supportsGlow = cueRenderer != null;
@@ -1271,7 +1266,7 @@ namespace ColorPuzzle
             if (item == null) return false;
             cueTarget = item;
             cueBounds = item.InteractionCueBounds;
-            cueLabel = "LC PICKUP";
+            cueLabel = "LMB PICK UP";
             supportsGlow = true;
             cueRenderer = item.InteractionCueRenderer;
             cueColorRenderer = item.InteractionCueColorRenderer;
@@ -1510,7 +1505,7 @@ namespace ColorPuzzle
                     Keyboard.current.sKey.wasPressedThisFrame || Keyboard.current.dKey.wasPressedThisFrame ||
                     Keyboard.current.spaceKey.wasPressedThisFrame,
                 TutorialAction.PickUpOrDrop =>
-                    Mouse.current.leftButton.wasPressedThisFrame || Keyboard.current[dropOrPlaceKey].wasPressedThisFrame,
+                    Mouse.current.leftButton.wasPressedThisFrame,
                 TutorialAction.Magnifier => Mouse.current.rightButton.wasPressedThisFrame,
                 TutorialAction.RotateDial => Mouse.current.leftButton.wasPressedThisFrame,
                 _ => false

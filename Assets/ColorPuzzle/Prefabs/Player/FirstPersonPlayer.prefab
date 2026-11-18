@@ -719,11 +719,9 @@ MonoBehaviour:
 
     SPACE  Jump
 
-    LMB  Pick up
+    LMB  Pick up / drop / swap
 
     RMB  Magnifier
-
-    Q  Drop / place
 
     R  Reset level'
   resumeLabel: RESUME
