@@ -30,6 +30,8 @@ namespace ColorPuzzle
         private FinalDialKeySlot temporaryDialSlot;
         private bool correctlyMatched;
         private Transform originalParent;
+        private Quaternion originalLocalRotation;
+        private Vector3 originalLocalScale;
         private bool carried;
         private bool placed;
         private Collider ignoredPlayerCollider;
@@ -80,6 +82,8 @@ namespace ColorPuzzle
         private void Awake()
         {
             originalParent = transform.parent;
+            originalLocalRotation = transform.localRotation;
+            originalLocalScale = transform.localScale;
             visualRenderers = GetComponentsInChildren<Renderer>(true);
             colliders = GetComponentsInChildren<Collider>(true);
             // Keyhole colours are intentionally withheld as puzzle information.
@@ -163,6 +167,11 @@ namespace ColorPuzzle
                 temporaryDialSlot.RemovePlacedKey(this);
                 temporaryDialSlot = null;
                 transform.SetParent(originalParent, true);
+                // Dial slots have their own authored orientation. Returning a
+                // slab to its scale-neutral source parent must also restore the
+                // stone's intended orientation before it is carried or dropped.
+                transform.localRotation = originalLocalRotation;
+                transform.localScale = originalLocalScale;
             }
             carried = true;
             SetVisibleAndSolid(false);

@@ -123,7 +123,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5fa90e9b0b6f48aeab877f073df59e62, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
   greyscaleMaterials:
   - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400022, type: 2}
@@ -160,7 +160,7 @@ Transform:
   m_GameObject: {fileID: 1398714546857364786}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0.58778524, z: 0, w: 0.809017}
-  m_LocalPosition: {x: -0.19235522, y: 0.165, z: -0.062500045}
+  m_LocalPosition: {x: -0.19235522, y: 0.124, z: -0.062500045}
   m_LocalScale: {x: 0.29389262, y: 0.025, z: 0.045}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -252,6 +252,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8828913648926650904}
   - component: {fileID: 3225153102614337507}
+  - component: {fileID: 910100000000000002}
   m_Layer: 0
   m_Name: Pattern Stone 02 Pentagon
   m_TagString: Untagged
@@ -300,6 +301,29 @@ MonoBehaviour:
   pickupVolume: 0.16
   dropClip: {fileID: 0}
   dropVolume: 0.18
+--- !u!114 &910100000000000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6582690157152278372}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a0f2b3c4d5e6f7890abcdef12345678, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.PatternEndpointMarkers
+  endpointPositions:
+  - {x: 0, y: 0.203, z: 0.25}
+  - {x: -0.238, y: 0.203, z: 0.077}
+  - {x: -0.147, y: 0.203, z: -0.202}
+  - {x: 0.147, y: 0.203, z: -0.202}
+  - {x: 0.238, y: 0.203, z: 0.077}
+  markerRadius: 0.032
+  markerHeight: 0.016
+  heightAbovePattern: 0.001
+  greyscaleMaterial: {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400021, type: 2}
+  colorMaterial: {fileID: 2100000, guid: 19a23466cd8dd4f0c875ab5384c12c90, type: 2}
 --- !u!1 &6743175817376762682
 GameObject:
   m_ObjectHideFlags: 0
@@ -328,7 +352,7 @@ Transform:
   m_GameObject: {fileID: 6743175817376762682}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0.9510566, z: 0, w: 0.30901688}
-  m_LocalPosition: {x: 0.118882045, y: 0.165, z: 0.16362716}
+  m_LocalPosition: {x: 0.118882045, y: 0.124, z: 0.16362716}
   m_LocalScale: {x: 0.29389256, y: 0.025, z: 0.045}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -438,7 +462,7 @@ Transform:
   m_GameObject: {fileID: 7786250655132379425}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0.95105654, z: 0, w: 0.3090171}
-  m_LocalPosition: {x: -0.11888208, y: 0.165, z: 0.1636271}
+  m_LocalPosition: {x: -0.11888208, y: 0.124, z: 0.1636271}
   m_LocalScale: {x: 0.29389265, y: 0.025, z: 0.045}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -548,7 +572,7 @@ Transform:
   m_GameObject: {fileID: 8431189533091610038}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0.58778536, z: 0, w: 0.80901694}
-  m_LocalPosition: {x: 0.19235525, y: 0.165, z: -0.062499944}
+  m_LocalPosition: {x: 0.19235525, y: 0.124, z: -0.062499944}
   m_LocalScale: {x: 0.29389262, y: 0.025, z: 0.045}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -658,7 +682,7 @@ Transform:
   m_GameObject: {fileID: 8952866467331130871}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0.00000012675685, z: 0, w: 1}
-  m_LocalPosition: {x: 0.000000052154064, y: 0.165, z: -0.20225424}
+  m_LocalPosition: {x: 0.000000052154064, y: 0.124, z: -0.20225424}
   m_LocalScale: {x: 0.29389262, y: 0.025, z: 0.045}
   m_ConstrainProportionsScale: 0
   m_Children: []

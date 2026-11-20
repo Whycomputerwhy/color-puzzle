@@ -367,7 +367,7 @@ MonoBehaviour:
   visualRoot: {fileID: 3606802181945220826}
   pickupCollider: {fileID: 1033039577905567789}
   pickupClip: {fileID: 8300000, guid: 2ea4f328e092346ecbaa9fd4f1aab5ba, type: 3}
-  pickupVolume: 0.18
+  pickupVolume: 0.36
 --- !u!1 &7958122621519777259
 GameObject:
   m_ObjectHideFlags: 0

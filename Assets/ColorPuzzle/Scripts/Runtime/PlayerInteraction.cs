@@ -112,6 +112,10 @@ namespace ColorPuzzle
         [SerializeField, Min(0f), Tooltip("Minimum time each tutorial cue remains on screen. It will then wait for the player to try one of its shown actions before fading.")]
         private float tutorialVisibleDuration = 3.8f;
 
+        [Header("Contextual Hints")]
+        [SerializeField, Min(0f)] private float contextHintVisibleDuration = 4f;
+        [SerializeField, Min(0f)] private float contextHintVerticalOffset = 140f;
+
         private DiscoverableObject carried;
         private ShellPuzzlePiece carriedShellKey;
         private MagnifierView magnifier;
@@ -125,6 +129,10 @@ namespace ColorPuzzle
         private CanvasGroup tutorialCanvasGroup;
         private Text tutorialText;
         private Coroutine tutorialRoutine;
+        private GameObject contextHintHudRoot;
+        private CanvasGroup contextHintCanvasGroup;
+        private Text contextHintText;
+        private Coroutine contextHintRoutine;
         private GameObject interactionCueTextRoot;
         private Text interactionCueText;
         private Object currentCueTarget;
@@ -160,6 +168,7 @@ namespace ColorPuzzle
             ConfigureStatusTextOutline();
             CreateInventoryHud();
             CreateTutorialHud();
+            CreateContextHintHud();
             CreateInteractionCueText();
             ClearInteractionCueVisuals();
             RefreshInventoryHud();
@@ -322,10 +331,9 @@ namespace ColorPuzzle
                 }
             }
 
-            // Puzzle 4 keys rest inside a dial recess. The recess collider is
-            // intentionally in front of the stone, so a normal pickup ray hits
-            // the dial first and would otherwise make the placed key impossible
-            // to retrieve. Use the slot's authored center target as a fallback.
+            // Puzzle 4 keys rest inside a dial recess. Its collider sits in front
+            // of the stone, so use a raycast-all fallback that can reach the key
+            // only when the crosshair is actually on the key's own collider.
             if (TryFindPlacedFinalDialKeyForPickup(out ShellPuzzlePiece dialKey) &&
                 dialKey.PickUp())
             {
@@ -540,28 +548,19 @@ namespace ColorPuzzle
         }
 
         /// <summary>
-        /// Finds a removable key seated in a Puzzle 4 dial, even when the dial's
-        /// own central collider blocks the ordinary object-pickup ray.
+        /// Finds a removable key seated in a Puzzle 4 dial only when the aiming
+        /// ray actually crosses that key's collider. The dial itself must remain
+        /// free to receive rotation input around its rim.
         /// </summary>
         private bool TryFindPlacedFinalDialKeyForPickup(out ShellPuzzlePiece selectedKey)
         {
             selectedKey = null;
             if (viewCamera == null) return false;
 
-            if (TryFindAimedOccupiedFinalDialKeySlot(out FinalDialKeySlot aimedSlot))
-            {
-                ShellPuzzlePiece aimedKey = aimedSlot.PlacedKey;
-                if (aimedKey != null && aimedKey.CanPickUp)
-                {
-                    selectedKey = aimedKey;
-                    return true;
-                }
-            }
-
-            // Retain the small aim assist used by direct key-slot swaps. This is
-            // especially useful for low-profile slabs whose imported colliders do
-            // not cover the entire visible patterned face.
-            return TryFindFocusedPlacedDialKey(placementCastRadius, out selectedKey);
+            // RaycastAll sees through the dial recess collider to the stone, but
+            // unlike a spherecast or center-anchor check it cannot activate from
+            // the dial rim or an empty part of the slot.
+            return TryFindFocusedPlacedDialKey(0f, out selectedKey);
         }
 
         private bool HasFinalDialSlotLineOfSight(FinalDialKeySlot slot, Vector3 origin, Vector3 toSlot)
@@ -1272,9 +1271,9 @@ namespace ColorPuzzle
             // Ordinary left-click drops remain available but are never suggested.
             if (carried != null || carriedShellKey != null) return false;
 
-            // A Puzzle 4 dial's recess blocks the direct ray to a seated slab.
-            // Show the same cue the slab would receive in open space, so its
-            // removable state is both discoverable and consistent with the input.
+            // A Puzzle 4 dial recess sits in front of its seated slab. Show the
+            // pickup cue only when the ray reaches the slab's own collider, so
+            // aiming at the dial rim remains exclusively a rotate interaction.
             if (TryFindPlacedFinalDialKeyForPickup(out ShellPuzzlePiece seatedDialKey))
             {
                 cueTarget = seatedDialKey;
@@ -1495,6 +1494,59 @@ namespace ColorPuzzle
             tutorialHudRoot.SetActive(false);
         }
 
+        private void CreateContextHintHud()
+        {
+            if (statusText == null) return;
+            Canvas canvas = statusText.GetComponentInParent<Canvas>();
+            if (canvas == null) return;
+
+            contextHintHudRoot = new GameObject("ContextHintHUD", typeof(RectTransform),
+                typeof(CanvasRenderer), typeof(Text), typeof(CanvasGroup));
+            RectTransform rect = contextHintHudRoot.GetComponent<RectTransform>();
+            rect.SetParent(canvas.transform, false);
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = new Vector2(0f, contextHintVerticalOffset);
+            rect.sizeDelta = new Vector2(520f, 58f);
+            rect.SetAsLastSibling();
+
+            contextHintText = contextHintHudRoot.GetComponent<Text>();
+            contextHintText.font = statusText.font != null
+                ? statusText.font
+                : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            contextHintText.fontSize = 18;
+            contextHintText.alignment = TextAnchor.MiddleCenter;
+            contextHintText.color = new Color(0.12f, 0.12f, 0.12f, 1f);
+            contextHintText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            contextHintText.verticalOverflow = VerticalWrapMode.Overflow;
+            contextHintText.raycastTarget = false;
+            contextHintCanvasGroup = contextHintHudRoot.GetComponent<CanvasGroup>();
+            contextHintCanvasGroup.alpha = 0f;
+            contextHintHudRoot.SetActive(false);
+        }
+
+        /// <summary>Shows a short, non-blocking state hint above the tutorial area.</summary>
+        public void ShowContextHint(string message)
+        {
+            if (contextHintHudRoot == null || contextHintText == null || string.IsNullOrWhiteSpace(message))
+                return;
+            if (contextHintRoutine != null) StopCoroutine(contextHintRoutine);
+            contextHintRoutine = StartCoroutine(ShowContextHintRoutine(message));
+        }
+
+        private IEnumerator ShowContextHintRoutine(string message)
+        {
+            contextHintText.text = message;
+            contextHintHudRoot.SetActive(true);
+            yield return FadeCanvasGroup(contextHintCanvasGroup,
+                contextHintCanvasGroup != null ? contextHintCanvasGroup.alpha : 0f, 1f);
+            if (contextHintVisibleDuration > 0f)
+                yield return new WaitForSecondsRealtime(contextHintVisibleDuration);
+            yield return FadeCanvasGroup(contextHintCanvasGroup, 1f, 0f);
+            contextHintHudRoot.SetActive(false);
+            contextHintRoutine = null;
+        }
+
         private void ShowMagnifierTutorial()
         {
             if (showedMagnifierTutorial) return;
@@ -1552,20 +1604,25 @@ namespace ColorPuzzle
 
         private IEnumerator FadeTutorial(float from, float to)
         {
-            if (tutorialCanvasGroup == null) yield break;
+            yield return FadeCanvasGroup(tutorialCanvasGroup, from, to);
+        }
+
+        private IEnumerator FadeCanvasGroup(CanvasGroup group, float from, float to)
+        {
+            if (group == null) yield break;
             if (tutorialFadeDuration <= 0f)
             {
-                tutorialCanvasGroup.alpha = to;
+                group.alpha = to;
                 yield break;
             }
             float elapsed = 0f;
             while (elapsed < tutorialFadeDuration)
             {
                 elapsed += Time.unscaledDeltaTime;
-                tutorialCanvasGroup.alpha = Mathf.Lerp(from, to, elapsed / tutorialFadeDuration);
+                group.alpha = Mathf.Lerp(from, to, elapsed / tutorialFadeDuration);
                 yield return null;
             }
-            tutorialCanvasGroup.alpha = to;
+            group.alpha = to;
         }
 
         private void RefreshInventoryHud()
@@ -1681,6 +1738,7 @@ namespace ColorPuzzle
         {
             if (interactionCueTextRoot != null) Destroy(interactionCueTextRoot);
             if (tutorialHudRoot != null) Destroy(tutorialHudRoot);
+            if (contextHintHudRoot != null) Destroy(contextHintHudRoot);
             if (inventoryPreviewVisual != null) Destroy(inventoryPreviewVisual);
             if (inventoryPreviewRoot != null) Destroy(inventoryPreviewRoot);
             if (inventoryPreviewLight != null) Destroy(inventoryPreviewLight);

@@ -463,9 +463,9 @@ MonoBehaviour:
   - {fileID: 8300000, guid: b18a17b468ea44246a61ef03e58e9147, type: 3}
   - {fileID: 8300000, guid: fcce08823607a45d8bf9bd280f865c93, type: 3}
   footstepDistance: 2.1
-  footstepVolume: 0.12
+  footstepVolume: 0.24
   useFootstepForJump: 1
-  jumpFootstepVolume: 0.1
+  jumpFootstepVolume: 0.2
   cameraPivot: {fileID: 8214052168426382451}
   mouseSensitivity: 0.125
   verticalLookLimit: 85
@@ -581,7 +581,7 @@ MonoBehaviour:
   regularViewSkyColor: {r: 0.1, g: 0.1, b: 0.1, a: 1}
   revealViewSkyColor: {r: 0.025, g: 0.12, b: 0.22, a: 1}
   backgroundMusicClip: {fileID: 8300000, guid: 4a3ac4e7de3254598aee652ebf70190c, type: 3}
-  backgroundMusicVolume: 0.12
+  backgroundMusicVolume: 0.24
   backgroundMusicLoopDuration: 37
   backgroundMusicLoopCrossfadeDuration: 1
   backgroundMusicFadeOutDuration: 1.5

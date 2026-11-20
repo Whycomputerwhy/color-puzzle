@@ -36,12 +36,25 @@ namespace ColorPuzzle
         [Header("Checkpoint Behaviour")]
         [SerializeField] private bool resumeFromSavedCheckpoint = true;
 
+        [Header("Contextual Hints")]
+        [SerializeField] private string missingHintsMessage =
+            "Doesn't look like we have all the hints yet. Let's come back later.";
+        [SerializeField] private string fishObservationMessage =
+            "Something looks interesting about these fish...";
+        [SerializeField] private string patternObservationMessage =
+            "Something looks interesting about these patterns...";
+        [SerializeField] private string colorSequenceMessage =
+            "The colors we saw before might be useful...";
+
         private readonly List<OceanCampaignStage> stages = new List<OceanCampaignStage>();
         private static int pendingDeveloperStageNumber = -1;
         private int currentStageIndex;
         private bool[] completedStages;
         private bool campaignComplete;
         private bool magnifierSkillUnlocked;
+        private int[] blockedPuzzleInteractionCounts;
+        private int[] failedPuzzleAttemptCounts;
+        private bool[] shownContextHints;
         public static OceanCampaignManager Active { get; private set; }
         public int CurrentStageNumber => currentStageIndex + 1;
         public bool IsComplete => campaignComplete;
@@ -60,6 +73,10 @@ namespace ColorPuzzle
 
             currentStageIndex = Mathf.Clamp(resumeFromSavedCheckpoint ? PlayerPrefs.GetInt(CheckpointKey, 0) : 0, 0, stages.Count - 1);
             completedStages = new bool[stages.Count];
+            blockedPuzzleInteractionCounts = new int[stages.Count];
+            failedPuzzleAttemptCounts = new int[stages.Count];
+            // Puzzle 2: entries 0-2; Puzzle 3: entries 3-5; final puzzle: 6.
+            shownContextHints = new bool[7];
             RestoreCompletedStageProgress();
             magnifierSkillUnlocked = PlayerPrefs.GetInt(MagnifierSkillKey, 0) != 0 || currentStageIndex > 0;
             player?.GetComponent<MagnifierView>()?.SetMagnifierUnlocked(magnifierSkillUnlocked);
@@ -191,6 +208,60 @@ namespace ColorPuzzle
                 TelemetryManager.BeginStageOnePuzzleWithoutMagnifierIfNeeded();
             else if (stageIndex == 1 || stageIndex == 2 || stageIndex == 3)
                 TelemetryManager.BeginCampaignPuzzle(stageIndex + 1);
+        }
+
+        /// <summary>
+        /// Registers a player trying to use a puzzle that is still gated. This is
+        /// deliberately called by the puzzle controls, rather than by proximity,
+        /// so a hint means the player has actually tried to engage with the puzzle.
+        /// </summary>
+        public void NotifyBlockedPuzzleInteraction(int stageIndex)
+        {
+            if (CanAttemptStage(stageIndex) || blockedPuzzleInteractionCounts == null) return;
+
+            if ((stageIndex == 1 || stageIndex == 2) && !IsStageComplete(0))
+            {
+                blockedPuzzleInteractionCounts[stageIndex]++;
+                if (blockedPuzzleInteractionCounts[stageIndex] >= 2)
+                    ShowContextHintOnce(stageIndex == 1 ? 0 : 3, missingHintsMessage);
+                return;
+            }
+
+            if (stageIndex == stages.Count - 1 &&
+                (!IsStageComplete(0) || !IsStageComplete(1) || !IsStageComplete(2)))
+                ShowContextHintOnce(6, missingHintsMessage);
+        }
+
+        /// <summary>Called only after a complete puzzle answer is evaluated as incorrect.</summary>
+        public void NotifyPuzzleFailedAttempt(int stageIndex)
+        {
+            if (failedPuzzleAttemptCounts == null || stageIndex < 1 || stageIndex > 2 ||
+                IsStageComplete(stageIndex)) return;
+
+            int attempts = ++failedPuzzleAttemptCounts[stageIndex];
+            if (stageIndex == 1)
+            {
+                if (attempts == 2)
+                    ShowContextHintOnce(1, fishObservationMessage);
+                else if (attempts == 3)
+                    ShowContextHintOnce(2, colorSequenceMessage);
+            }
+            else
+            {
+                if (attempts == 2)
+                    ShowContextHintOnce(4, patternObservationMessage);
+                else if (attempts == 3)
+                    ShowContextHintOnce(5, colorSequenceMessage);
+            }
+        }
+
+        private void ShowContextHintOnce(int hintIndex, string message)
+        {
+            if (shownContextHints == null || hintIndex < 0 || hintIndex >= shownContextHints.Length ||
+                shownContextHints[hintIndex] || string.IsNullOrWhiteSpace(message)) return;
+
+            shownContextHints[hintIndex] = true;
+            player?.GetComponent<PlayerInteraction>()?.ShowContextHint(message);
         }
 
         /// <summary>Called by Puzzle 1 after its casing has opened.</summary>

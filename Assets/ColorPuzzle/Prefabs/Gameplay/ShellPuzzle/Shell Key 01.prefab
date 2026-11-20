@@ -10,7 +10,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 420561020176303663, guid: e8ed4bc975e554901af77ba35707ec35, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.011
+      value: -0.001
       objectReference: {fileID: 0}
     - target: {fileID: 2263481553885104988, guid: e8ed4bc975e554901af77ba35707ec35, type: 3}
       propertyPath: colorViewTint.b

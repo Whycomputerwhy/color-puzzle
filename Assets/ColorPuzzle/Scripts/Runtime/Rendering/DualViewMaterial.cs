@@ -179,6 +179,30 @@ namespace ColorPuzzle.Rendering
             ApplyAuthoringPreviewTint();
         }
 
+        /// <summary>
+        /// Assigns authored material sets to a runtime-created visual. This keeps
+        /// small generated details in the same two-view system as prefab meshes.
+        /// </summary>
+        public void ConfigureMaterialSets(Material[] greyscale, Material[] color)
+        {
+            if (!HasMaterials(greyscale) || !HasMaterials(color)) return;
+
+            greyscaleMaterials = greyscale;
+            colorMaterials = color;
+            if (!initialized)
+            {
+                Initialize(targetRenderer != null ? targetRenderer : GetComponent<Renderer>(), legacyColorProxy);
+                return;
+            }
+
+            resolvedGreyscaleMaterials = greyscaleMaterials;
+            resolvedColorMaterials = colorMaterials;
+            usesFallbackColor = false;
+            if (targetRenderer != null)
+                targetRenderer.sharedMaterials = resolvedGreyscaleMaterials;
+            CreateSphereRevealProxy();
+        }
+
         /// <summary>Fade both authored views without editing shared material assets.</summary>
         public void SetOpacityMultiplier(float multiplier)
         {

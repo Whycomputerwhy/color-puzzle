@@ -44,6 +44,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Number Dial 04
       objectReference: {fileID: 0}
+    - target: {fileID: 3233831991422445994, guid: 65665e7afb0b64db1998eab400f84209, type: 3}
+      propertyPath: colorMaterials.Array.data[0]
+      value:
+      objectReference: {fileID: 2100000, guid: 936d504d9ac7b4e5bbfe1ba86fdbb0ad, type: 2}
+    - target: {fileID: 3700002897625663118, guid: 65665e7afb0b64db1998eab400f84209, type: 3}
+      propertyPath: colorMaterials.Array.data[0]
+      value:
+      objectReference: {fileID: 2100000, guid: 936d504d9ac7b4e5bbfe1ba86fdbb0ad, type: 2}
+    - target: {fileID: 4646634162825379353, guid: 65665e7afb0b64db1998eab400f84209, type: 3}
+      propertyPath: colorMaterials.Array.data[0]
+      value:
+      objectReference: {fileID: 2100000, guid: 936d504d9ac7b4e5bbfe1ba86fdbb0ad, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

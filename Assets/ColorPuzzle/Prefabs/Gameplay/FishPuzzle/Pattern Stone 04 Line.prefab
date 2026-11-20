@@ -123,7 +123,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5fa90e9b0b6f48aeab877f073df59e62, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.Rendering.DualViewMaterial
   greyscaleMaterials:
   - {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400022, type: 2}
@@ -142,6 +142,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1621371381023741979}
   - component: {fileID: 1094530205280674123}
+  - component: {fileID: 910100000000000004}
   m_Layer: 0
   m_Name: Pattern Stone 04 Line
   m_TagString: Untagged
@@ -186,6 +187,26 @@ MonoBehaviour:
   pickupVolume: 0.16
   dropClip: {fileID: 0}
   dropVolume: 0.18
+--- !u!114 &910100000000000004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3819207376613938114}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a0f2b3c4d5e6f7890abcdef12345678, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPuzzle.PatternEndpointMarkers
+  endpointPositions:
+  - {x: -0.25, y: 0.203, z: 0}
+  - {x: 0.25, y: 0.203, z: 0}
+  markerRadius: 0.032
+  markerHeight: 0.016
+  heightAbovePattern: 0.001
+  greyscaleMaterial: {fileID: 2100000, guid: c51a6e3d6f644d42b1e1fa4919400021, type: 2}
+  colorMaterial: {fileID: 2100000, guid: 936d504d9ac7b4e5bbfe1ba86fdbb0ad, type: 2}
 --- !u!1 &8545763115460931115
 GameObject:
   m_ObjectHideFlags: 0
@@ -214,7 +235,7 @@ Transform:
   m_GameObject: {fileID: 8545763115460931115}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.165, z: 0}
+  m_LocalPosition: {x: 0, y: 0.13, z: 0}
   m_LocalScale: {x: 0.5, y: 0.025, z: 0.045}
   m_ConstrainProportionsScale: 0
   m_Children: []

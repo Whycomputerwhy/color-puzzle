@@ -14,6 +14,8 @@ namespace ColorPuzzle
         [Header("Interaction")]
         [Tooltip("How far from the slot's center the player can aim and still place a carried key.")]
         [SerializeField, Min(0.1f)] private float placementAimRadius = 0.9f;
+        [Tooltip("Campaign stage that owns this slot. Puzzle 4 uses index 3.")]
+        [SerializeField, Min(0)] private int campaignStageIndex = 3;
 
         private ShellPuzzlePiece placedKey;
 
@@ -32,6 +34,13 @@ namespace ColorPuzzle
         {
             swappedOutKey = null;
             if (key == null || key == placedKey) return false;
+
+            OceanCampaignManager campaign = OceanCampaignManager.Active;
+            if (campaign != null && !campaign.CanAttemptStage(campaignStageIndex))
+            {
+                campaign.NotifyBlockedPuzzleInteraction(campaignStageIndex);
+                return false;
+            }
 
             ShellPuzzlePiece previousKey = placedKey;
             if (!key.PlaceOnDialSlot(this)) return false;

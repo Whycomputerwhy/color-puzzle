@@ -45,7 +45,6 @@ namespace ColorPuzzle
         };
 
         private bool solved;
-        private bool[] revealedDialGroups;
         // The first answer is only valid once every dial has been moved away
         // from its authored starting value of 1. Once a complete answer has
         // failed, every later dial release is still an answer check.
@@ -68,7 +67,6 @@ namespace ColorPuzzle
             // requiring a prefab rebuild that could disturb their manual layout.
             if (correctCombinationClip == null)
                 correctCombinationClip = Resources.Load<AudioClip>("Audio/CorrectShellPlacementAndReveal");
-            revealedDialGroups = new bool[dials != null ? dials.Length : 0];
         }
 
         public bool CanRotate(NumberDial dial) =>
@@ -77,7 +75,11 @@ namespace ColorPuzzle
         public bool TryRotate(NumberDial dial)
         {
             OceanCampaignManager campaign = OceanCampaignManager.Active;
-            if (campaign != null && !campaign.CanAttemptStage(campaignStageIndex)) return false;
+            if (campaign != null && !campaign.CanAttemptStage(campaignStageIndex))
+            {
+                campaign.NotifyBlockedPuzzleInteraction(campaignStageIndex);
+                return false;
+            }
             campaign?.NotifyPuzzleInteraction(campaignStageIndex);
             if (!CanRotate(dial)) return false;
             dial.Advance();
@@ -108,7 +110,6 @@ namespace ColorPuzzle
             if (!AllKeySlotsAreOccupied()) return;
 
             hasSubmittedCompleteCombination = true;
-            RevealCompletedDialGroups();
             if (!HasCorrectCombination())
             {
                 PlayFailedAttemptFeedback();
@@ -148,25 +149,6 @@ namespace ColorPuzzle
             foreach (FinalDialKeySlot slot in keySlots)
                 if (slot == null || slot.PlacedKey == null) return false;
             return true;
-        }
-
-        private void RevealCompletedDialGroups()
-        {
-            if (keySlots == null || keySlots.Length != dials.Length) return;
-            if (revealedDialGroups == null || revealedDialGroups.Length != dials.Length)
-                revealedDialGroups = new bool[dials.Length];
-            for (int index = 0; index < dials.Length; index++)
-            {
-                if (revealedDialGroups[index] || dials[index] == null || keySlots[index] == null ||
-                    dials[index].CurrentValue != dials[index].TargetValue ||
-                    !keySlots[index].IsCorrectlyFilled) continue;
-                revealedDialGroups[index] = true;
-                foreach (DualViewMaterial visual in dials[index].GetComponentsInChildren<DualViewMaterial>(true))
-                    visual.SetColorInGreyscaleCamera(true);
-                keySlots[index].RevealColorInNormalView();
-                foreach (DualViewMaterial visual in keySlots[index].GetComponentsInChildren<DualViewMaterial>(true))
-                    visual.SetColorInGreyscaleCamera(true);
-            }
         }
 
         private bool AllDialsHaveLeftStartingValue()
@@ -219,7 +201,6 @@ namespace ColorPuzzle
                 {
                     visual.SetColorViewEnabled(true);
                     visual.SetColorInGreyscaleCamera(true);
-                    visual.SetColorViewTint(tint);
                 }
 
                 foreach (TextMesh label in dial.GetComponentsInChildren<TextMesh>(true))
@@ -230,6 +211,7 @@ namespace ColorPuzzle
         private void PlayFailedAttemptFeedback()
         {
             TelemetryManager.RecordFailedAttempt();
+            OceanCampaignManager.Active?.NotifyPuzzleFailedAttempt(campaignStageIndex);
             GameAudioMaster master = GameAudioMaster.Instance;
             if ((master == null || master.Library == null || !master.PlaySfx(master.Library.puzzleFail)) &&
                 wrongCombinationClip != null)

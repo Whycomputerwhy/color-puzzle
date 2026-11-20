@@ -102,9 +102,14 @@ namespace ColorPuzzle
         {
             swappedOutKey = null;
             if (!IsReady || complete || campaign == null || key == null || keyhole == null ||
-                !Owns(key) || !Owns(keyhole) ||
-                !campaign.CanAttemptStage(stageIndex))
+                !Owns(key) || !Owns(keyhole))
                 return false;
+
+            if (!campaign.CanAttemptStage(stageIndex))
+            {
+                campaign.NotifyBlockedPuzzleInteraction(stageIndex);
+                return false;
+            }
 
             campaign.NotifyPuzzleInteraction(stageIndex);
 
@@ -134,6 +139,7 @@ namespace ColorPuzzle
                 if (!hole.IsCorrectlyFilled)
                 {
                     TelemetryManager.RecordFailedAttempt();
+                    campaign.NotifyPuzzleFailedAttempt(stageIndex);
                     PlayPuzzleCue(false);
                     // Begins in the same frame as the audio: a short, restrained
                     // whole-combination response rather than a penalty per key.

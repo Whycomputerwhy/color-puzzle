@@ -20,7 +20,7 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 3e1fb0fafcb7b4482a13137d08bfb407, type: 3}
     - {fileID: 8300000, guid: b5fc084d2f6dc47558f8b1cee741f363, type: 3}
     - {fileID: 8300000, guid: c79b71f43bb8f449b89628f7bd5083f4, type: 3}
-    volume: 0.12
+    volume: 0.24
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
@@ -28,7 +28,7 @@ MonoBehaviour:
   jumpWater:
     clips:
     - {fileID: 8300000, guid: a86ccf8fe6a8d4f33aa89977fee34049, type: 3}
-    volume: 0.14
+    volume: 0.28
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
@@ -41,7 +41,7 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 3e1fb0fafcb7b4482a13137d08bfb407, type: 3}
     - {fileID: 8300000, guid: b5fc084d2f6dc47558f8b1cee741f363, type: 3}
     - {fileID: 8300000, guid: c79b71f43bb8f449b89628f7bd5083f4, type: 3}
-    volume: 0.12
+    volume: 0.24
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
@@ -49,7 +49,7 @@ MonoBehaviour:
   pickupSand:
     clips:
     - {fileID: 8300000, guid: 36d6b4d7d36ee4253a713dfbf1d13de1, type: 3}
-    volume: 0.18
+    volume: 0.36
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
@@ -57,7 +57,7 @@ MonoBehaviour:
   dropSand:
     clips:
     - {fileID: 8300000, guid: dddaa08df787941e7b21b25049153615, type: 3}
-    volume: 0.16
+    volume: 0.32
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
@@ -65,14 +65,14 @@ MonoBehaviour:
   magnifierOpen:
     clips:
     - {fileID: 8300000, guid: d00d1a1f1a6a3480a833c25799207811, type: 3}
-    volume: 0.14
+    volume: 0.28
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
     loop: 0
   magnifierClose:
     clips: []
-    volume: 0.14
+    volume: 0.28
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
@@ -80,7 +80,7 @@ MonoBehaviour:
   clamOpen:
     clips:
     - {fileID: 8300000, guid: ed9e48ac9a5cc41c0ad50995af33b6a5, type: 3}
-    volume: 0.2
+    volume: 0.4
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
@@ -88,7 +88,7 @@ MonoBehaviour:
   fishSwim:
     clips:
     - {fileID: 8300000, guid: 08fb7c5b287e247c5b154c822d9b01d1, type: 3}
-    volume: 0.08
+    volume: 0.16
     minimumPitch: 1
     maximumPitch: 1
     spatial: 1
@@ -96,7 +96,7 @@ MonoBehaviour:
   seaweedFall:
     clips:
     - {fileID: 8300000, guid: 0c730ec8f59e040d4981fef0b57a0a23, type: 3}
-    volume: 0.18
+    volume: 0.36
     minimumPitch: 1
     maximumPitch: 1
     spatial: 1
@@ -104,14 +104,14 @@ MonoBehaviour:
   turtleMove:
     clips:
     - {fileID: 8300000, guid: 5605a0432090a4fa381adf531b3bbf70, type: 3}
-    volume: 0.2
+    volume: 0.4
     minimumPitch: 1
     maximumPitch: 1
     spatial: 1
     loop: 0
   heartHum:
     clips: []
-    volume: 0.12
+    volume: 0.24
     minimumPitch: 1
     maximumPitch: 1
     spatial: 1
@@ -119,14 +119,14 @@ MonoBehaviour:
   heartProgress:
     clips:
     - {fileID: 8300000, guid: 64e0d869103324f31b8cee69fa56bb45, type: 3}
-    volume: 0.18
+    volume: 0.36
     minimumPitch: 1
     maximumPitch: 1
     spatial: 1
     loop: 0
   puzzleButton:
     clips: []
-    volume: 0.15
+    volume: 0.3
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
@@ -134,7 +134,7 @@ MonoBehaviour:
   puzzleDial:
     clips:
     - {fileID: 8300000, guid: f8f47fa7195484ed6be3559810a45451, type: 3}
-    volume: 0.14
+    volume: 0.28
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
@@ -142,7 +142,7 @@ MonoBehaviour:
   puzzleCorrect:
     clips:
     - {fileID: 8300000, guid: f00ff693d5ad246d48ef7dadef4e8f96, type: 3}
-    volume: 0.24
+    volume: 0.48
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
@@ -150,7 +150,7 @@ MonoBehaviour:
   puzzleElementColorReveal:
     clips:
     - {fileID: 8300000, guid: 36c2f9b4ad0f34ea78872a059f3d2e44, type: 3}
-    volume: 0.2
+    volume: 0.4
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
@@ -158,7 +158,7 @@ MonoBehaviour:
   puzzleFail:
     clips:
     - {fileID: 8300000, guid: f5feced9776304ac18db3243bc5007c0, type: 3}
-    volume: 0.22
+    volume: 0.44
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
@@ -166,7 +166,7 @@ MonoBehaviour:
   finalWorldColorReveal:
     clips:
     - {fileID: 8300000, guid: e30e05e737c2e48b88014ac725e064ad, type: 3}
-    volume: 0.32
+    volume: 0.64
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
@@ -174,7 +174,7 @@ MonoBehaviour:
   oceanAmbience:
     clips:
     - {fileID: 8300000, guid: c6e9a48f5ad2f46dda1503b2467b3684, type: 3}
-    volume: 0.01
+    volume: 0.3
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
@@ -182,7 +182,7 @@ MonoBehaviour:
   oceanMusicBase:
     clips:
     - {fileID: 8300000, guid: 92ae89c04ecfd45db8a83775e468a382, type: 3}
-    volume: 0.12
+    volume: 1
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
@@ -190,7 +190,7 @@ MonoBehaviour:
   oceanMusicPuzzle1:
     clips:
     - {fileID: 8300000, guid: 43a944a0a940b4b64b2cb1e336b38a14, type: 3}
-    volume: 0.15
+    volume: 1
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
@@ -198,7 +198,7 @@ MonoBehaviour:
   oceanMusicPuzzle2:
     clips:
     - {fileID: 8300000, guid: e7a3feda188134e61be827b0dd90ab38, type: 3}
-    volume: 0.15
+    volume: 1
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
@@ -206,7 +206,7 @@ MonoBehaviour:
   oceanMusicPuzzle3:
     clips:
     - {fileID: 8300000, guid: df64ec1f7435d426695a4f43d0012f65, type: 3}
-    volume: 0.15
+    volume: 1
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
@@ -214,7 +214,7 @@ MonoBehaviour:
   oceanMusicPuzzle4:
     clips:
     - {fileID: 8300000, guid: 1ee80c1e86c864fc1828f500eefa483a, type: 3}
-    volume: 0.15
+    volume: 1
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
@@ -222,7 +222,7 @@ MonoBehaviour:
   uiButton:
     clips:
     - {fileID: 8300000, guid: 068ea55e499d649fabc91164fbda918c, type: 3}
-    volume: 0.12
+    volume: 0.24
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
@@ -230,7 +230,7 @@ MonoBehaviour:
   uiSlider:
     clips:
     - {fileID: 8300000, guid: 976a0e2aecec8409aa5d4254dd26b3ee, type: 3}
-    volume: 0.08
+    volume: 0.16
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
