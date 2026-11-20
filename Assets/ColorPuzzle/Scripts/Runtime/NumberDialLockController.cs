@@ -30,6 +30,20 @@ namespace ColorPuzzle
         [SerializeField] private bool revealPuzzleColorOnSuccess = true;
         [SerializeField] private FinalHeartVictory finalHeartVictory;
 
+        [Header("Puzzle 3 solved dial appearance")]
+        [Tooltip("Applies only to a number-only lock (Puzzle 3), not the final key-and-dial puzzle.")]
+        [SerializeField] private bool colorNumberDialsOnSuccess = true;
+        [Tooltip("One colour per dial, left to right. Extra dials repeat this sequence.")]
+        [SerializeField] private Color[] completedDialColors =
+        {
+            // Shared Puzzle Blue / Yellow / Red / Green palette, matching the
+            // pearl, fish, and key-stone materials used throughout the campaign.
+            new Color(0.25f, 0.77f, 0.96f, 1f),
+            new Color(0.97f, 0.79f, 0.28f, 1f),
+            new Color(0.94f, 0.28f, 0.28f, 1f),
+            new Color(0.22f, 0.78f, 0.36f, 1f)
+        };
+
         private bool solved;
         private bool[] revealedDialGroups;
         // The first answer is only valid once every dial has been moved away
@@ -178,6 +192,39 @@ namespace ColorPuzzle
             if (keySlots != null)
                 foreach (FinalDialKeySlot slot in keySlots)
                     if (slot != null && slot.IsCorrectlyFilled) slot.RevealColorInNormalView();
+
+            RevealCompletedNumberDials();
+        }
+
+        /// <summary>
+        /// Puzzle 3's wheel labels use a depth-writing baked font rather than a
+        /// DualViewMaterial, so revealing only the mesh materials left the dials
+        /// visually monochrome. Reveal both the geometry and its label ink here.
+        /// </summary>
+        private void RevealCompletedNumberDials()
+        {
+            // Puzzle 4 already reveals each combined dial individually. This is
+            // specifically the all-at-once success presentation for Puzzle 3.
+            if (!colorNumberDialsOnSuccess || (keySlots != null && keySlots.Length > 0) ||
+                dials == null || completedDialColors == null || completedDialColors.Length == 0)
+                return;
+
+            for (int index = 0; index < dials.Length; index++)
+            {
+                NumberDial dial = dials[index];
+                if (dial == null) continue;
+                Color tint = completedDialColors[index % completedDialColors.Length];
+
+                foreach (DualViewMaterial visual in dial.GetComponentsInChildren<DualViewMaterial>(true))
+                {
+                    visual.SetColorViewEnabled(true);
+                    visual.SetColorInGreyscaleCamera(true);
+                    visual.SetColorViewTint(tint);
+                }
+
+                foreach (TextMesh label in dial.GetComponentsInChildren<TextMesh>(true))
+                    if (label != null) label.color = tint;
+            }
         }
 
         private void PlayFailedAttemptFeedback()

@@ -322,6 +322,20 @@ namespace ColorPuzzle
                 }
             }
 
+            // Puzzle 4 keys rest inside a dial recess. The recess collider is
+            // intentionally in front of the stone, so a normal pickup ray hits
+            // the dial first and would otherwise make the placed key impossible
+            // to retrieve. Use the slot's authored center target as a fallback.
+            if (TryFindPlacedFinalDialKeyForPickup(out ShellPuzzlePiece dialKey) &&
+                dialKey.PickUp())
+            {
+                carriedShellKey = dialKey;
+                TelemetryManager.RecordObjectPickup();
+                ResetInteractionCue();
+                RefreshInventoryHud();
+                return;
+            }
+
             DiscoverableObject item = FindPickupObjectInAim();
             if (item == null)
                 item = FindPickupObjectBelowPlayer();
@@ -523,6 +537,31 @@ namespace ColorPuzzle
                 nearestDistance = hit.distance;
             }
             return selectedKey != null;
+        }
+
+        /// <summary>
+        /// Finds a removable key seated in a Puzzle 4 dial, even when the dial's
+        /// own central collider blocks the ordinary object-pickup ray.
+        /// </summary>
+        private bool TryFindPlacedFinalDialKeyForPickup(out ShellPuzzlePiece selectedKey)
+        {
+            selectedKey = null;
+            if (viewCamera == null) return false;
+
+            if (TryFindAimedOccupiedFinalDialKeySlot(out FinalDialKeySlot aimedSlot))
+            {
+                ShellPuzzlePiece aimedKey = aimedSlot.PlacedKey;
+                if (aimedKey != null && aimedKey.CanPickUp)
+                {
+                    selectedKey = aimedKey;
+                    return true;
+                }
+            }
+
+            // Retain the small aim assist used by direct key-slot swaps. This is
+            // especially useful for low-profile slabs whose imported colliders do
+            // not cover the entire visible patterned face.
+            return TryFindFocusedPlacedDialKey(placementCastRadius, out selectedKey);
         }
 
         private bool HasFinalDialSlotLineOfSight(FinalDialKeySlot slot, Vector3 origin, Vector3 toSlot)
@@ -1232,6 +1271,19 @@ namespace ColorPuzzle
             // Carrying has only one contextual cue: a valid matching placement.
             // Ordinary left-click drops remain available but are never suggested.
             if (carried != null || carriedShellKey != null) return false;
+
+            // A Puzzle 4 dial's recess blocks the direct ray to a seated slab.
+            // Show the same cue the slab would receive in open space, so its
+            // removable state is both discoverable and consistent with the input.
+            if (TryFindPlacedFinalDialKeyForPickup(out ShellPuzzlePiece seatedDialKey))
+            {
+                cueTarget = seatedDialKey;
+                cueLabel = "LMB PICK UP";
+                cueRenderer = seatedDialKey.CueRenderer;
+                cueColorRenderer = cueRenderer;
+                supportsGlow = cueRenderer != null;
+                return true;
+            }
 
             if (!TryFindNearestPickupHit(0f, out RaycastHit centerHit)) return false;
             MagnifierPickup ability = centerHit.collider.GetComponentInParent<MagnifierPickup>();
