@@ -1061,6 +1061,7 @@ MonoBehaviour:
   correctCombinationClip: {fileID: 0}
   correctCombinationVolume: 0.3
   revealPuzzleColorOnSuccess: 1
+  hideDialColorUntilSolved: 1
 --- !u!1 &6355008395410553250
 GameObject:
   m_ObjectHideFlags: 0

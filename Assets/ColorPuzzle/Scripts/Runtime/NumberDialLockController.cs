@@ -33,6 +33,8 @@ namespace ColorPuzzle
         [Header("Puzzle 3 solved dial appearance")]
         [Tooltip("Applies only to a number-only lock (Puzzle 3), not the final key-and-dial puzzle.")]
         [SerializeField] private bool colorNumberDialsOnSuccess = true;
+        [Tooltip("Keeps Puzzle 3's dial geometry monochrome in the magnifier until the lock is solved.")]
+        [SerializeField] private bool hideDialColorUntilSolved = true;
         [Tooltip("One colour per dial, left to right. Extra dials repeat this sequence.")]
         [SerializeField] private Color[] completedDialColors =
         {
@@ -67,6 +69,9 @@ namespace ColorPuzzle
             // requiring a prefab rebuild that could disturb their manual layout.
             if (correctCombinationClip == null)
                 correctCombinationClip = Resources.Load<AudioClip>("Audio/CorrectShellPlacementAndReveal");
+
+            if (ShouldHideDialColorUntilSolved())
+                SetNumberDialColorVisible(false);
         }
 
         public bool CanRotate(NumberDial dial) =>
@@ -205,6 +210,28 @@ namespace ColorPuzzle
 
                 foreach (TextMesh label in dial.GetComponentsInChildren<TextMesh>(true))
                     if (label != null) label.color = tint;
+            }
+        }
+
+        private bool ShouldHideDialColorUntilSolved()
+        {
+            // Stage 3 is the number-only turtle lock. Puzzle 4 deliberately
+            // manages its own key and dial colour state as inputs are solved.
+            return hideDialColorUntilSolved && campaignStageIndex == 2 &&
+                   (keySlots == null || keySlots.Length == 0);
+        }
+
+        private void SetNumberDialColorVisible(bool visible)
+        {
+            if (dials == null) return;
+            foreach (NumberDial dial in dials)
+            {
+                if (dial == null) continue;
+                foreach (DualViewMaterial visual in dial.GetComponentsInChildren<DualViewMaterial>(true))
+                {
+                    visual.SetColorViewEnabled(visible);
+                    visual.SetColorInGreyscaleCamera(visible);
+                }
             }
         }
 

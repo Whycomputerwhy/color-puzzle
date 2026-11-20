@@ -75,6 +75,11 @@ namespace ColorPuzzle.Rendering
             // colour meshes.
             UnderwaterOceanBackdrop.SetFinalRevealBackdropVisible(true);
             ActivateAuthoredColorProxies();
+            // DualViewMaterial owns an exact mesh copy for its colour reveal.
+            // Unlike an authored child proxy, it is drawn after the monochrome
+            // base, which prevents large coplanar surfaces (notably the ocean
+            // floor) from losing their colour copy to the depth buffer.
+            DualViewMaterial.SetSphereRevealProxiesVisible(true);
             // Keep the reveal sphere as a material clip only.  The temporary
             // blue interior-volume renderer was effectively a second ocean
             // background, so it produced a mismatched reveal before the real
@@ -93,6 +98,7 @@ namespace ColorPuzzle.Rendering
             sourceMaskSaved = false;
             UnderwaterOceanBackdrop.SetFinalRevealBackdropVisible(false);
             RestoreAuthoredColorProxies();
+            DualViewMaterial.SetSphereRevealProxiesVisible(false);
             RestoreGreyscaleRenderers();
             if (revealVolume != null) revealVolume.SetActive(false);
             Shader.SetGlobalFloat(EnabledId, 0f);
@@ -156,7 +162,10 @@ namespace ColorPuzzle.Rendering
                     if (original[i] == null) continue;
                     clipped[i] = new Material(original[i])
                     {
-                        name = original[i].name + " (Final Reveal)"
+                        name = original[i].name + " (Final Reveal)",
+                        // Render after the monochrome base at the same depth.
+                        // This keeps authored legacy proxies reliable too.
+                        renderQueue = Mathf.Max(2501, original[i].renderQueue)
                     };
                     clipped[i].SetFloat(SphereRevealProxyId, 1f);
                 }

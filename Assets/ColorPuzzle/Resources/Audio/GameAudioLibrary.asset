@@ -80,7 +80,7 @@ MonoBehaviour:
   clamOpen:
     clips:
     - {fileID: 8300000, guid: ed9e48ac9a5cc41c0ad50995af33b6a5, type: 3}
-    volume: 0.4
+    volume: 0
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
@@ -96,7 +96,7 @@ MonoBehaviour:
   seaweedFall:
     clips:
     - {fileID: 8300000, guid: 0c730ec8f59e040d4981fef0b57a0a23, type: 3}
-    volume: 0.36
+    volume: 0
     minimumPitch: 1
     maximumPitch: 1
     spatial: 1
@@ -104,7 +104,7 @@ MonoBehaviour:
   turtleMove:
     clips:
     - {fileID: 8300000, guid: 5605a0432090a4fa381adf531b3bbf70, type: 3}
-    volume: 0.4
+    volume: 0
     minimumPitch: 1
     maximumPitch: 1
     spatial: 1
@@ -174,7 +174,7 @@ MonoBehaviour:
   oceanAmbience:
     clips:
     - {fileID: 8300000, guid: c6e9a48f5ad2f46dda1503b2467b3684, type: 3}
-    volume: 0.3
+    volume: 0.15
     minimumPitch: 1
     maximumPitch: 1
     spatial: 0
