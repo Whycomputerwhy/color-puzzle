@@ -150,6 +150,13 @@ namespace ColorPuzzle
         {
             if (!CanAttemptStage(stageIndex)) return false;
             completedStages[stageIndex] = true;
+
+            // A player may have already tried the final puzzle before earning
+            // Puzzle 1's clue. Let that specific guidance appear once more after
+            // Puzzle 1, while Puzzles 2 and 3 are still needed.
+            if (stageIndex == 0 && shownContextHints != null && shownContextHints.Length > 6)
+                shownContextHints[6] = false;
+
             GameAudioMaster.Instance?.SetOceanMusicPuzzleCompleted(stageIndex + 1, true);
 
             // Puzzle 2 and Puzzle 3 form an unordered pair. Their telemetry is
@@ -198,6 +205,16 @@ namespace ColorPuzzle
             if (stageIndex == 1 || stageIndex == 2) return IsStageComplete(0);
             if (stageIndex == 3) return IsStageComplete(1) && IsStageComplete(2);
             return stageIndex == currentStageIndex;
+        }
+
+        /// <summary>Returns whether the authored stage containing this object is currently playable.</summary>
+        public bool CanInteractWithPuzzleElement(Component element)
+        {
+            if (element == null || stages.Count == 0) return true;
+            OceanCampaignStage stage = element.GetComponentInParent<OceanCampaignStage>();
+            if (stage == null) return true;
+            int stageIndex = stages.IndexOf(stage);
+            return stageIndex < 0 || CanAttemptStage(stageIndex);
         }
 
         /// <summary>Called when a player first manipulates a currently available puzzle.</summary>

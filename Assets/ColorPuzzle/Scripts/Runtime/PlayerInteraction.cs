@@ -114,7 +114,7 @@ namespace ColorPuzzle
 
         [Header("Contextual Hints")]
         [SerializeField, Min(0f)] private float contextHintVisibleDuration = 4f;
-        [SerializeField, Min(0f)] private float contextHintVerticalOffset = 140f;
+        [SerializeField, Min(0f)] private float contextHintVerticalOffset = 120f;
 
         private DiscoverableObject carried;
         private ShellPuzzlePiece carriedShellKey;
@@ -243,6 +243,13 @@ namespace ColorPuzzle
 
         private bool TryBeginNumberDialHold()
         {
+            // A seated Puzzle 4 slab is the more specific target. Its collider
+            // can sit behind the dial recess, so resolve the same precise shape
+            // test used by the hover glow before allowing the dial to capture LMB.
+            // This makes a glowing slab reliably pick up, while every other part
+            // of the dial—including its outer rim—continues to rotate it.
+            if (TryFindPlacedFinalDialKeyForPickup(out _)) return false;
+
             // UpdateInteractionCue runs immediately before input. Reusing its
             // candidate means the visible dial cue and LMB targeting share one
             // answer, instead of two slightly different raycast decisions.
@@ -1186,12 +1193,13 @@ namespace ColorPuzzle
                 return;
             }
 
-            if (!showedPickupTutorial && (cueTarget is ShellPuzzlePiece || cueTarget is DiscoverableObject))
+            if (!showedPickupTutorial && (cueTarget is ShellPuzzlePiece || cueTarget is DiscoverableObject) &&
+                IsInteractionTutorialUnlocked(cueTarget))
             {
                 showedPickupTutorial = true;
                 ShowTutorial("LMB pick up / drop", TutorialAction.PickUpOrDrop);
             }
-            if (!showedDialTutorial && cueTarget is NumberDial)
+            if (!showedDialTutorial && cueTarget is NumberDial && IsInteractionTutorialUnlocked(cueTarget))
             {
                 showedDialTutorial = true;
                 ShowTutorial("HOLD LMB rotate", TutorialAction.RotateDial);
@@ -1226,6 +1234,13 @@ namespace ColorPuzzle
                 float easedOpacity = fadeProgress * fadeProgress * (3f - 2f * fadeProgress);
                 ShowInteractionCueGlow(cueTarget, cueRenderer, cueColorRenderer, easedOpacity);
             }
+        }
+
+        private static bool IsInteractionTutorialUnlocked(Object cueTarget)
+        {
+            if (cueTarget is not Component component) return true;
+            OceanCampaignManager campaign = OceanCampaignManager.Active;
+            return campaign == null || campaign.CanInteractWithPuzzleElement(component);
         }
 
         private bool TryGetInteractionCueCandidate(
@@ -1475,17 +1490,17 @@ namespace ColorPuzzle
             rect.SetParent(canvas.transform, false);
             rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0f);
             rect.pivot = new Vector2(0.5f, 0f);
-            rect.anchoredPosition = new Vector2(0f, 92f);
-            rect.sizeDelta = new Vector2(300f, 42f);
+            rect.anchoredPosition = new Vector2(0f, 72f);
+            rect.sizeDelta = new Vector2(1100f, 84f);
             rect.SetAsLastSibling();
 
             tutorialText = tutorialHudRoot.GetComponent<Text>();
             tutorialText.font = statusText.font != null
                 ? statusText.font
                 : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            tutorialText.fontSize = 18;
+            tutorialText.fontSize = 36;
             tutorialText.alignment = TextAnchor.MiddleCenter;
-            tutorialText.color = new Color(0.12f, 0.12f, 0.12f, 1f);
+            tutorialText.color = Color.black;
             tutorialText.horizontalOverflow = HorizontalWrapMode.Overflow;
             tutorialText.verticalOverflow = VerticalWrapMode.Overflow;
             tutorialText.raycastTarget = false;
@@ -1506,18 +1521,18 @@ namespace ColorPuzzle
             rect.SetParent(canvas.transform, false);
             rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0f);
             rect.pivot = new Vector2(0.5f, 0f);
-            rect.anchoredPosition = new Vector2(0f, contextHintVerticalOffset);
-            rect.sizeDelta = new Vector2(520f, 58f);
+            rect.anchoredPosition = new Vector2(0f, contextHintVerticalOffset + 24f);
+            rect.sizeDelta = new Vector2(1600f, 84f);
             rect.SetAsLastSibling();
 
             contextHintText = contextHintHudRoot.GetComponent<Text>();
             contextHintText.font = statusText.font != null
                 ? statusText.font
                 : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            contextHintText.fontSize = 18;
+            contextHintText.fontSize = 36;
             contextHintText.alignment = TextAnchor.MiddleCenter;
-            contextHintText.color = new Color(0.12f, 0.12f, 0.12f, 1f);
-            contextHintText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            contextHintText.color = Color.black;
+            contextHintText.horizontalOverflow = HorizontalWrapMode.Overflow;
             contextHintText.verticalOverflow = VerticalWrapMode.Overflow;
             contextHintText.raycastTarget = false;
             contextHintCanvasGroup = contextHintHudRoot.GetComponent<CanvasGroup>();
